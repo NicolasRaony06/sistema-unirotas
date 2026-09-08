@@ -22,7 +22,7 @@ class User(AbstractUser):
     birth_date = models.DateField(null=True, blank=True)
     
 
-    city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
     
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
@@ -39,7 +39,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
-    institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
+    # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField()
 
