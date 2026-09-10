@@ -69,3 +69,4 @@ class StudentProfileForm(forms.ModelForm):
             'course': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ciência da Computação'}),
             'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
         }
+
