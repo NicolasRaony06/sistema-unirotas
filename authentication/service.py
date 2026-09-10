@@ -9,7 +9,7 @@ def generate_elevated_signup_link(higher_role_email, email, role, request=None):
     cache_key = f"invitation_{token}"
     pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
 
-    cache.set(cache_key, {'email': email, 'role': role}, timeout=86400)
+    cache.set(cache_key, {'email': email, 'role': role, "higher_role_email": higher_role_email}, timeout=86400)
     cache.set(pointer_key, {"cache_key": cache_key}, timeout=86400)
 
     relative_url = reverse('elevated_signup', kwargs={'token': token})

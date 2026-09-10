@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm, StudentProfileForm, LoginForm
-from .models import StudentProfile, User
+from .models import StudentProfile, User, UserRole
 from django.contrib.auth import authenticate, login
 from django.core.signing import Signer, BadSignature
 from django.core.cache import cache
@@ -44,16 +44,24 @@ def signup_with_role(request, token):
     signer = Signer()
 
     try:
-        unsigned_payload = signer.unsign(token)
-        email, role = unsigned_payload.split(':')
+        email = signer.unsign(token)
     except (BadSignature, ValueError):
         return render(request, 'erro_convite.html', {'mensagem': 'Link inválido ou adulterado.'})
 
     cache_key = f"invitation_{token}"
     invitation_data = cache.get(cache_key)
-
+    
     if not invitation_data:
         return render(request, 'erro_convite.html', {'mensagem': 'Este convite expirou ou já foi utilizado.'})
+
+    role = invitation_data.get("role")
+    higher_role_email = invitation_data.get("higher_role_email")
+
+    if higher_role_email:
+        higher = User.objects.filter(email=higher_role_email).first()
+        if higher:
+            if (higher.role == UserRole.ADMIN and role == UserRole.DRIVER) or (higher.role == UserRole.MANAGER and role == UserRole.ADMIN):
+                return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
 
     if request.method == "POST":
         signup_form = UserRegistrationForm(request.POST)
@@ -61,11 +69,12 @@ def signup_with_role(request, token):
             user = signup_form.save(commit=False)
             user.email = email
             user.role = role
+
             user.save()
 
             cache.delete(cache_key)
-            redirect("login")
+            return redirect("login")
     else:
-        signup_form = UserRegistrationForm()
+        signup_form = UserRegistrationForm(initial={'email': email})
 
     return render(request, 'signup.html', {"form_account": signup_form})
