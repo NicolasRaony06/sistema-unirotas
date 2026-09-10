@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm, StudentProfileForm, LoginForm
-from .models import StudentProfile
+from .models import StudentProfile, User
 from django.contrib.auth import authenticate, login
-
+from django.core.signing import Signer, BadSignature
+from django.core.cache import cache
 # Create your views here.
 
 def signup(request):
@@ -38,3 +39,33 @@ def signin(request):
     else:
         form_login = LoginForm()
     return render(request, "login.html", {'form_login': form_login})
+
+def signup_with_role(request, token):
+    signer = Signer()
+
+    try:
+        unsigned_payload = signer.unsign(token)
+        email, role = unsigned_payload.split(':')
+    except (BadSignature, ValueError):
+        return render(request, 'erro_convite.html', {'mensagem': 'Link inválido ou adulterado.'})
+
+    cache_key = f"invitation_{token}"
+    invitation_data = cache.get(cache_key)
+
+    if not invitation_data:
+        return render(request, 'erro_convite.html', {'mensagem': 'Este convite expirou ou já foi utilizado.'})
+
+    if request.method == "POST":
+        signup_form = UserRegistrationForm(request.POST)
+        if signup_form.is_valid():
+            user = signup_form.save(commit=False)
+            user.email = email
+            user.role = role
+            user.save()
+
+            cache.delete(cache_key)
+            redirect("login")
+    else:
+        signup_form = UserRegistrationForm()
+
+    return render(request, 'signup.html', {"form_account": signup_form})

@@ -21,5 +21,6 @@ app_name = 'authentication'
 
 urlpatterns = [
     path('signup/', signup, name='signup'),
-    path('login/', signin, name="login")
+    path('login/', signin, name="login"),
+    path('elaveted/signup/<str:token>', signup_with_role, name="elevated_signup"),
 ]

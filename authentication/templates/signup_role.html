@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Contato</title>
+</head>
+<body>
+    <h1>Entre em Contato</h1>
+    
+    <form method="post" id="multi-step-form">
+    {% csrf_token %}
+    
+
+    <div class="form-step active" id="step1">
+        {{ form_account.full_name }}
+        {{ form_account.birth_date }}
+        <button type="button" class="btn-next">Continuar</button>
+    </div>
+
+
+    <div class="form-step" id="step2" style="display: none;">
+        {{ form_account.password }}
+        {{ form_account.confirm_password }}
+        <button type="submit">Criar Conta</button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const nextButtons = document.querySelectorAll('.btn-next');
+    
+    nextButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const currentStep = this.closest('.form-step');
+            const nextStep = currentStep.nextElementSibling;
+            
+            //depois validar os campos atuais
+
+            if (nextStep && nextStep.classList.contains('form-step')) {
+                currentStep.style.display = 'none';
+                nextStep.style.display = 'block';
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

@@ -57,7 +57,6 @@ class UserRegistrationForm(forms.ModelForm):
             raise ValidationError("senha invalida.")
         return cleaned
 
-
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
