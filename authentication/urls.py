@@ -16,6 +16,7 @@ Including another URLconf
 """
 from .views import *
 from django.urls import path
+from django.contrib.auth.views import LogoutView
 
 app_name = 'authentication'
 
@@ -23,4 +24,5 @@ urlpatterns = [
     path('signup/', signup, name='signup'),
     path('login/', signin, name="login"),
     path('elaveted/signup/<str:token>', signup_with_role, name="elevated_signup"),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
 ]
