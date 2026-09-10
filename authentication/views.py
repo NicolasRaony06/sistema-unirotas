@@ -21,5 +21,3 @@ def signup(request):
         form_account = UserRegistrationForm()
     return render(request, 'signup.html', {'form_student': form_student, "form_account": form_account})
 
-def login(request):
-    pass
