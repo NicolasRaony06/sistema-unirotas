@@ -21,4 +21,5 @@ app_name = 'authentication'
 
 urlpatterns = [
     path('signup/', signup, name='signup'),
+    path('login/', signin, name="login")
 ]

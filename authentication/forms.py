@@ -70,3 +70,32 @@ class StudentProfileForm(forms.ModelForm):
             'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
         }
 
+class LoginForm(forms.Form):
+    email = forms.EmailField(
+            widget=forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'seu@email.com'}
+                ), label = "email")
+
+    password = forms.CharField(
+            widget=forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Senha'}
+                ), label="Senha")
+
+    def clean(self):
+            cleaned = super().clean()
+            if not cleaned:
+                return cleaned
+            
+            password = cleaned.get("password")
+    
+            if self.is_password_invalid(password):
+                raise ValidationError("senha invalida.")
+            return cleaned
+
+    def is_password_invalid(self, password):
+            if not password:
+                return True
+            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+            return not validation
