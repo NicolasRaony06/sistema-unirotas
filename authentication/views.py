@@ -4,6 +4,7 @@ from .models import StudentProfile, User, UserRole
 from django.contrib.auth import authenticate, login
 from django.core.signing import Signer, BadSignature
 from django.core.cache import cache
+from django.db import transaction
 # Create your views here.
 
 def signup(request):
@@ -11,15 +12,19 @@ def signup(request):
         form_student = StudentProfileForm(request.POST)
         form_account = UserRegistrationForm(request.POST)
         if form_student.is_valid() and form_account.is_valid():
-            user = form_account.save()
-            data = form_student.cleaned_data
-            student = StudentProfile(
-                user=user,
-                course=data.get("course"),
-                period=data.get("period"),
-                )
-            student.save()
-            return redirect("login")
+            try:
+                with transaction.atomic():
+                    user = form_account.save()
+                    data = form_student.cleaned_data
+                    student = StudentProfile.objects.create(
+                        user=user,
+                        course=data.get("course"),
+                        period=data.get("period"),
+                    )
+                return redirect("authentication:login")
+            except Exception:
+                # enviar mensagem pro front avisando que houve um erro e que é para tentar novamente
+                pass
     else:
         form_student = StudentProfileForm()
         form_account = UserRegistrationForm()

@@ -44,6 +44,6 @@ def enviar_email_convite(email_destino, link_convite):
         message=mensagem,
         from_email=remetente,
         recipient_list=[email_destino],
-        fail_silently=False, # Se True, abafa erros de envio; False dispara exceção se falhar
+        fail_silently=False,
     )
 
