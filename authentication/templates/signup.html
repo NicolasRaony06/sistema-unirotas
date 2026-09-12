@@ -1,54 +1,225 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Contato</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/signup.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/input-styled.css'%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>Entre em Contato</h1>
-    
-    <form method="post" id="multi-step-form">
-    {% csrf_token %}
-    
 
-    <div class="form-step active" id="step1">
-        {{ form_account.full_name }}
-        {{ form_account.email }}
-        {{ form_account.birth_date }}
-        <button type="button" class="btn-next">Continuar</button>
+<div class="mobile-container">
+     <div class="step-indicator-container">
+            <span class="step-counter-text" id="step-counter-label">1 de 3</span>
+            <div class="steps-track">
+                <div class="step-dot active" id="dot-1">1</div>
+                <div class="step-dot" id="dot-2">2</div>
+                <div class="step-dot" id="dot-3">3</div>
+            </div>
+            <div class="step-labels">
+                <span class="active" id="label-1">Dados pessoais</span>
+                <span id="label-2">Dados acadêmicos</span>
+                <span id="label-3">Segurança</span>
+            </div>
+        </div>
+
+    <div class="top-banner" id="top-banner" style="background-image: url('{% static "images/signup/etapa_1.png" %}');">
+        
     </div>
 
-    <div class="form-step" id="step2" style="display: none;">
-        {{ form_student.course }}
-        {{ form_student.period }}
-        <button type="button" class="btn-next">Continuar</button>
-    </div>
+    <div class="form-card">
+        <form method="post" id="multi-step-form" novalidate>
+            {% csrf_token %}
 
+            <!-- ETAPA 1 -->
+            <div class="form-step active" id="step1">
+                <h2>Criar sua conta</h2>
+                <p class="subtitle">Vamos começar com seus dados pessoais.</p>
 
-    <div class="form-step" id="step3" style="display: none;">
-        {{ form_account.password }}
-        {{ form_account.confirm_password }}
-        <button type="submit">Criar Conta</button>
+                <div class="input-group input-with-icon">
+                    <i class="fa-regular fa-user" style="color: #0047ab;"></i>
+                    {{ form_account.full_name }}
+                </div>
+                <div class="input-group input-with-icon">
+                    <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
+                    {{ form_account.email }}
+                </div>
+                <div class="input-group input-with-icon">
+                    <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
+                    {{ form_account.birth_date }}
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-icon">i</div>
+                    <div class="info-box-text">
+                        <strong>Seus dados estão protegidos</strong>
+                        Utilizamos criptografia e não compartilhamos suas informações com terceiros.
+                    </div>
+                </div>
+
+                <button type="button" class="btn-action btn-next">Continuar</button>
+                <div class="login-footer-text">
+                    Já tem uma conta? <a href="{% url 'authentication:login' %}">Faça login</a>
+                </div>
+            </div>
+
+            <div class="form-step" id="step2">
+                <h2>Dados acadêmicos</h2>
+                <p class="subtitle">Nos conte um pouco sobre sua vida acadêmica</p>
+
+                <div class="input-group input-with-icon">
+                    <i class="fa-solid fa-book" style="color: #0047ab;"></i>
+                    {{ form_student.course }}
+                </div>
+                <div class="input-group input-with-icon">
+                    <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
+                    {{ form_student.period }}
+                </div>
+
+                <div class="info-box" style="margin-top: 1rem;">
+                    <div class="info-box-icon">i</div>
+                    <div class="info-box-text">
+                        <strong>Por que essas informações?</strong>
+                        Esses dados nos ajudam a melhorar sua experiência e oferecer informações mais relevantes para você.
+                    </div>
+                </div>
+
+                <button type="button" class="btn-action btn-next">Continuar</button>
+                <button type="button" class="btn-back btn-prev">Voltar</button>
+            </div>
+
+            <div class="form-step" id="step3">
+                <h2>Proteja sua conta</h2>
+                <p class="subtitle">Crie uma senha segura para proteger seus dados.</p>
+
+                <div class="input-group input-with-icon">
+                    <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
+                    {{ form_account.password }}
+                </div>
+                <div class="input-group input-with-icon">
+                    <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
+                    {{ form_account.confirm_password }}
+                </div>
+
+                <div class="password-requirements">
+                    <div class="req-item invalid" id="req-length">• Mínimo 8 caracteres</div>
+                    <div class="req-item invalid" id="req-lower">• Letra minúscula</div>
+                    <div class="req-item invalid" id="req-upper">• Letra maiúscula</div>
+                    <div class="req-item invalid" id="req-number">• Um número</div>
+                    <div class="req-item invalid" id="req-symbol">• Um símbolo (!@#$%^&*)</div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">Criar conta</button>
+                <button type="button" class="btn-back btn-prev">Voltar</button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const nextButtons = document.querySelectorAll('.btn-next');
+    const prevButtons = document.querySelectorAll('.btn-prev');
+    const steps = document.querySelectorAll('.form-step');
+
+    const topBanner = document.getElementById('top-banner');
+    const stepCounterLabel = document.getElementById('step-counter-label');
     
+    const bgImages = {
+        0: "{% static 'images/signup/etapa_1.png' %}",
+        1: "{% static 'images/signup/etapa_2.png' %}",
+        2: "{% static 'images/signup/etapa_3.png' %}"
+    };
+
+    let currentStepIndex = 0;
+
+    function updateStepIndicator() {
+        topBanner.style.backgroundImage = `url('${bgImages[currentStepIndex]}')`;
+        stepCounterLabel.textContent = `${currentStepIndex + 1} de 3`;
+
+        for (let i = 1; i <= 3; i++) {
+            const dot = document.getElementById(`dot-${i}`);
+            const label = document.getElementById(`label-${i}`);
+            if (i <= currentStepIndex + 1) {
+                dot.classList.add('active');
+                if (i === currentStepIndex + 1) label.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+                label.classList.remove('active');
+            }
+        }
+    }
+
     nextButtons.forEach(button => {
         button.addEventListener('click', function () {
-            const currentStep = this.closest('.form-step');
-            const nextStep = currentStep.nextElementSibling;
-            
-            //depois validar os campos atuais
+            const currentStepDiv = steps[currentStepIndex];
+            const inputs = currentStepDiv.querySelectorAll('input, select');
+            let isValid = true;
 
-            if (nextStep && nextStep.classList.contains('form-step')) {
-                currentStep.style.display = 'none';
-                nextStep.style.display = 'block';
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('error-input');
+                } else {
+                    input.classList.remove('error-input');
+                }
+            });
+
+            if (!isValid) {
+                alert('Por favor, preencha todos os campos obrigatórios desta etapa.');
+                return;
+            }
+
+            if (currentStepIndex < steps.length - 1) {
+                steps[currentStepIndex].classList.remove('active');
+                currentStepIndex++;
+                steps[currentStepIndex].classList.add('active');
+                updateStepIndicator();
             }
         });
     });
+
+    prevButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            if (currentStepIndex > 0) {
+                steps[currentStepIndex].classList.remove('active');
+                currentStepIndex--;
+                steps[currentStepIndex].classList.add('active');
+                updateStepIndicator();
+            }
+        });
+    });
+
+    const passwordInput = document.querySelector('input[name="password"]');
+    const confirmPasswordInput = document.querySelector('input[name="confirm_password"]');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function () {
+            const val = passwordInput.value;
+            
+            checkReq('req-length', val.length >= 8);
+            checkReq('req-lower', /[a-z]/.test(val));
+            checkReq('req-upper', /[A-Z]/.test(val));
+            checkReq('req-number', /\d/.test(val));
+            checkReq('req-symbol', /[\W_]/.test(val));
+        });
+    }
+
+    function checkReq(elementId, condition) {
+        const el = document.getElementById(elementId);
+        if (condition) {
+            el.classList.remove('invalid');
+            el.classList.add('valid');
+            el.textContent = '✓ ' + el.textContent.replace(/^[•✓✕]\s*/, '');
+        } else {
+            el.classList.remove('valid');
+            el.classList.add('invalid');
+            el.textContent = '• ' + el.textContent.replace(/^[•✓✕]\s*/, '');
+        }
+    }
 });
 </script>
 </body>

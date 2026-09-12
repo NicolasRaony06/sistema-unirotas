@@ -74,8 +74,10 @@ class StudentProfileForm(forms.ModelForm):
                   'period']
         widgets = {
             # 'institution': forms.Select(attrs={'class': 'form-select'}),
-            'course': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ciência da Computação'}),
-            'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
+            'course': forms.TextInput(attrs={'class': 'form-control',
+                                             'placeholder': 'Ex: Ciência da Computação'}
+                                             ),
+            'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12, 'placeholder': "periodo cursado"}),
         }
 
 class LoginForm(forms.Form, Validation):

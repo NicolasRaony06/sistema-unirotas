@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrar - UniRota</title>
     <link rel="stylesheet" href="{% static 'styles/login.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/input-styled.css'%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <div class="mobile-container">
-        <!-- Banner Superior com a Imagem de Fundo e o Logo -->
         <div class="top-banner" style="background-image: url('{% static "images/login/Fundo.png" %}');">
             <img src="{% static 'images/login/Logo.png' %}" alt="Logo UniRota" class="logo-img">
         </div>
 
-        <!-- Card Branco Arredondado por cima do banner -->
         <div class="form-card">
             <h2>Bem-vindo de volta!</h2>
             <p class="subtitle">Faça login para continuar</p>
@@ -23,11 +23,15 @@
             <form method="post">
                 {% csrf_token %}
                 
-                <!-- Renderização manual ou estilizada dos campos do form_login -->
-                <div class="input-group">
-                    {{ form_login.email }} <!-- No seu caso, o username é o e-mail -->
+                <div class="input-group input-with-icon">
+                        <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
+
+                        {{ form_login.email }}
                 </div>
-                <div class="input-group">
+                
+                <div class="input-group input-with-icon">
+                    <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
+
                     {{ form_login.password }}
                 </div>
 
