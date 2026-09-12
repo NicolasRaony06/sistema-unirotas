@@ -1,0 +1,185 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container principal simulando a tela do celular */
+.mobile-container {
+    width: 100%;
+    max-width: 414px;
+    height: 100vh;
+    max-height: 896px;
+    background-color: #f7f9fc;
+    position: relative;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Banner superior */
+.top-banner {
+    background-color: #C9DBFA;
+    width: 100%;
+    height: 40%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.logo-img {
+    width: 75%;
+    max-width: 260px;
+    object-fit: contain;
+    margin-bottom: 2rem;
+}
+
+/* Card branco sobreposto */
+.form-card {
+    background: #ffffff;
+    flex: 1;
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.03);
+    margin-top: -25px; /* Sobe o card por cima do banner */
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+}
+
+.form-card h2 {
+    font-size: 1.6rem;
+    color: #1a202c;
+    margin: 0 0 0.25rem 0;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Estilização dos inputs gerados pelo Django */
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    background-color: #fff;
+    box-sizing: border-box;
+    color: #2d3748;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #0047ab;
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+/* Opções abaixo dos inputs (Lembre-me / Esqueci a senha) */
+.form-actions-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    margin: 1rem 0 1.5rem 0;
+}
+
+.remember-me {
+    color: #4a5568;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.forgot-link {
+    color: #0047ab;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* Botão de Entrar */
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    background-color: #0047ab;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 71, 171, 0.2);
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #003580;
+}
+
+.arrow-icon {
+    font-size: 1.2rem;
+}
+
+/* Divisor "Ou" */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #a0aec0;
+    font-size: 0.85rem;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.divider span {
+    padding: 0 1rem;
+}
+
+/* Texto de cadastro inferior */
+.signup-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-top: 1rem;
+}
+
+.signup-text a {
+    color: #0047ab;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup-text a:hover {
+    text-decoration: underline;
+}

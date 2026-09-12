@@ -1,17 +1,57 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/login.css' %}">
 </head>
 <body>
-    <h1>Entrar</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form_login.as_p }}
-        <button type="submit">Entrar</button>
-    </form>
-    <a href="../password_reset">esqueci a minha senha</a>
+    <div class="mobile-container">
+        <!-- Banner Superior com a Imagem de Fundo e o Logo -->
+        <div class="top-banner" style="background-image: url('{% static "images/login/Fundo.png" %}');">
+            <img src="{% static 'images/login/Logo.png' %}" alt="Logo UniRota" class="logo-img">
+        </div>
+
+        <!-- Card Branco Arredondado por cima do banner -->
+        <div class="form-card">
+            <h2>Bem-vindo de volta!</h2>
+            <p class="subtitle">Faça login para continuar</p>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Renderização manual ou estilizada dos campos do form_login -->
+                <div class="input-group">
+                    {{ form_login.email }} <!-- No seu caso, o username é o e-mail -->
+                </div>
+                <div class="input-group">
+                    {{ form_login.password }}
+                </div>
+
+                <div class="form-actions-inline">
+                    <label class="remember-me">
+                        <input type="checkbox"> Lembre-me
+                    </label>
+                    <a href="{% url 'authentication:password_reset' %}" class="forgot-link">Esqueci minha senha</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span class="arrow-icon">→</span> Entrar
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>Ou</span>
+            </div>
+
+            <p class="signup-text">
+                Ainda não tem uma conta? <a href="{% url 'authentication:signup' %}">Cadastre-se</a>
+            </p>
+        </div>
+    </div>
+
 </body>
 </html>
