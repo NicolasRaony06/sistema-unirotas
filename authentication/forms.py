@@ -7,7 +7,21 @@ import re
 
 User = get_user_model()
 
-class UserRegistrationForm(forms.ModelForm):
+class Validation:
+    def is_password_invalid(self, password, confirm_password):
+            if not password or not confirm_password:
+                return True
+            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+            return not validation or password != confirm_password
+
+    def is_password_invalid_login(self, password):
+            if not password:
+                return True
+            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+            return not validation
+    
+
+class UserRegistrationForm(forms.ModelForm, Validation):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
@@ -29,17 +43,12 @@ class UserRegistrationForm(forms.ModelForm):
             'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
-    def is_password_invalid(self, password, confirm_password):
-        if not password or not confirm_password:
-            return True
-        validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
-        return not validation or password != confirm_password
-
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
         user.role = 'STUDENT'
         if commit:
+            user.username = self.cleaned_data["email"]
             user.save()
         return user
 
@@ -57,7 +66,6 @@ class UserRegistrationForm(forms.ModelForm):
             raise ValidationError("senha invalida.")
         return cleaned
 
-
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
@@ -66,6 +74,33 @@ class StudentProfileForm(forms.ModelForm):
                   'period']
         widgets = {
             # 'institution': forms.Select(attrs={'class': 'form-select'}),
-            'course': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ciência da Computação'}),
-            'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
+            'course': forms.TextInput(attrs={'class': 'form-control',
+                                             'placeholder': 'Ex: Ciência da Computação'}
+                                             ),
+            'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12, 'placeholder': "periodo cursado"}),
         }
+
+class LoginForm(forms.Form, Validation):
+    email = forms.EmailField(
+            widget=forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'seu@email.com'}
+                ), label = "email")
+
+    password = forms.CharField(
+            widget=forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Senha'}
+                ), label="Senha")
+
+    def clean(self):
+            cleaned = super().clean()
+            if not cleaned:
+                return cleaned
+            
+            password = cleaned.get("password")
+    
+            if self.is_password_invalid_login(password):
+                raise ValidationError("senha invalida.")
+            return cleaned
+
