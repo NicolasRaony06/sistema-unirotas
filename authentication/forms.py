@@ -13,12 +13,6 @@ class Validation:
                 return True
             validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
             return not validation or password != confirm_password
-
-    def is_password_invalid_login(self, password):
-            if not password:
-                return True
-            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
-            return not validation
     
 
 class UserRegistrationForm(forms.ModelForm, Validation):
@@ -36,7 +30,7 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
     class Meta:
         model = User
-        fields = ["email", "full_name", "birth_date", "password"]
+        fields = ["email", "full_name", "birth_date"]
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'seu@email.com'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
@@ -48,7 +42,6 @@ class UserRegistrationForm(forms.ModelForm, Validation):
         user.set_password(self.cleaned_data["password"])
         user.role = 'STUDENT'
         if commit:
-            user.username = self.cleaned_data["email"]
             user.save()
         return user
 
@@ -64,6 +57,11 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
         if self.is_password_invalid(password, confirm_password):
             raise ValidationError("senha invalida.")
+
+        email = cleaned.get("email")
+        if email:
+            cleaned["email"] = email.lower().strip()
+
         return cleaned
 
 class StudentProfileForm(forms.ModelForm):
@@ -80,7 +78,7 @@ class StudentProfileForm(forms.ModelForm):
             'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12, 'placeholder': "periodo cursado"}),
         }
 
-class LoginForm(forms.Form, Validation):
+class LoginForm(forms.Form):
     email = forms.EmailField(
             widget=forms.EmailInput(attrs={
                 'class': 'form-control',
@@ -94,13 +92,8 @@ class LoginForm(forms.Form, Validation):
                 ), label="Senha")
 
     def clean(self):
-            cleaned = super().clean()
-            if not cleaned:
-                return cleaned
-            
-            password = cleaned.get("password")
-    
-            if self.is_password_invalid_login(password):
-                raise ValidationError("senha invalida.")
-            return cleaned
-
+        cleaned = super().clean()
+        email = cleaned.get("email")
+        if email:
+            cleaned["email"] = email.lower().strip()
+        return cleaned

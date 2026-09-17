@@ -18,16 +18,14 @@ class User(AbstractUser):
         default=UserRole.STUDENT
     )
 
-    
-    birth_date = models.DateField(null=True, blank=True)
-    
+    notifications = models.BooleanField(default=True)
 
-    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
     
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'full_name']
+    REQUIRED_FIELDS = ['full_name']
 
     @property
     def avatar_url(self):
@@ -35,11 +33,18 @@ class User(AbstractUser):
             return self.profile_picture.url
         return '/static/images/default-avatar.png'
 
+    def save(self, *args, **kwargs):
+        if self.email:
+            self.email = self.email.lower().strip()
+            self.username = self.email
+        super().save(*args, **kwargs)
+
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
     # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
+    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField()
 

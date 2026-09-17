@@ -22,9 +22,11 @@ def signup(request):
                         period=data.get("period"),
                     )
                 return redirect("authentication:login")
-            except Exception:
-                # enviar mensagem pro front avisando que houve um erro e que é para tentar novamente
-                pass
+            except Exception as e:
+                print(e)
+                return render(request, 'signup.html', {'form_student': form_student, 'form_account': form_account, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
+                # pos mvp: enviar mensagem pro email caso o usuario ja esteja com email cadastrado e tentando cadastrar novamente
+
     else:
         form_student = StudentProfileForm()
         form_account = UserRegistrationForm()
@@ -54,6 +56,8 @@ def signup_with_role(request, token):
         return render(request, 'erro_convite.html', {'mensagem': 'Link inválido ou adulterado.'})
 
     cache_key = f"invitation_{token}"
+    pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
+
     invitation_data = cache.get(cache_key)
     
     if not invitation_data:
@@ -61,25 +65,35 @@ def signup_with_role(request, token):
 
     role = invitation_data.get("role")
     higher_role_email = invitation_data.get("higher_role_email")
+    higher = User.objects.filter(email__iexact=higher_role_email).first()
+    allowed_invitation = {
+        UserRole.ADMIN: UserRole.MANAGER,
+        UserRole.MANAGER: UserRole.DRIVER
+    }
 
-    if higher_role_email:
-        higher = User.objects.filter(email=higher_role_email).first()
-        if higher:
-            if (higher.role == UserRole.ADMIN and role == UserRole.DRIVER) or (higher.role == UserRole.MANAGER and role == UserRole.ADMIN):
-                return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
+    if not higher:
+        return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
+    if  not role or not higher.is_active or allowed_invitation.get(higher.role) != role:
+            return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
 
     if request.method == "POST":
-        signup_form = UserRegistrationForm(request.POST)
+        post = request.POST.copy()
+        post["email"] = email
+        signup_form = UserRegistrationForm(post)
         if signup_form.is_valid():
-            user = signup_form.save(commit=False)
-            user.email = email
-            user.role = role
+            try:
+                with transaction.atomic():
+                    user = signup_form.save(commit=False)
+                    user.role = role
 
-            user.save()
+                    user.save()
 
-            cache.delete(cache_key)
-            return redirect("login")
+                    cache.delete(cache_key)
+                    cache.delete(pointer_key)
+                    return redirect("authentication:login")
+            except Exception:
+                return render(request, 'signup_role.html', {"form_account": signup_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
     else:
-        signup_form = UserRegistrationForm(initial={'email': email})
+        signup_form = UserRegistrationForm()
 
-    return render(request, 'signup.html', {"form_account": signup_form})
+    return render(request, 'signup_role.html', {"form_account": signup_form})
