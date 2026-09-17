@@ -40,7 +40,6 @@ class UserRegistrationForm(forms.ModelForm, Validation):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
-        user.role = 'STUDENT'
         if commit:
             user.save()
         return user
@@ -54,7 +53,6 @@ class UserRegistrationForm(forms.ModelForm, Validation):
         password = cleaned.get("password")
         confirm_password = cleaned.get("confirm_password")
 
-
         if self.is_password_invalid(password, confirm_password):
             raise ValidationError("senha invalida.")
 
@@ -67,11 +65,13 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = [# 'institution',
+        fields = [# 'city',
+                  # 'institution',
                   'course',
                   'period']
         widgets = {
             # 'institution': forms.Select(attrs={'class': 'form-select'}),
+            # 'city': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.TextInput(attrs={'class': 'form-control',
                                              'placeholder': 'Ex: Ciência da Computação'}
                                              ),

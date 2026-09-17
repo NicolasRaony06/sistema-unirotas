@@ -23,7 +23,7 @@ def signup(request):
                     )
                 return redirect("authentication:login")
             except Exception as e:
-                print(e)
+                print("erro: ", e)
                 return render(request, 'signup.html', {'form_student': form_student, 'form_account': form_account, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
                 # pos mvp: enviar mensagem pro email caso o usuario ja esteja com email cadastrado e tentando cadastrar novamente
 
@@ -66,14 +66,10 @@ def signup_with_role(request, token):
     role = invitation_data.get("role")
     higher_role_email = invitation_data.get("higher_role_email")
     higher = User.objects.filter(email__iexact=higher_role_email).first()
-    allowed_invitation = {
-        UserRole.ADMIN: UserRole.MANAGER,
-        UserRole.MANAGER: UserRole.DRIVER
-    }
 
     if not higher:
         return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
-    if  not role or not higher.is_active or allowed_invitation.get(higher.role) != role:
+    if  not higher.can_invite(role):
             return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
 
     if request.method == "POST":
