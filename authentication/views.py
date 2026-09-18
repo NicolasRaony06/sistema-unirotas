@@ -125,6 +125,7 @@ def my_information(request):
         #"institution": request.user.institution,
         #"campus": request.user.institution.campus,
     })
+
 @login_required(login_url=reverse_lazy('authentication:login'))
 def change_avatar(request):
     if request.method == "POST":
@@ -139,8 +140,11 @@ def change_password(request):
     if request.method == "POST":
         form = ChangePassword(request.POST)
         if form.is_valid():
-            request.user.set_password(form["password"])
-            return redirect("authentication:my_information")
+            if request.user.check_password(form.cleaned_data.get("password")):
+                request.user.set_password(form.cleaned_data.get("new_password1"))
+                return redirect("authentication:my_information")
+            else:
+                return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
     else:
         form = ChangePassword()
     return render(request, "change_password.html", {"form": form}) 
