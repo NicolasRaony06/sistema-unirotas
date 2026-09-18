@@ -97,3 +97,34 @@ class LoginForm(forms.Form):
         if email:
             cleaned["email"] = email.lower().strip()
         return cleaned
+
+class ChangePassword(forms.Form, Validation):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Senha'}
+            ), label="Senha")
+    
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirme a Senha'}
+           ), label="Confirmação de Senha")
+
+    new_password2 = forms.CharField(
+            widget=forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Confirme a Senha'}
+               ), label="Confirmação de Senha")
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned:
+            return cleaned
+        
+        password = cleaned.get("new_password1")
+        confirm_password = cleaned.get("new_password2")
+
+        if self.is_password_invalid(password, confirm_password):
+            raise ValidationError("senha invalida.")
+        return cleaned

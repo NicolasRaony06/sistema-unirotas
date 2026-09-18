@@ -29,7 +29,6 @@ para o logout utilize:
         Sair
     </button>
 </form>
-
 """
 
 
@@ -38,8 +37,13 @@ app_name = 'authentication'
 urlpatterns = [
     path('signup/', signup, name='signup'),
     path('login/', signin, name="login"),
-    path('elevated/signup/<str:token>', signup_with_role, name="elevated_signup"),
+    path('elevated/signup/<str:token>/', signup_with_role, name="elevated_signup"),
     path('logout/', LogoutView.as_view(next_page='authentication:login'), name='logout'),
+    path('settings/', settings, name="settings"),
+    path('toggle_notification/', toggle_notification, name="toggle_notification"),
+    path('my_informations/', my_information, name="my_information"),
+    path('change_avatar/', change_avatar, name="change_avatar"),
+    path('change_password/', change_password, name="change_password"),
 
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='registration/password_reset_form.html',

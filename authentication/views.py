@@ -1,10 +1,13 @@
-from django.shortcuts import render, redirect
-from .forms import UserRegistrationForm, StudentProfileForm, LoginForm
-from .models import StudentProfile, User, UserRole
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword
+from .models import StudentProfile, User
 from django.contrib.auth import authenticate, login
 from django.core.signing import Signer, BadSignature
 from django.core.cache import cache
 from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+
 # Create your views here.
 
 def signup(request):
@@ -40,7 +43,7 @@ def signin(request):
             user = authenticate(request, username=data.get("email"), password=data.get("password"))
             if user is not None:
                 login(request, user)
-                return redirect("home") #temp ate fazer as outras partes
+                return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")
     else:
@@ -93,3 +96,51 @@ def signup_with_role(request, token):
         signup_form = UserRegistrationForm()
 
     return render(request, 'signup_role.html', {"form_account": signup_form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+def toggle_notification(request):
+    if request.method == 'POST':
+        request.user.notifications = not request.user.notifications
+        request.user.save()
+    return redirect('authentication:settings')
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+def settings(request):
+    return render(request, "settings.html", {
+        'notifications': request.user.notifications,
+        'full_name': request.user.full_name,
+        'email': request.user.email,
+        'profile_picture': request.user.profile_picture
+        #'city': request.user.city,
+        #'institution': request.user.institution
+        })
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+def my_information(request):
+    return render(request, "my_information.html", {
+        "full_name": request.user.full_name,
+        "email": request.user.email,
+        #"city",
+        "birth_date": request.user.birth_date,
+        #"institution": request.user.institution,
+        #"campus": request.user.institution.campus,
+    })
+@login_required(login_url=reverse_lazy('authentication:login'))
+def change_avatar(request):
+    if request.method == "POST":
+        profile_picture = request.FILES.get('profile_picture')
+        if profile_picture:
+            request.user.profile_picture = profile_picture
+            request.user.save()
+    return redirect("authentication:my_information")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+def change_password(request):
+    if request.method == "POST":
+        form = ChangePassword(request.POST)
+        if form.is_valid():
+            request.user.set_password(form["password"])
+            return redirect("authentication:my_information")
+    else:
+        form = ChangePassword()
+    return render(request, "change_password.html", {"form": form}) 
