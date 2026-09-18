@@ -1,18 +1,35 @@
+:root {
+    --primary-blue: #0047ab;
+    --primary-dark: #1a202c;
+    --gray-text: #718096;
+    --border-color: #e2e8f0;
+    --bg-color: #f4f6f9;
+}
+
 /* Configuração geral e fundo da página */
 body {
-    background-color: #f7f4ed; /* Tom creme do fundo */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #1e293b;
+    background-color: var(--bg-color);
+    color: var(--primary-dark);
     margin: 0;
-    padding: 24px 16px;
+    padding: 0;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    min-height: 100vh;
 }
 
 .mobile-container {
-    width: 90%;
-    max-width: 400px;
+    width: 100%;
+    max-width: 414px;
+    height: 100vh;
+    max-height: 896px;
+    background-color: #f7f9fc;
+    position: relative;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
     box-sizing: border-box;
 }
 
@@ -28,7 +45,7 @@ body {
     width: 100%;
     font-size: 20px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--primary-dark);
     text-align: center;
     margin: 0;
 }
@@ -37,7 +54,7 @@ body {
     position: absolute;
     left: 0;
     background-color: #ffffff;
-    border: 1px solid #ebdcc5;
+    border: 1px solid var(--border-color);
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -57,27 +74,59 @@ body {
     text-align: center;
 }
 
+/* Container que segura a imagem e permite o posicionamento absoluto */
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* Garante o formato redondo e a borda da imagem */
 .profile-avatar-large {
     width: 88px;
     height: 88px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #ffffff;
+    border: 3px solid var(--primary-blue);
+    display: block;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    margin-bottom: 8px;
+}
+
+/* Estilo e posicionamento do botão da câmera */
+.camera-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: var(--primary-blue);
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #f7f9fc; /* Coordenado com o background do mobile-container */
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s;
+}
+
+.camera-btn:hover {
+    background-color: #003580;
 }
 
 .profile-name-main {
     font-size: 16px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--primary-dark);
     margin: 0 0 2px 0;
 }
 
 .profile-email-sub {
     font-size: 12px;
     font-weight: 400;
-    color: #64748b;
+    color: var(--gray-text);
     margin: 0;
 }
 
@@ -97,59 +146,30 @@ body {
 .field-label {
     font-size: 13px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--primary-dark);
+    margin-left: 4px;
 }
 
 /* Caixa individual de cada dado */
 .info-box {
     background-color: #ffffff;
-    border: 1px solid #ebdcc5; /* Borda sutil amarelada/creme do protótipo */
-    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 14px 18px;
     display: flex;
     align-items: center;
     gap: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.info-box:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
 }
 
 .field-value {
     font-size: 14px;
     font-weight: 500;
-    color: #0f172a;
-}
-
-/* Container que segura a imagem e permite o posicionamento absoluto */
-.avatar-container {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 8px;
-}
-
-/* Garante o formato redondo e a borda azul da imagem */
-.profile-avatar-large {
-    width: 88px;
-    height: 88px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #0047ab; /* Ajuste a cor da borda se preferir branco ou azul */
-    display: block;
-}
-
-/* Estilo e posicionamento do botão da câmara */
-.camera-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background-color: #0047ab; /* Azul do tema */
-    color: #ffffff;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #f7f4ed; /* Borda com a cor do fundo para dar o efeito de recorte */
-    cursor: pointer;
-    font-size: 14px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    color: var(--primary-dark);
 }
