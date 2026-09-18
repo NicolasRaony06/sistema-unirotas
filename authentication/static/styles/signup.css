@@ -291,3 +291,18 @@
             text-decoration: none;
             font-weight: 600;
         }
+
+    .error-msg {
+        background-color: #fef2f2; /* Vermelho bem claro e suave */
+        border: 1px solid #fecaca;   /* Borda vermelha suave */
+        color: #991b1b;              /* Texto em vermelho escuro legível */
+        padding: 0.75rem 1rem;
+        border-radius: 12px;         /* Mesmo arredondamento dos inputs/cards */
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-sizing: border-box;
+        animation: shake 0.3s ease-in-out; /* Pequeno efeito visual de atenção */
+    }

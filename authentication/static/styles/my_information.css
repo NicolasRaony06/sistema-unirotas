@@ -1,0 +1,175 @@
+:root {
+    --primary-blue: #0047ab;
+    --primary-dark: #1a202c;
+    --gray-text: #718096;
+    --border-color: #e2e8f0;
+    --bg-color: #f4f6f9;
+}
+
+/* Configuração geral e fundo da página */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--primary-dark);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.mobile-container {
+    width: 100%;
+    max-width: 414px;
+    height: 100vh;
+    max-height: 896px;
+    background-color: #f7f9fc;
+    position: relative;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    box-sizing: border-box;
+}
+
+/* Cabeçalho com botão de voltar */
+.header-with-back {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.header-with-back h1 {
+    width: 100%;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    text-align: center;
+    margin: 0;
+}
+
+.back-button {
+    position: absolute;
+    left: 0;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* Seção do Avatar Centralizado */
+.profile-header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* Container que segura a imagem e permite o posicionamento absoluto */
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* Garante o formato redondo e a borda da imagem */
+.profile-avatar-large {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-blue);
+    display: block;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo e posicionamento do botão da câmera */
+.camera-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: var(--primary-blue);
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #f7f9fc; /* Coordenado com o background do mobile-container */
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s;
+}
+
+.camera-btn:hover {
+    background-color: #003580;
+}
+
+.profile-name-main {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin: 0 0 2px 0;
+}
+
+.profile-email-sub {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--gray-text);
+    margin: 0;
+}
+
+/* Container e Grupos de Campos de Dados */
+.info-fields-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-left: 4px;
+}
+
+/* Caixa individual de cada dado */
+.info-box {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.info-box:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+.field-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--primary-dark);
+}
