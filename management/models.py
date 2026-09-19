@@ -12,12 +12,6 @@ class Municipio(models.Model):
     def __str__(self):
         return self.nome
 
-    @classmethod
-    def cadastrar_municipio(cls,codigo_ibge,**dados_restantes):
-        municipio, criado = Municipio.objects.get_or_create(codigo_ibge=codigo_ibge,defaults= dados_restantes)
-
-        return municipio, criado
-
     def save(self,*args,**kwargs):
         super().save(*args,**kwargs)
         if self.gestor is not  None:
