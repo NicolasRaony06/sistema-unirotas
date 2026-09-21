@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm
 from .models import StudentProfile, User
 from django.contrib.auth import authenticate, login, update_session_auth_hash
-from django.core.signing import Signer, BadSignature
+from django.core.signing import TimestampSigner, BadSignature
 from django.core.cache import cache
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
@@ -52,7 +52,7 @@ def signin(request):
     return render(request, "login.html", {'form_login': form_login})
 
 def signup_with_role(request, token):
-    signer = Signer()
+    signer = TimestampSigner()
 
     try:
         email = signer.unsign(token)

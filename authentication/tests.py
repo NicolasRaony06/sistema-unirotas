@@ -28,6 +28,7 @@ Como rodar:
 import re
 import shutil
 import tempfile
+import time
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import expectedFailure
@@ -41,7 +42,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.signing import Signer
+from django.core.signing import Signer, TimestampSigner
 from django.db import IntegrityError, transaction
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
@@ -873,7 +874,7 @@ class ConviteServiceTests(CacheLimpoTestCase):
         self.assertEqual(
             link, reverse("authentication:elevated_signup", kwargs={"token": token})
         )
-        self.assertEqual(Signer().unsign(token), self.email_convidado)
+        self.assertEqual(TimestampSigner().unsign(token), self.email_convidado)
 
     def test_gera_link_absoluto_quando_recebe_request(self):
         request = RequestFactory().get("/")
@@ -913,7 +914,7 @@ class ConviteServiceTests(CacheLimpoTestCase):
 
         self.assertIsNotNone(link)
         token = token_do_link(link)
-        self.assertEqual(Signer().unsign(token), "novo.gestor@unirotas.com")
+        self.assertEqual(TimestampSigner().unsign(token), "novo.gestor@unirotas.com")
         self.assertEqual(mail.outbox[0].to, ["novo.gestor@unirotas.com"])
 
     def test_convidador_inexistente_nao_gera_link(self):
@@ -931,7 +932,7 @@ class ConviteServiceTests(CacheLimpoTestCase):
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)
-        token = Signer().sign(self.email_convidado)
+        token = TimestampSigner().sign(self.email_convidado)
         self.assertIsNone(cache.get(self.chave_convite(token)))
 
     def test_gerente_nao_pode_convidar_gerente(self):
@@ -973,7 +974,7 @@ class ConviteServiceTests(CacheLimpoTestCase):
             )
 
         self.assertIsNone(link)
-        token = Signer().sign(self.email_convidado)
+        token = TimestampSigner().sign(self.email_convidado)
         self.assertIsNone(cache.get(self.chave_convite(token)))
 
     def test_abort_remove_convite_e_ponteiro(self):
@@ -1132,7 +1133,7 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertFalse(User.objects.filter(email=self.email_convidado).exists())
 
     def test_token_valido_sem_convite_no_cache_nao_cadastra(self):
-        token = Signer().sign(self.email_convidado)
+        token = TimestampSigner().sign(self.email_convidado)
         link = reverse("authentication:elevated_signup", kwargs={"token": token})
 
         resposta = self.abrir(link)
@@ -1193,6 +1194,28 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertEqual(
             User.objects.get(email=self.email_convidado).role, UserRole.MANAGER
         )
+
+    def test_link_antigo_para_de_funcionar_apos_reenvio(self):
+        """O reenvio (recreate) realmente invalida o link anterior.
+
+        Com TimestampSigner cada geracao produz um token novo; o abort
+        interno apaga a entrada antiga do cache, entao consumir o link
+        antigo depois do reenvio nao cadastra ninguem.
+        """
+        link_antigo, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+
+        with patch("django.core.signing.time.time", return_value=time.time() + 3600):
+            novo_link = service.recreate_elevated_signup_link(
+                self.admin.email, self.email_convidado, UserRole.MANAGER
+            )
+
+        resposta_antiga = self.client.get(link_antigo)
+        self.assertContains(resposta_antiga, "expirou")
+
+        # e o link novo segue consumivel ate criar a conta
+        resposta_nova = self.consumir(novo_link)
+        self.assertRedirects(resposta_nova, reverse("authentication:login"))
+        self.assertTrue(User.objects.filter(email=self.email_convidado).exists())
 
     def test_post_invalido_no_convite_nao_consome_o_convite(self):
         link, token = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
@@ -1381,56 +1404,61 @@ class ChangeAvatarTests(MediaRootIsoladoMixin, TestCase):
             self.user.profile_picture.storage.exists(self.user.profile_picture.name)
         )
 
-    # -- 1. upload de avatar sem nenhuma validacao ---------------------------
-        def test_avatar_nao_deve_aceitar_arquivo_que_nao_e_imagem(self):
-            """URGENTE - upload de arquivo arbitrario.
-    
-            `change_avatar` grava `request.FILES.get('profile_picture')` direto no
-            model, sem passar por um Form/ImageField. Resultado: qualquer arquivo
-            (.html, .svg com script, executavel) e aceito e servido em /media/.
-            Esperado: recusar e nao salvar.
-            """
-            usuario = criar_usuario(email="upload@unirotas.com")
-            self.client.force_login(usuario)
-    
-            self.client.post(
-                reverse("authentication:change_avatar"),
-                {
-                    "profile_picture": SimpleUploadedFile(
-                        "malicioso.html",
-                        b"<script>alert('xss')</script>",
-                        content_type="text/html",
-                    )
-                },
-            )
-    
-            usuario.refresh_from_db()
-            self.assertFalse(
-                usuario.profile_picture,
-                "A view aceitou um arquivo .html como foto de perfil "
-                "(upload arbitrario e possivel stored XSS servido em /media/).",
-            )
+    # -- 1. upload de avatar: regressao da validacao --------------------------
+    def test_avatar_nao_deve_aceitar_arquivo_que_nao_e_imagem(self):
+        """REGRESSAO - upload de arquivo arbitrario.
+
+        Em uma versao anterior, a view gravava o arquivo enviado sem nenhuma
+        validacao. Hoje `change_avatar` passa pelo `AvatarForm` (ImageField +
+        Pillow), que recusa arquivos que nao sao imagem. Este teste garante que
+        a protecao nao se perde: um .html com script NAO pode virar foto de
+        perfil (stored XSS servido em /media/).
+        """
+        usuario = criar_usuario(email="upload@unirotas.com")
+        self.client.force_login(usuario)
+
+        self.client.post(
+            reverse("authentication:change_avatar"),
+            {
+                "profile_picture": SimpleUploadedFile(
+                    "malicioso.html",
+                    b"<script>alert('xss')</script>",
+                    content_type="text/html",
+                )
+            },
+        )
+
+        usuario.refresh_from_db()
+        self.assertFalse(
+            usuario.profile_picture,
+            "A view aceitou um arquivo .html como foto de perfil "
+            "(upload arbitrario e possivel stored XSS servido em /media/).",
+        )
 
     def test_avatar_nao_deve_aceitar_arquivo_gigante(self):
-            """URGENTE - upload sem limite de tamanho (risco de encher o disco)."""
-            usuario = criar_usuario(email="upload.grande@unirotas.com")
-            self.client.force_login(usuario)
-            conteudo = b"0" * (5 * 1024 * 1024)  # 5 MB
-    
-            self.client.post(
-                reverse("authentication:change_avatar"),
-                {
-                    "profile_picture": SimpleUploadedFile(
-                        "grande.png", conteudo, content_type="image/png"
-                    )
-                },
-            )
-    
-            usuario.refresh_from_db()
-            self.assertFalse(
-                usuario.profile_picture,
-                "A view aceitou uma foto de 5MB: falta limite de tamanho no upload.",
-            )
+        """REGRESSAO - limite de tamanho no upload.
+
+        O `AvatarForm` recusa imagens acima de 2 MB. Este teste garante que o
+        limite nao se perde (sem ele, qualquer usuario pode encher o disco).
+        """
+        usuario = criar_usuario(email="upload.grande@unirotas.com")
+        self.client.force_login(usuario)
+        conteudo = b"0" * (5 * 1024 * 1024)  # 5 MB
+
+        self.client.post(
+            reverse("authentication:change_avatar"),
+            {
+                "profile_picture": SimpleUploadedFile(
+                    "grande.png", conteudo, content_type="image/png"
+                )
+            },
+        )
+
+        usuario.refresh_from_db()
+        self.assertFalse(
+            usuario.profile_picture,
+            "A view aceitou uma foto de 5MB: falta limite de tamanho no upload.",
+        )
     
     def test_post_substitui_a_foto_anterior(self):
         self.client.post(self.url, {"profile_picture": self.arquivo("primeira.png")})
@@ -2085,21 +2113,26 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
         self.assertRedirects(response, destino)
 
-    @expectedFailure
     def test_recriar_convite_deve_gerar_token_novo(self):
-        """BAIXA - o token do convite e deterministico (email + SECRET_KEY).
+        """RESOLVIDO - o token do convite agora e unico por geracao.
 
-        `Signer` (sem timestamp) + `abort` + `generate` fazem o convite recriado
-        ter exatamente o mesmo token, entao qualquer link antigo volta a
-        funcionar depois da recriacao (link vazado em log/e-mail continua valido
-        enquanto o SECRET_KEY nao mudar).
+        Corrigido com `TimestampSigner` no service: cada geracao produz um
+        token diferente, entao o reenvio (abort + generate) realmente
+        invalida qualquer link anterior. O decorator `expectedFailure`
+        foi removido quando a correcao entrou (registrado na revisao 3
+        do relatorio do app).
         """
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
         _, token_antigo = convidar(admin, "convidado@unirotas.com", UserRole.MANAGER)
 
-        novo_link = service.recreate_elevated_signup_link(
-            admin.email, "convidado@unirotas.com", UserRole.MANAGER
-        )
+        # TimestampSigner tem resolucao de 1 segundo; se o reenvio acontecer
+        # no mesmo segundo, os tokens seriam iguais. Avancamos o relogio
+        # simulado para garantir que a recriacao produza um token diferente
+        # (cenario real: reenvio acontece minutos/horas depois).
+        with patch("django.core.signing.time.time", return_value=time.time() + 3600):
+            novo_link = service.recreate_elevated_signup_link(
+                admin.email, "convidado@unirotas.com", UserRole.MANAGER
+            )
 
         self.assertNotEqual(token_do_link(novo_link), token_antigo)
 
