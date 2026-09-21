@@ -1,4 +1,4 @@
-from django.core.signing import Signer
+from django.core.signing import TimestampSigner
 from django.urls import reverse
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -7,7 +7,7 @@ from .models import User
 def generate_elevated_signup_link(higher_role_email, email, role, request=None):
     higher_role_email = higher_role_email.lower().strip()
     email = email.lower().strip()
-    signer = Signer()
+    signer = TimestampSigner()
     token = signer.sign(email)
 
     higher = User.objects.filter(email__iexact=higher_role_email).first()
@@ -25,7 +25,7 @@ def generate_elevated_signup_link(higher_role_email, email, role, request=None):
     
     sent = enviar_email_convite(email, absolute_url)
     if not sent:
-        return None # Trate na view
+        return None
 
     cache.set(cache_key, {'email': email, 'role': role, "higher_role_email": higher_role_email}, timeout=86400)
     cache.set(pointer_key, {"cache_key": cache_key}, timeout=86400)
@@ -35,12 +35,13 @@ def generate_elevated_signup_link(higher_role_email, email, role, request=None):
 def abort_elevated_signup_link(higher_role_email, email):
     higher_role_email = higher_role_email.lower().strip()
     email = email.lower().strip()
-    signer = Signer()
-    token = signer.sign(email)
-
-    cache_key = f"invitation_{token}"
     pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
-
+    cache_data = cache.get(pointer_key)
+    if not cache_data:
+        return
+    cache_key = cache_data.get("cache_key")
+    if not cache_key:
+        return
     cache.delete(cache_key)
     cache.delete(pointer_key)
 

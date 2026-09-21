@@ -1,14 +1,25 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Erro no Convite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro no Convite - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/erro_convite.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="error-card">
-        <h2>Atenção</h2>
-        <p>{{ mensagem }}</p>
-        <a href="{% url 'authentication:login' %}" class="btn-home">Ir para o Login</a>
+
+    <div class="mobile-container">
+        <div class="error-card">
+            <div class="error-icon-container">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2>Atenção</h2>
+            <p>{{ mensagem }}</p>
+            <a href="{% url 'authentication:login' %}" class="btn-home">Ir para o Login</a>
+        </div>
     </div>
+
 </body>
 </html>

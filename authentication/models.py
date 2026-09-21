@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth import password_validation
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -9,7 +11,11 @@ class UserManager(BaseUserManager):
         
         email = self.normalize_email(email).lower().strip()
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+        if password:
+            password_validation.validate_password(password, user=user)
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 
@@ -72,6 +78,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return self.allowed_invitation.get(self.role) == role
 
+    def save(self, *args, **kwargs):
+        if not self.email:
+            raise ValueError("Email não pode ser vazio")
+        self.email = self.email.lower().strip()
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return self.email
 
@@ -82,7 +94,7 @@ class StudentProfile(models.Model):
     # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
     # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.CharField(max_length=100)
-    period = models.PositiveIntegerField()
+    period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
         return f"Estudante: {self.user.full_name}"
