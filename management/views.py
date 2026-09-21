@@ -9,12 +9,12 @@ def municipio(request):
         nome = request.GET.get('nome')
         cod_ibge = request.GET.get('codigo_ibge')
         e_ofertado = True
-        novo_municipio = cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
+        cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
     elif request.user.role == UserRole.MANAGER:
         nome = request.GET.get('nome')
         cod_ibge = request.GET.get('codigo_ibge')
         e_ofertado = False
-        novo_municipio  = cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
+        cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
     else:
         return HttpResponse("Você não tem permissão para cadastrar município.", status=403)
     

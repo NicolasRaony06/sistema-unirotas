@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from authentication.models import User
+from authentication.models import User , UserRole
 # Create your models here.
 class Municipio(models.Model):
     nome = models.CharField(max_length=100)
@@ -13,6 +13,10 @@ class Municipio(models.Model):
         return self.nome
 
     def save(self,*args,**kwargs):
+        
+        if self.gestor and self.gestor.role != UserRole.ADMIN:
+            raise ValidationError("Este município só pode ter um gestor do tipo gerente.")
+
         super().save(*args,**kwargs)
         if self.gestor is not  None:
             self.municipios_relacionados.add(self)

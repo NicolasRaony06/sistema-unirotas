@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include("authentication.urls")),
-    path('cadrasto-municipio/',include("management.urls"))
+    path('management/',include("management.urls"))
 ]
 
 if settings.DEBUG:
