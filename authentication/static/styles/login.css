@@ -183,3 +183,47 @@ body {
 .signup-text a:hover {
     text-decoration: underline;
 }
+
+@media (min-width: 768px) {
+    body {
+        background-color: #bfdbfe; /* Tom azulado de fundo da tela inteira no desktop */
+    }
+
+    .mobile-container {
+        max-width: 900px;
+        width: 90%;
+        height: 600px;
+        max-height: 600px;
+        flex-direction: row; /* Coloca o banner e o formulário lado a lado */
+        border-radius: 20px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+
+    .top-banner {
+        width: 45%;
+        height: 100%;
+        background-color: #c7d2fe; /* Azul claro do design */
+    }
+
+    .logo-img {
+        width: 80%;
+        max-width: 220px;
+        margin-bottom: 0;
+    }
+
+    .form-card {
+        width: 55%;
+        height: 100%;
+        flex: unset;
+        border-radius: 0; /* Remove os cantos arredondados de mobile */
+        margin-top: 0;
+        background-color: #fefae0; /* Tom creme exato do design de referência */
+        padding: 3rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: none;
+        overflow-y: auto;
+    }
+}

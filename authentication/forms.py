@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 from .models import StudentProfile
 from django.core.exceptions import ValidationError
 import re
@@ -62,6 +62,21 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
         return cleaned
 
+
+class AvatarForm(forms.Form):
+    profile_picture = forms.ImageField(widget=forms.ClearableFileInput(attrs={
+            'id': 'file-input',
+            'style': 'display: none;',
+            'onchange': 'this.form.submit()'
+        }))
+
+    def clean_profile_picture(self):
+        imagem = self.cleaned_data.get("profile_picture")
+        if imagem:
+            if imagem.size > 2 * 1024 * 1024:
+                raise ValidationError("A imagem é muito grande. O limite é de 2MB.")
+        return imagem
+
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
@@ -77,6 +92,19 @@ class StudentProfileForm(forms.ModelForm):
                                              ),
             'period': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12, 'placeholder': "periodo cursado"}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned:
+            return cleaned
+        period = cleaned.get("period")
+        if not period:
+            raise forms.ValidationError("O periodo deve ser de 1 a 12")
+
+        if cleaned.get("period") > 12 or cleaned.get("period") < 1:
+            raise forms.ValidationError("O periodo deve ser de 1 a 12")
+
+        return cleaned
 
 class LoginForm(forms.Form):
     email = forms.EmailField(
@@ -117,6 +145,17 @@ class ChangePassword(forms.Form, Validation):
                 'placeholder': 'Confirme a Senha'}
                ), label="Confirmação de Senha")
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+
+    def is_password_invalid(self, password, confirm_password):
+        is_invalid = super().is_password_invalid(password, confirm_password)
+        if not is_invalid:
+            password_validation.validate_password(password, user=self.user)
+            return False
+        return True
+
     def clean(self):
         cleaned = super().clean()
         if not cleaned:
@@ -127,4 +166,5 @@ class ChangePassword(forms.Form, Validation):
 
         if self.is_password_invalid(password, confirm_password):
             raise ValidationError("senha invalida.")
+
         return cleaned

@@ -72,6 +72,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return self.allowed_invitation.get(self.role) == role
 
+    def save(self, *args, **kwargs):
+        self.email = self.email.lower().strip()
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return self.email
 

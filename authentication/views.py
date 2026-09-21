@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword
+from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm
 from .models import StudentProfile, User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.core.signing import Signer, BadSignature
 from django.core.cache import cache
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 
@@ -59,7 +60,6 @@ def signup_with_role(request, token):
         return render(request, 'erro_convite.html', {'mensagem': 'Link inválido ou adulterado.'})
 
     cache_key = f"invitation_{token}"
-    pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
 
     invitation_data = cache.get(cache_key)
     
@@ -69,6 +69,8 @@ def signup_with_role(request, token):
     role = invitation_data.get("role")
     higher_role_email = invitation_data.get("higher_role_email")
     higher = User.objects.filter(email__iexact=higher_role_email).first()
+
+    pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
 
     if not higher:
         return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
@@ -124,27 +126,31 @@ def my_information(request):
         "birth_date": request.user.birth_date,
         #"institution": request.user.institution,
         #"campus": request.user.institution.campus,
+        'change_avatar_form': AvatarForm()
     })
 
 @login_required(login_url=reverse_lazy('authentication:login'))
+@require_POST
 def change_avatar(request):
-    if request.method == "POST":
-        profile_picture = request.FILES.get('profile_picture')
-        if profile_picture:
-            request.user.profile_picture = profile_picture
-            request.user.save()
+    form = AvatarForm(request.POST, request.FILES)
+    if form.is_valid():
+        profile_picture = form.cleaned_data["profile_picture"]
+        request.user.profile_picture = profile_picture
+        request.user.save()
     return redirect("authentication:my_information")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 def change_password(request):
     if request.method == "POST":
-        form = ChangePassword(request.POST)
+        form = ChangePassword(request.POST, user=request.user)
         if form.is_valid():
             if request.user.check_password(form.cleaned_data.get("password")):
                 request.user.set_password(form.cleaned_data.get("new_password1"))
+                request.user.save()
+                update_session_auth_hash(request, request.user)
                 return redirect("authentication:my_information")
             else:
                 return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
     else:
-        form = ChangePassword()
+        form = ChangePassword(user=request.user)
     return render(request, "change_password.html", {"form": form}) 

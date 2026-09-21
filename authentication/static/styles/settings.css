@@ -191,3 +191,41 @@ header h1 {
 .logout button:hover {
     opacity: 0.8;
 }
+
+@media (min-width: 768px) {
+    body {
+        background-color: #dbeafe;
+    }
+
+    .mobile-container {
+        max-width: 85%;
+        width: 85%;
+        height: 95vh;
+        max-height: 95%;
+        border-radius: 24px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 36px 32px;
+        background-color: #ffffff;
+        align-items: center; /* Centraliza os elementos internos horizontalmente no container desktop */
+    }
+
+    /* Ajustando o header e os blocos para preencherem bem o espaço centralizado do desktop */
+    header {
+        width: 100%;
+    }
+
+    .card-box-profile {
+        max-width: 480px;
+        padding: 24px;
+    }
+
+    .options {
+        width: 100%;
+        max-width: 85%;
+        align-items: center;
+    }
+
+    .logout {
+        max-width: 480px;
+    }
+}
