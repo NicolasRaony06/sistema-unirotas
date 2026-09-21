@@ -85,7 +85,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.email
+        #return self.email
+        return self.full_name
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
@@ -97,4 +98,5 @@ class StudentProfile(models.Model):
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
-        return f"Estudante: {self.user.full_name}"
+        #return f"Estudante: {self.user.full_name}"
+        return self.user.full_name
