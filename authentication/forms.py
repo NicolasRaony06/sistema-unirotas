@@ -150,11 +150,14 @@ class ChangePassword(forms.Form, Validation):
         super().__init__(*args, **kwargs)
 
     def is_password_invalid(self, password, confirm_password):
-        is_invalid = super().is_password_invalid(password, confirm_password)
-        if not is_invalid:
-            password_validation.validate_password(password, user=self.user)
-            return False
-        return True
+      is_invalid = super().is_password_invalid(password, confirm_password)
+      if not is_invalid:
+        try:
+          password_validation.validate_password(password, user=self.user)
+        except ValidationError as e:
+          self.add_error("new_password1", e.messages)
+          return True
+      return is_invalid
 
     def clean(self):
         cleaned = super().clean()
