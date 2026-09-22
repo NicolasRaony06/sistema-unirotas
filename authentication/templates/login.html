@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/login.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/input-styled.css'%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="mobile-container">
+        <div class="top-banner" style="background-image: url('{% static "images/login/Fundo.png" %}');">
+            <img src="{% static 'images/login/Logo.png' %}" alt="Logo UniRota" class="logo-img">
+        </div>
+
+        <div class="form-card">
+            <h2>Bem-vindo de volta!</h2>
+            <p class="subtitle">Faça login para continuar</p>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="input-group input-with-icon">
+                        <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
+
+                        {{ form_login.email }}
+                </div>
+                
+                <div class="input-group input-with-icon">
+                    <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
+
+                    {{ form_login.password }}
+                </div>
+
+                <div class="form-actions-inline">
+                    <label class="remember-me">
+                        <input type="checkbox"> Lembre-me
+                    </label>
+                    <a href="{% url 'authentication:password_reset' %}" class="forgot-link">Esqueci minha senha</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span class="arrow-icon">→</span> Entrar
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>Ou</span>
+            </div>
+
+            <p class="signup-text">
+                Ainda não tem uma conta? <a href="{% url 'authentication:signup' %}">Cadastre-se</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
