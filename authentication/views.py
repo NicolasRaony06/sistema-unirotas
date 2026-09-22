@@ -11,7 +11,6 @@ from django.views.decorators.http import require_POST
 from .decorators import role_required
 # Create your views here.
 
-@role_required([UserRole.ADMIN, UserRole.MANAGER], lambda req: render(req, "login.html"))
 def signup(request):
     if request.method == 'POST':
         form_student = StudentProfileForm(request.POST)
