@@ -8,7 +8,6 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from .decorators import role_required
 # Create your views here.
 
 def signup(request):
@@ -134,9 +133,12 @@ def my_information(request):
 def change_avatar(request):
     form = AvatarForm(request.POST, request.FILES)
     if form.is_valid():
-        profile_picture = form.cleaned_data["profile_picture"]
-        request.user.profile_picture = profile_picture
+        new_picture = form.cleaned_data["profile_picture"]
+        old_picture = request.user.profile_picture if request.user.profile_picture else None
+        request.user.profile_picture = new_picture
         request.user.save()
+        if old_picture:
+            old_picture.delete(save=False)
     return redirect("authentication:my_information")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
@@ -150,6 +152,7 @@ def change_password(request):
                 update_session_auth_hash(request, request.user)
                 return redirect("authentication:my_information")
             else:
+                form.add_error("new_password2", "A senha tem que atender a todos os requisitos, se o erro persistir, cheque sua senha atual")
                 return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
     else:
         form = ChangePassword(user=request.user)

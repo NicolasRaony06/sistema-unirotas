@@ -43,15 +43,23 @@
                     <i class="fa-regular fa-user" style="color: #0047ab;"></i>
                     {{ form_account.full_name }}
                 </div>
+                {% if form_account.full_name.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.full_name.errors.0 }}</div>
+                {% endif %}
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
                     {{ form_account.email }}
                 </div>
+                {% if form_account.email.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.email.errors.0 }}</div>
+                {% endif %}
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
                     {{ form_account.birth_date }}
                 </div>
-
+                {% if form_account.birth_date.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.birth_date.errors.0 }}</div>
+                {% endif %}
                 <div class="info-box">
                     <div class="info-box-icon">i</div>
                     <div class="info-box-text">
@@ -61,11 +69,6 @@
                 </div>
 
                 <button type="button" class="btn-action btn-next">Continuar</button>
-                {% if error %}
-                    <div class="error-msg">
-                        {{ error }}
-                    </div>
-                {% endif %}
                 <div class="login-footer-text">
                     Já tem uma conta? <a href="{% url 'authentication:login' %}">Faça login</a>
                 </div>
@@ -79,11 +82,16 @@
                     <i class="fa-solid fa-book" style="color: #0047ab;"></i>
                     {{ form_student.course }}
                 </div>
+                {% if form_student.course.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_student.course.errors.0 }}</div>
+                {% endif %}
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
                     {{ form_student.period }}
                 </div>
-
+                {% if form_student.period.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_student.period.errors.0 }}</div>
+                {% endif %}
                 <div class="info-box" style="margin-top: 1rem;">
                     <div class="info-box-icon">i</div>
                     <div class="info-box-text">
@@ -104,11 +112,16 @@
                     <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
                     {{ form_account.password }}
                 </div>
+                {% if form_account.password.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.password.errors.0 }}</div>
+                {% endif %}
                 <div class="input-group input-with-icon">
                     <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
                     {{ form_account.confirm_password }}
                 </div>
-
+                {% if form_account.confirm_password.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.confirm_password.errors.0 }}</div>
+                {% endif %}
                 <div class="password-requirements">
                     <div class="req-item invalid" id="req-length">• Mínimo 8 caracteres</div>
                     <div class="req-item invalid" id="req-lower">• Letra minúscula</div>
