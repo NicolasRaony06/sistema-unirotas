@@ -62,7 +62,7 @@ def enviar_email_convite(email_destino, link_convite):
         message=mensagem,
         from_email=remetente,
         recipient_list=[email_destino],
-        fail_silently=True,
+        fail_silently=False,
     )
 
     return False if sent_account == 0 else True
