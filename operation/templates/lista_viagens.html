@@ -1,0 +1,52 @@
+<!-- lista_viagens.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Viagens</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .aguardando { color: orange; }
+        .em_andamento { color: blue; }
+        .concluida { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Viagens</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <p><strong>{{ message }}</strong></p>
+        {% endfor %}
+    {% endif %}
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Linha</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Ação</th>
+        </tr>
+        {% for viagem in viagens %}
+        <tr>
+            <td>{{ viagem.pk }}</td>
+            <td>{{ viagem.linha }}</td>
+            <td>{{ viagem.data }}</td>
+            <td class="{{ viagem.status }}">{{ viagem.status }}</td>
+            <td>{{ viagem.momento_iniciado|default:"-" }}</td>
+            <td>{{ viagem.momento_finalizado|default:"-" }}</td>
+            <td>
+                {% if viagem.status == 'aguardando' %}
+                <a href="{% url 'comecar_viagem' viagem.pk %}">Comecar</a>
+                {% endif %}
+                {% if viagem.status == 'em_andamento' %}
+                <a href="{% url 'concluir_viagem' viagem.pk %}">Concluir</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
