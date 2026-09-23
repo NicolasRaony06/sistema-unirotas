@@ -1,0 +1,621 @@
+
+/* UniRota - CSS simples */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #e8eaed;
+    color: #17233f;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.icon {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    position: fixed;
+    width: 256px;
+    height: 100vh;
+    padding: 0 13px 34px;
+    background: white;
+    border-right: 1px solid #dfe2e6;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 82px;
+    padding: 12px 8px 14px;
+    border-bottom: 1px solid #dfe2e6;
+}
+
+.brand img {
+    display: block;
+    width: 150px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(24, 38, 71, 0.08));
+}
+
+.profile {
+    height: 66px;
+    margin: 22px 3px 28px;
+    padding: 10px;
+    background: #f5f3ee;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.profile .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(29, 91, 209, 0.18);
+    box-shadow: 0 2px 8px rgba(29, 91, 209, 0.12);
+}
+
+.profile .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile div:nth-child(2) {
+    flex: 1;
+}
+
+.profile strong,
+.profile span {
+    display: block;
+}
+
+.profile strong {
+    font-size: 15px;
+}
+
+.profile span {
+    font-size: 11px;
+    color: #78808d;
+}
+
+.profile .icon {
+    color: #1d5bd1;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nav small {
+    font-size: 11px;
+    font-weight: bold;
+    margin: 0 10px 10px;
+}
+
+.nav a {
+    height: 50px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: bold;
+    color: #78808d;
+}
+
+.nav a.active {
+    background: #1d5bd1;
+    color: white;
+}
+
+.nav a i {
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    background: #1d5bd1;
+    border-radius: 50%;
+}
+
+.logout {
+    margin-top: auto;
+    padding: 29px 15px 0;
+    border-top: 1px solid #dfe2e6;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #d64b3c;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.workspace {
+    width: calc(100% - 256px);
+    margin-left: 256px;
+}
+
+.topbar {
+    height: 76px;
+    padding: 14px 32px;
+    background: white;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.topbar p {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: #78808d;
+}
+
+.dashboard {
+    padding: 22px 35px 35px;
+}
+
+.greeting {
+    min-height: 125px;
+    padding: 24px 32px;
+    background: #1d5bd1;
+    color: white;
+    border-radius: 12px;
+}
+
+.greeting small {
+    font-size: 14px;
+    font-weight: medium;
+    letter-spacing: 1px;
+}
+
+.greeting h2 {
+    margin: 7px 0 3px;
+    font-size: 25px;
+}
+
+.greeting p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.metrics {
+    max-width: 840px;
+    margin: 36px auto 22px;
+    display: flex;
+    gap: 17px;
+}
+
+.metric {
+    flex: 1;
+    height: 113px;
+    padding: 22px 20px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.metric > span,
+.notice-icon,
+.quick-actions > a > span {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: #e5edff;
+    color: #1d5bd1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metric div {
+    flex: 1;
+}
+
+.metric small {
+    display: block;
+    color: #78808d;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.metric strong {
+    display: block;
+    font-size: 25px;
+}
+
+.metric em {
+    font-size: 11px;
+    font-style: normal;
+    color: #1d5bd1;
+    background: #e5edff;
+    border-radius: 16px;
+    padding: 6px 9px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.content-grid {
+    display: flex;
+    gap: 25px;
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.routes-panel {
+    flex: 2;
+    min-height: 494px;
+}
+
+.notifications {
+    flex: 1;
+    height: 494px;
+}
+
+.panel-head {
+    height: 57px;
+    padding: 0 21px;
+    border-bottom: 1px solid #dfe2e6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel-head h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.panel-head a {
+    color: #1d5bd1;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.panel-head em {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #1d5bd1;
+    color: white;
+    font-style: normal;
+    font-size: 13px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th {
+    height: 42px;
+    padding: 0 20px;
+    text-align: left;
+    color: #78808d;
+    font-size: 11px;
+}
+
+td {
+    height: 73px;
+    padding: 0 20px;
+    border-top: 1px solid #dfe2e6;
+    color: #78808d;
+    white-space: nowrap;
+}
+
+td b {
+    color: #1d5bd1;
+}
+
+td strong {
+    color: #17233f;
+}
+
+.route-path {
+    color: #17233f;
+}
+
+.route-path span {
+    margin: 0 12px;
+    color: #78808d;
+    font-size: 20px;
+}
+
+.status {
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 11px;
+}
+
+.status.on {
+    color: #219653;
+    background: #e4f5ea;
+}
+
+.status.off {
+    color: #d64b3c;
+    background: #fae7e4;
+}
+
+.notification-list article {
+    min-height: 81px;
+    padding: 14px 15px;
+    border-bottom: 1px solid #dfe2e6;
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+}
+
+.notification-list article.unread {
+    background: #f0f4fc;
+}
+
+.notice-icon {
+    width: 38px;
+    height: 38px;
+}
+
+.notification-list article > div {
+    flex: 1;
+}
+
+.notification-list h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-list p {
+    margin: 3px 0 0;
+    color: #78808d;
+    font-size: 11px;
+}
+
+.notification-list time {
+    color: #78808d;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.notification-list article > i {
+    width: 7px;
+    height: 7px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #1d5bd1;
+}
+
+.all-notifications {
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d5bd1;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.quick-actions {
+    margin: 29px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 17px;
+}
+
+.quick-actions > a {
+    width: 269px;
+    height: 73px;
+    padding: 14px 20px;
+    background: white;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.quick-actions b,
+.quick-actions small {
+    display: block;
+}
+
+.quick-actions b {
+    font-size: 14px;
+}
+
+.quick-actions small {
+    font-size: 11px;
+    color: #78808d;
+}
+
+@media (max-width: 850px) {
+    .sidebar {
+        width: 95px;
+    }
+
+    .workspace {
+        width: calc(100% - 95px);
+        margin-left: 95px;
+    }
+
+    .brand strong,
+    .brand span:last-child,
+    .profile div:nth-child(2),
+    .profile > .icon,
+    .nav small {
+        display: none;
+    }
+
+    .profile {
+        justify-content: center;
+    }
+
+    .nav a {
+        justify-content: center;
+        padding: 0;
+        font-size: 0;
+    }
+
+    .nav a i {
+        margin-left: 45px;
+    }
+
+    .logout {
+        justify-content: center;
+        font-size: 0;
+    }
+
+    .content-grid {
+        flex-direction: column;
+    }
+
+    .notifications {
+        height: auto;
+    }
+}
+
+@media (max-width: 620px) {
+    .app-shell {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: 90px;
+        padding: 0 17px;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .brand {
+        width: 115px;
+        height: 90px;
+        border: 0;
+    }
+
+    .profile,
+    .logout {
+        display: none;
+    }
+
+    .nav {
+        margin-left: auto;
+        flex-direction: row;
+    }
+
+    .nav a {
+        width: 53px;
+    }
+
+    .workspace {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .topbar {
+        height: 73px;
+        padding: 14px 22px;
+    }
+
+    .dashboard {
+        padding: 17px;
+    }
+
+    .greeting {
+        min-height: 134px;
+    }
+
+    .metrics {
+        margin: 17px 0;
+        flex-direction: column;
+        gap: 11px;
+    }
+
+    .metric {
+        height: 98px;
+    }
+
+    .quick-actions {
+        gap: 11px;
+    }
+
+    .quick-actions > a {
+        width: 50%;
+        padding: 11px;
+    }
+
+    th,
+    td {
+        padding: 0 14px;
+    }
+}
+
+
+/* Ícones */
+.icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.brand-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.metric-icon svg,
+.notice-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.quick-icon svg {
+    width: 22px;
+    height: 22px;
+}
