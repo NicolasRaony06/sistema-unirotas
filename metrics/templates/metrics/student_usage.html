@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico do Aluno - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/student_usage.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="header-with-back">
+            <a href="javascript:history.back()" class="back-button">
+                <i class="fa-solid fa-arrow-left" style="color: #0047ab;"></i>
+            </a>
+            <h1>Histórico</h1>
+        </header>
+
+        <div class="student-header">
+            <div class="student-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="student-info">
+                <h2>{{ usage.user.full_name }}</h2>
+                <p>{{ usage.user.email }}</p>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <i class="fa-solid fa-arrows-left-right"></i>
+                <span>{{ usage.total_trips }} viagens</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-route"></i>
+                <span>{{ usage.unique_routes|length }} rotas</span>
+            </div>
+        </div>
+
+        <div class="period-info">
+            <p>{{ usage.usage_period.start }} a {{ usage.usage_period.end }}</p>
+        </div>
+
+        <div class="trips-section">
+            <h2>Viagens</h2>
+            {% if usage.trips %}
+            <div class="trips-list">
+                {% for trip in usage.trips %}
+                <div class="trip-item">
+                    <div class="trip-date">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>{{ trip.day|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="trip-route">
+                        <i class="fa-solid fa-bus"></i>
+                        <span>{{ trip.route }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-bus"></i>
+                <p>Sem viagens neste período</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

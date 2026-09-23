@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rota - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/route_detail.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="header-with-back">
+            <a href="{% url 'metrics:dashboard' %}" class="back-button">
+                <i class="fa-solid fa-arrow-left" style="color: #0047ab;"></i>
+            </a>
+            <h1>{{ route.line }} - {{ route.route }}</h1>
+        </header>
+
+        <div class="date-info">
+            <p>{{ route.date|date:"d/m/Y" }}</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <i class="fa-solid fa-arrows-left-right"></i>
+                <span>{{ route.total_trips }} trajetos</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-users"></i>
+                <span>{{ route.total_students }} alunos</span>
+            </div>
+            <div class="stat-item">
+                <i class="fa-solid fa-clock"></i>
+                <span>Média: {{ route.average_trip_time }} min</span>
+            </div>
+        </div>
+
+        <div class="stops-section">
+            <h2>Trajetos</h2>
+            {% for stop in route.stops %}
+            <div class="stop-card">
+                <div class="stop-header">
+                    <span class="stop-id">#{{ stop.id }}</span>
+                    {% if stop.duration_minutes %}
+                    <span class="duration">{{ stop.duration_minutes }} min</span>
+                    {% endif %}
+                </div>
+                <div class="stop-info">
+                    <div class="stop-time">
+                        <span class="label">Saída:</span>
+                        <span class="value">{{ stop.start_time }}</span>
+                    </div>
+                    <div class="stop-time">
+                        <span class="label">Chegada:</span>
+                        <span class="value">{{ stop.end_time }}</span>
+                    </div>
+                </div>
+                <div class="stop-route">
+                    <span class="from">{{ stop.start_stop }}</span>
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span class="to">{{ stop.end_stop }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
