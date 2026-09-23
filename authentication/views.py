@@ -8,7 +8,6 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-
 # Create your views here.
 
 def signup(request):
@@ -44,6 +43,8 @@ def signin(request):
             user = authenticate(request, username=data.get("email"), password=data.get("password"))
             if user is not None:
                 login(request, user)
+                if request.user.role == 'ADMIN':
+                    return redirect("management:home")
                 return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")
