@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from .decorators import role_required
+import os
 # Create your views here.
 
 def signup(request):
@@ -134,9 +135,12 @@ def my_information(request):
 def change_avatar(request):
     form = AvatarForm(request.POST, request.FILES)
     if form.is_valid():
-        profile_picture = form.cleaned_data["profile_picture"]
-        request.user.profile_picture = profile_picture
+        new_picture = form.cleaned_data["profile_picture"]
+        old_picture = request.user.profile_picture if request.user.profile_picture else None
+        request.user.profile_picture = new_picture
         request.user.save()
+        if old_picture:
+            old_picture.delete(save=False)
     return redirect("authentication:my_information")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
