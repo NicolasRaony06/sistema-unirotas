@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Início | UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/home.css' %}" />
+</head>
+
+<body>
+
+    <main class="app-shell">
+
+        {% include 'partials/side_bar.html'%}
+
+        <section class="workspace" id="inicio">
+            <header class="topbar">
+                <h1>Início</h1>
+                <p>Bem-vindo ao painel administrativo UniRota</p>
+            </header>
+
+            <div class="dashboard">
+                <section class="greeting">
+                    <small>{{ data|date:"D, d M Y H:i" }}</small>
+                    <h2>Olá, {{full_name}}!</h2>
+                    <p>Você tem 2 notificações não lidas e 1 chamado pendente.</p>
+                </section>
+
+                {% include 'partials/metrics.html'%}
+
+                <div class="content-grid">
+
+                    {% include 'partials/panel_routes.html'%}
+                    {% include 'partials/notifications.html'%}
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>
