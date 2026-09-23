@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from .models import *
 from authentication.models import UserRole
+from authentication.service import generate_elevated_signup_link
 from .handlers import cadastrar_municipio
 # Create your views here.
 
@@ -29,4 +31,34 @@ def criar_municipio(request):
     
     return HttpResponse(f"Municipio criado com sucesso por: {request.user.role}")
 
+#TODO adicionar login decorador
+def invite_driver(request):
+    #TODO alterar por decorator de keven
+    if request.user.role != UserRole.MANAGER:
+        messages.error(request, "Você precisa estar logado como um gestor para ter acesso.")
+        return redirect('management:home')
 
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        confirm_email = request.POST.get('confirm_email', '').strip()
+
+        if not email == confirm_email:
+            messages.error(request, "Os emails informados não são iguais.")
+            return render(request, "invite_driver.html")
+
+        link = generate_elevated_signup_link(
+            higher_role_email=request.user.email,
+            email=email,
+            role=UserRole.DRIVER,
+            request=request
+        )
+
+        if link:
+            messages.success(request, f'Convite enviado com sucesso para {email}.')
+            return render(request, "invite_driver.html")
+        else:
+            messages.error(request, f"Não foi possível enviar o convite para {email}.")
+
+    return render(request, "invite_driver.html")
+
+        
