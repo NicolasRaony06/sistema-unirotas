@@ -8,8 +8,6 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from .decorators import role_required
-import os
 # Create your views here.
 
 def signup(request):
