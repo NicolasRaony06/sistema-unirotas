@@ -1,10 +1,19 @@
+from django.shortcuts import render
+from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from .models import *
 from authentication.models import UserRole
 from .handlers import cadastrar_municipio
 # Create your views here.
 
-def municipio(request):
+def home(request):
+    return render(request,'home.html',{
+        'full_name' : request.user.full_name,
+        'data': datetime.now(),
+        'role': request.user.role,
+    })
+
+def criar_municipio(request):
     if request.user.role == UserRole.ADMIN:
         nome = request.GET.get('nome')
         cod_ibge = request.GET.get('codigo_ibge')
