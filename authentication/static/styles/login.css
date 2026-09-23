@@ -218,7 +218,7 @@ body {
         flex: unset;
         border-radius: 0; /* Remove os cantos arredondados de mobile */
         margin-top: 0;
-        background-color: #fefae0; /* Tom creme exato do design de referência */
+        background-color: #F5F4EE; /* Tom creme exato do design de referência */
         padding: 3rem 2.5rem;
         display: flex;
         flex-direction: column;
