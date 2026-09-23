@@ -38,15 +38,22 @@ class Viagem(models.Model):
         return None
     
 class UsuarioDaViagem(models.Model):
-    estudante = models.CharField(max_length=50, unique=True)
-    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, unique=True)
+    estudante = models.ForeignKey('authentication.StudentProfile', on_delete=models.CASCADE, related_name='viagens')
+    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, related_name='usuarios')
     direcao = models.CharField(max_length=20, choices=[
         ('ida', 'Ida'),
         ('volta', 'Volta'),
         ('ida e volta', 'Ida e Volta'),
     ])
+    horario_saida_aluno = models.TimeField()
     presente = models.BooleanField(default=False)
-    instituicao = models.CharField(max_length=60)
+    instituicao = models.CharField(max_length=100)
+    moderador = models.BooleanField(default=False)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['estudante', 'viagem'], name='unique_estudante_viagem')
+        ]
     
     def __str__(self):
-        return self.estudante
+        return f'{self.estudante} - {self.viagem} ({self.direcao})'
