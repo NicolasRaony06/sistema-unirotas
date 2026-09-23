@@ -154,6 +154,7 @@ def change_password(request):
                 update_session_auth_hash(request, request.user)
                 return redirect("authentication:my_information")
             else:
+                form.add_error("new_password2", "A senha tem que atender a todos os requisitos, se o erro persistir, cheque sua senha atual")
                 return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
     else:
         form = ChangePassword(user=request.user)
