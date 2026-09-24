@@ -55,10 +55,10 @@
                 {% endif %}
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
-                    {{ form_account.birth_date }}
+                    {{ form_student.birth_date }}
                 </div>
-                {% if form_account.birth_date.errors %}
-                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.birth_date.errors.0 }}</div>
+                {% if form_student.birth_date.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_student.birth_date.errors.0 }}</div>
                 {% endif %}
                 <div class="info-box">
                     <div class="info-box-icon">i</div>

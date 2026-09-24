@@ -55,7 +55,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     notifications = models.BooleanField(default=True)
-    birth_date = models.DateField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
@@ -88,12 +87,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class PersonelProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='personel_profile')
+    birth_date = models.DateField(null=True, blank=True) #depois voltar pra userBase somente para não quebrar o codigo
+    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
     # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
-    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 
