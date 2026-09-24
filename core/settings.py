@@ -137,10 +137,25 @@ STATICFILES_DIRS = [
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-DEFAULT_FROM_EMAIL = 'noreply@seusite.com'
+#DEFAULT_FROM_EMAIL = 'noreply@seusite.com'
+from dotenv import load_dotenv
+
+load_dotenv(BASE_DIR / '.env')
+nome_exibido = "UniRota"
+email_real = os.environ.get('EMAIL_HOST_USER')
+
+DEFAULT_FROM_EMAIL = f'"{nome_exibido}" <{email_real}>'
+# DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@seusite.com')
 
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': 'smtp.gmail.com',
+            'port': 587,
+            'use_tls': True,
+            'username': os.environ.get('EMAIL_HOST_USER'),
+            'password': os.environ.get('EMAIL_HOST_PASSWORD'),
+        },
     },
 }

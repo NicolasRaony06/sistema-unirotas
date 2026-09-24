@@ -60,9 +60,8 @@ def enviar_email_convite(email_destino, link_convite):
     sent_account = send_mail(
         subject=assunto,
         message=mensagem,
-        from_email=remetente,
+        from_email=None,
         recipient_list=[email_destino],
-        fail_silently=True,
     )
 
     return False if sent_account == 0 else True
