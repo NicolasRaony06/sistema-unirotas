@@ -1,4 +1,7 @@
 from django.db import models
+
+# Create your models here.
+from django.db import models
 from django.utils import timezone
 from authentication.models import User
 
@@ -6,7 +9,7 @@ from authentication.models import User
 class LastRouteDay(models.Model):
     line = models.CharField(max_length=50)
     route = models.CharField(max_length=50)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -24,8 +27,10 @@ class StopMetrics(models.Model):
     )
     start_stop = models.CharField(max_length=100)
     end_stop = models.CharField(max_length=100)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    distance = models.DecimalField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    order = models.PositiveIntegerField()
 
     @property
     def line(self):
