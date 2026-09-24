@@ -104,7 +104,7 @@
                 <strong>Não possui</strong>
             {% endif %}
         </div>
-        <button class="moderator__trocar" type="button">Trocar</button>
+        <a class="moderator__trocar" href="{% url 'lista_moderadores' viagem.pk %}">Trocar</a>
     </section>
 
     {% else %}

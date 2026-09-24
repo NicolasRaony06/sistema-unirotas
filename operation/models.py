@@ -52,8 +52,18 @@ class UsuarioDaViagem(models.Model):
     
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['estudante', 'viagem'], name='unique_estudante_viagem')
-        ]
+            models.UniqueConstraint(
+                fields=['estudante', 'viagem'],
+                name='unique_estudante_viagem',
+                violation_error_message='Esse aluno já está registrado nessa viagem.'
+            ),
+            models.UniqueConstraint(
+                fields=['viagem'],
+                condition=models.Q(moderador=True),
+                name='unique_moderador_por_viagem',
+                violation_error_message='Essa viagem já possui um moderador definido.'
+            ),
+    ]
     
     def __str__(self):
         return f'{self.estudante} - {self.viagem} ({self.direcao})'
