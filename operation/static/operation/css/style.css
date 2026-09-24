@@ -1,0 +1,295 @@
+:root {
+    --navy-950: #0B1130;
+    --navy-800: #161D45;
+    --blue-500: #3D6BFF;
+    --blue-100: #EAF0FF;
+    --coral-500: #F0483F;
+    --green-600: #2FA84F;
+    --amber-600: #C98A06;
+    --ink-900: #14161F;
+    --grey-500: #8A8FA3;
+    --grey-200: #E7E9F2;
+    --paper: #F3F5FA;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--paper);
+    font-family: 'Manrope', system-ui, sans-serif;
+    color: var(--ink-900);
+}
+
+.app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar { padding: 20px 20px 8px; }
+.topbar h1 { margin: 0; font-size: 22px; font-weight: 800; color: var(--navy-950); }
+.topbar { text-align: center; }
+
+.content {
+    flex: 1;
+    padding: 8px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.flash {
+    background: var(--blue-100);
+    color: var(--navy-950);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ---- Card da rota ---- */
+.route-card { background: var(--navy-950); border-radius: 20px; padding: 18px; color: #fff; }
+.route-card__head { display: flex; align-items: center; gap: 12px; }
+.route-card__bus {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: var(--blue-500);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.route-card__title { flex: 1; }
+.route-card__title h2 { margin: 0; font-size: 17px; font-weight: 800; }
+.route-card__title span { font-size: 11px; color: #A9B0D6; font-weight: 600; }
+.route-card__alert {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--blue-500); color: #fff; border: none;
+    border-radius: 999px; padding: 8px 12px;
+    font-size: 12px; font-weight: 700; font-family: inherit;
+}
+
+.route-card__path {
+    display: flex; align-items: center; gap: 8px;
+    margin: 16px 0; font-size: 14px; font-weight: 700; color: #E4E8FF;
+}
+.route-card__path .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-500); flex-shrink: 0; }
+.route-card__path .arrow { color: #6C79B8; }
+
+.route-card__meta { display: flex; gap: 28px; padding-top: 14px; border-top: 1px solid #2A3364; }
+.route-card__meta .label { display: block; font-size: 10px; letter-spacing: 0.04em; color: #8891C4; margin-bottom: 3px; }
+.route-card__meta strong { font-size: 13px; }
+
+.route-card__actions { display: flex; gap: 10px; margin-top: 18px; }
+.btn {
+    flex: 1; text-align: center; padding: 12px 10px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; text-decoration: none; border: none;
+    font-family: inherit; cursor: pointer;
+}
+.btn--ghost { background: transparent; color: #fff; border: 1px solid #3A437A; }
+.btn--solid { background: var(--blue-500); color: #fff; }
+.btn--danger { background: var(--coral-500); }
+.btn--done { background: #232B58; color: #A9B0D6; }
+
+/* ---- Paradas de hoje ---- */
+.stops { background: #fff; border-radius: 20px; padding: 18px; }
+.stops__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.stops__head h3 { margin: 0; font-size: 15px; font-weight: 800; }
+.stops__head span { font-size: 12px; color: var(--grey-500); font-weight: 600; }
+.progress { height: 5px; border-radius: 999px; background: var(--grey-200); overflow: hidden; margin-bottom: 16px; }
+.progress__bar { height: 100%; background: var(--blue-500); border-radius: 999px; }
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { position: relative; padding: 12px 14px 12px 26px; margin-bottom: 8px; border-radius: 14px; }
+.timeline li::before {
+    content: ''; position: absolute; left: 6px; top: 18px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--grey-200);
+}
+.timeline li.done::before { background: var(--green-600); }
+.timeline li.active { background: var(--blue-100); }
+.timeline li.active::before { background: var(--blue-500); }
+.timeline li:not(:last-child)::after {
+    content: ''; position: absolute; left: 9.5px; top: 26px;
+    width: 1px; height: calc(100% + 6px); background: var(--grey-200);
+}
+.stop-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.stop-row strong { font-size: 13.5px; }
+.stop-row small { display: block; color: var(--grey-500); font-size: 11.5px; margin-top: 2px; }
+.tag { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+.tag--feito { color: var(--green-600); }
+.tag--espera { color: var(--amber-600); }
+.tag--checkin { background: var(--navy-950); color: #fff; }
+
+/* ---- Aluno moderador ---- */
+.moderator { background: var(--blue-100); border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.moderator__icon {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--blue-500);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.moderator__info { flex: 1; }
+.moderator__info span { display: block; font-size: 11px; color: var(--grey-500); font-weight: 600; }
+.moderator__info strong { font-size: 14px; color: var(--blue-500); }
+.moderator__trocar { background: var(--navy-950); color: #fff; border: none; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; font-family: inherit; }
+
+.empty { text-align: center; color: var(--grey-500); font-size: 14px; padding: 40px 0; }
+
+/* ---- Navegação inferior ---- */
+.bottom-nav {
+    display: flex; justify-content: space-around; padding: 12px 0 8px;
+    background: #fff; border-top: 1px solid var(--grey-200);
+    position: sticky; bottom: 0;
+}
+.bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--grey-500); text-decoration: none; }
+.bottom-nav a.active { color: var(--blue-500); }
+
+/* ---- Cabeçalho com seta de voltar ---- */
+.topbar-alunos {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    justify-content: center;
+}
+.topbar-alunos h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy-950);
+}
+.topbar-back {
+    position: absolute;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(11, 17, 48, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--navy-950);
+    text-decoration: none;
+}
+
+/* ---- Card resumo ---- */
+.summary-card {
+    background: var(--navy-950);
+    border-radius: 20px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+}
+.summary-card__total .label {
+    display: block;
+    font-size: 12px;
+    color: #A9B0D6;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.summary-card__total .value {
+    font-size: 32px;
+    font-weight: 800;
+}
+.summary-card__stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    color: var(--ink-900);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+.stat .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+.stat--ok .dot { background: var(--green-600); }
+.stat--pending .dot { background: var(--coral-500); }
+
+/* ---- Grupos por instituição ---- */
+.group__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 4px 10px;
+}
+.group__title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ink-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.badge {
+    background: var(--blue-100);
+    color: var(--blue-500);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+}
+.group__ratio {
+    font-size: 12px;
+    color: var(--grey-500);
+    font-weight: 600;
+}
+
+/* ---- Linha de aluno ---- */
+.student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.student-row {
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.student-row__avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--blue-100);
+    color: var(--blue-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.student-row__name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-900);
+}
+.status-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.status-pill--presente {
+    background: #E4F7EA;
+    color: var(--green-600);
+}
+.status-pill--pendente {
+    background: #FDE9EA;
+    color: var(--coral-500);
+}

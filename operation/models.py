@@ -13,7 +13,7 @@ class Viagem(models.Model):
     momento_finalizado = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.linha
+        return f'{self.linha} ({self.data})'
 
     def comecar(self):
         self.status = 'em_andamento'

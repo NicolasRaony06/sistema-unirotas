@@ -1,52 +1,113 @@
-<!-- lista_viagens.html -->
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Viagens</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        .aguardando { color: orange; }
-        .em_andamento { color: blue; }
-        .concluida { color: green; }
-    </style>
-</head>
-<body>
-    <h1>Viagens</h1>
-    {% if messages %}
-        {% for message in messages %}
-            <p><strong>{{ message }}</strong></p>
-        {% endfor %}
+{% extends 'base.html' %}
+
+{% block nav_inicio %}active{% endblock %}
+
+{% block content %}
+    {% if viagem %}
+    <section class="route-card">
+        <div class="route-card__head">
+            <div class="route-card__bus" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0ZM6 7.5V12C6 12.8297 6.67031 13.5 7.5 13.5H12.75V6H7.5C6.67031 6 6 6.67031 6 7.5ZM14.25 13.5H19.5C20.3297 13.5 21 12.8297 21 12V7.5C21 6.67031 20.3297 6 19.5 6H14.25V13.5ZM6.75 18.75C7.14782 18.75 7.52936 18.592 7.81066 18.3107C8.09196 18.0294 8.25 17.6478 8.25 17.25C8.25 16.8522 8.09196 16.4706 7.81066 16.1893C7.52936 15.908 7.14782 15.75 6.75 15.75C6.35218 15.75 5.97064 15.908 5.68934 16.1893C5.40804 16.4706 5.25 16.8522 5.25 17.25C5.25 17.6478 5.40804 18.0294 5.68934 18.3107C5.97064 18.592 6.35218 18.75 6.75 18.75ZM20.25 18.75C20.6478 18.75 21.0294 18.592 21.3107 18.3107C21.592 18.0294 21.75 17.6478 21.75 17.25C21.75 16.8522 21.592 16.4706 21.3107 16.1893C21.0294 15.908 20.6478 15.75 20.25 15.75C19.8522 15.75 19.4706 15.908 19.1893 16.1893C18.908 16.4706 18.75 16.8522 18.75 17.25C18.75 17.6478 18.908 18.0294 19.1893 18.3107C19.4706 18.592 19.8522 18.75 20.25 18.75ZM18 3.75C18 3.3375 17.6625 3 17.25 3H9.75C9.3375 3 9 3.3375 9 3.75C9 4.1625 9.3375 4.5 9.75 4.5H17.25C17.6625 4.5 18 4.1625 18 3.75Z" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="route-card__title">
+                <h2>{{ viagem.linha }}</h2>
+                <span>Transporte público</span>
+            </div>
+            <!-- estático: aviso ainda não implementado -->
+            <button class="route-card__alert" type="button" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a6 6 0 00-6 6v4l-2 4h16l-2-4V8a6 6 0 00-6-6zM9 19a3 3 0 006 0H9z"/></svg>
+                Criar aviso
+            </button>
+        </div>
+
+        <!-- estático: origem/destino ainda não é um campo do model -->
+        <div class="route-card__path">
+            <span class="dot"></span> São Miguel <span class="arrow">→</span> IFRN
+        </div>
+
+        <div class="route-card__meta">
+            <div>
+                <!-- estático: dias úteis fixos, ainda não vem do model -->
+                <span class="label">DIAS ÚTEIS</span>
+                <strong>Seg - Sex</strong>
+                
+            </div>
+            <div>
+                <span class="label">HORÁRIO</span>
+                <strong>{{ viagem.data|date:"H:i" }}</strong>
+            </div>
+        </div>
+
+        <div class="route-card__actions">
+            <!-- estático: tela de lista de alunos ainda não existe -->
+            <a class="btn btn--ghost" href="{% url 'lista_alunos' viagem.pk %}">Lista de alunos</a>
+
+            {% if viagem.status == 'aguardando' %}
+                <a class="btn btn--solid" href="{% url 'comecar_viagem' viagem.pk %}">Iniciar percurso</a>
+            {% elif viagem.status == 'em_andamento' %}
+                <a class="btn btn--solid btn--danger" href="{% url 'concluir_viagem' viagem.pk %}">Finalizar rota</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- estático: paradas ainda não têm model próprio -->
+    <section class="stops">
+        <div class="stops__head">
+            <h3>Paradas de hoje</h3>
+            <span>1 de 4 concluído</span>
+        </div>
+        <div class="progress"><div class="progress__bar" style="width: 25%;"></div></div>
+        <ul class="timeline">
+            <li class="done">
+                <div class="stop-row">
+                    <div>
+                        <strong>Garagem · saída</strong>
+                        <small>Check-in feito às 12:45</small>
+                    </div>
+                    <span class="tag tag--feito">Feito</span>
+                </div>
+            </li>
+            <li class="active">
+                <div class="stop-row">
+                    <div>
+                        <strong>Praça Matriz</strong>
+                        <small>Check-in feito às 12:45</small>
+                    </div>
+                    <span class="tag tag--checkin">Check-in</span>
+                </div>
+            </li>
+            <li>
+                <div class="stop-row">
+                    <div>
+                        <strong>UERN · Mossoró</strong>
+                        <small>Destino final · previsto 19:50</small>
+                    </div>
+                    <span class="tag tag--espera">Espera</span>
+                </div>
+            </li>
+        </ul>
+    </section>
+
+    <!-- estático: moderador da viagem ainda não implementado -->
+    <section class="moderator">
+        <div class="moderator__icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M5 8l4 3 3-6 3 6 4-3-2 10H7L5 8z"/></svg>
+        </div>
+        <div class="moderator__info">
+            {% if moderador %}
+                <span>Aluno moderador</span>
+                <strong>{{moderador.estudante}}</strong>
+            {% else %}
+                <span>Aluno moderador</span>
+                <strong>Não possui</strong>
+            {% endif %}
+        </div>
+        <button class="moderator__trocar" type="button">Trocar</button>
+    </section>
+
+    {% else %}
+    <p class="empty">Nenhuma rota disponível no momento.</p>
     {% endif %}
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Linha</th>
-            <th>Data</th>
-            <th>Status</th>
-            <th>Início</th>
-            <th>Fim</th>
-            <th>Ação</th>
-        </tr>
-        {% for viagem in viagens %}
-        <tr>
-            <td>{{ viagem.pk }}</td>
-            <td>{{ viagem.linha }}</td>
-            <td>{{ viagem.data }}</td>
-            <td class="{{ viagem.status }}">{{ viagem.status }}</td>
-            <td>{{ viagem.momento_iniciado|default:"-" }}</td>
-            <td>{{ viagem.momento_finalizado|default:"-" }}</td>
-            <td>
-                {% if viagem.status == 'aguardando' %}
-                <a href="{% url 'comecar_viagem' viagem.pk %}">Comecar</a>
-                {% endif %}
-                {% if viagem.status == 'em_andamento' %}
-                <a href="{% url 'concluir_viagem' viagem.pk %}">Concluir</a>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-</body>
-</html>
+{% endblock %}

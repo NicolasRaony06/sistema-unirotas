@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de alunos{% endblock %}
+
+{% block header %}
+    <div class="topbar-alunos">
+        <a href="{% url 'lista_viagens' %}" class="topbar-back" aria-label="Voltar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </a>
+        <h1>Lista de alunos</h1>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- Card resumo: substitua os valores fixos pelos totais calculados na view -->
+    <section class="summary-card">
+        <div class="summary-card__total">
+            <span class="label">Total de alunos</span>
+            <strong class="value">{{total}}</strong>
+        </div>
+        <div class="summary-card__stats">
+            <span class="stat stat--ok"><span class="dot"></span> {{presentes}} Presentes</span>
+            <span class="stat stat--pending"><span class="dot"></span> {{pendentes}} Pendentes</span>
+        </div>
+    </section>
+
+    {% comment %}
+    Estático (exemplo): cada bloco abaixo representa um grupo por instituição.
+    Na view, monte uma lista de dicionarios com instituicao, alunos, presentes e total,
+    e troque as tres secoes fixas abaixo por um unico loop percorrendo essa lista.
+    {% endcomment %}
+
+    <section class="group">
+        <div class="student-list">
+            {% for aluno in alunos %}
+            <div class="student-row">
+                
+                    <span class="student-row__avatar" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 6-6 8-6s6.5 2 8 6"/></svg>
+                    </span>
+                    <span class="student-row__name">{{aluno.estudante}}</span>
+                    {% if aluno.presente %}
+                        <span class="status-pill status-pill--presente">Presente</span>
+                    {% else %}
+                        <span class="status-pill status-pill--pendente">Pendente</span>
+                    {% endif %}
+                
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
