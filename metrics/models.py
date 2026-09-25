@@ -9,6 +9,7 @@ from authentication.models import User
 class LastRouteDay(models.Model):
     line = models.CharField(max_length=50)
     route = models.CharField(max_length=50)
+    is_concluded = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,6 +43,12 @@ class StopMetrics(models.Model):
 
     class Meta:
         ordering = ['start_time']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['last_route_day', 'order'], 
+                name='unique_order_per_route_day'
+            )
+        ]
 
     def __str__(self):
         return f"{self.route}: {self.start_stop} -> {self.end_stop}"
