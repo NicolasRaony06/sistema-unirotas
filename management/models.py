@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from authentication.models import User , UserRole
+import re
 # Create your models here.
 class Municipio(models.Model):
     nome = models.CharField(max_length=100)
@@ -23,7 +24,13 @@ class Municipio(models.Model):
             self.municipios_relacionados.add(self)
 
 class Bus(models.Model):
-    license_plate = models.CharField(max_length=7, unique=True)
+    license_plate_validator = RegexValidator(
+        regex=r'^[A-Z]{3}-?[0-9][A-Z0-9][0-9]{2}$',
+        message="A placa deve estar no padrão brasileiro antigo (AAA-1234) ou Mercosul (AAA1A23).",
+        flags=re.IGNORECASE
+    )
+
+    license_plate = models.CharField(max_length=8, unique=True, validators=[license_plate_validator])
     name = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     color = models.CharField(max_length=15, null=True, blank=True)

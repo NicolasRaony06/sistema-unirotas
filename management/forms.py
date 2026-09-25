@@ -12,3 +12,9 @@ class BusForm(forms.ModelForm):
             'color': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite cor predominante do ônibus'}),
             'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
         }
+
+    def clean_license_plate(self):
+        data = self.cleaned_data['license_plate']
+        data = data.upper().replace('-', '').strip()
+        
+        return data
