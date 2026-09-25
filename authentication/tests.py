@@ -14,17 +14,24 @@ O que este arquivo cobre:
     7. Reset de senha por e-mail (fluxo completo usando o link que sai em mail.outbox)
     8. Seguranca (CSRF, hashing de senha, enumeracao de usuarios, escalonamento de cargo)
 
-As duas ultimas classes do arquivo documentam falhas encontradas no app:
+As classes de revisao (nesta ordem):
 
-    * ``FalhasUrgentesTests``          -> testes VERMELHOS de proposito (assertam o
-      comportamento correto esperado). Cada docstring explica o problema atual.
+    * ``MigrationsSemConflitoTests``   -> trava do bloqueador I1: no branch
+      merged/auth/metrics a app authentication tem dois ``0004`` e a suite
+      nem roda antes de um ``python manage.py makemigrations --merge``.
+    * ``FalhasUrgentesTests``          -> problemas reais do app. Na auditoria
+      de 25/09/2026 restam 2 vermelhos (A1: aviso de convite invisivel;
+      A2: mensagem de senha atual incorreta nao renderizada); os demais
+      viraram travas de regressao dos fixes ja feitos.
     * ``FalhasAceitaveisParaMVPTests`` -> testes marcados com ``expectedFailure``
-      (podem ser adiados, mas devem ser revisitados antes de producao).
+      (podem ser adiados, mas devem ser revisitados antes de producao) + os
+      casos ja RESOLVIDOS, sem decorator.
 
 Como rodar:
 
     python manage.py test authentication -v 2
 """
+import base64
 import re
 import shutil
 import tempfile
@@ -44,6 +51,7 @@ from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.signing import Signer, TimestampSigner
 from django.db import IntegrityError, transaction
+from django.db.migrations.loader import MigrationLoader
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
@@ -64,6 +72,12 @@ User = get_user_model()
 # 8+ caracteres, minuscula, maiuscula, numero e simbolo.
 SENHA_FORTE = "Senha@123"
 SENHA_NOVA = "NovaSenha@456"
+
+# PNG 1x1 válido: o `ImageField` (Pillow) recusa bytes arbitrários, então
+# fixtures de upload precisam de uma imagem de verdade.
+PNG_1X1 = base64.b64decode(
+    b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+)
 
 # ---------------------------------------------------------------------------
 # Ajuste de performance da bateria de testes
@@ -446,16 +460,31 @@ class UserRegistrationFormTests(TestCase):
         self.assertIn("email", form.errors)
 
     def test_form_rejeita_senhas_divergentes(self):
+        """O aviso precisa ficar no campo que o template renderiza.
+
+        `signup.html` desenha `form_account.password.errors`; o contrato do
+        form é anexar a mensagem ao campo ``password`` (não deixar a mensagem
+        solta em ``__all__`` sem texto) — era isso que a versão anterior deste
+        teste pedia e por isso ele ficava vermelho sem bug real.
+        """
         form = UserRegistrationForm(data=self.payload(confirm_password=SENHA_NOVA))
 
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
+        self.assertIn("password", form.errors)
+        self.assertTrue(form.errors["password"][0].strip())
 
     def test_form_rejeita_senha_fraca(self):
+        """Senha fraca precisa de mensagem visível no campo renderizado.
+
+        Mesmo contrato do teste acima: o template de signup mostra
+        `form_account.password.errors`, então o erro deve estar em
+        ``password`` (mensagem não vazia).
+        """
         form = UserRegistrationForm(data=self.payload(password="123", confirm_password="123"))
 
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
+        self.assertIn("password", form.errors)
+        self.assertTrue(form.errors["password"][0].strip())
 
     def test_form_rejeita_email_invalido(self):
         form = UserRegistrationForm(data=self.payload(email="nao-e-email"))
@@ -616,16 +645,30 @@ class ChangePasswordFormTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_novas_senhas_divergentes_sao_invalidas(self):
+        """A mensagem fica em ``new_password2`` (campo renderizado no template).
+
+        `change_password.html` desenha `form.new_password2.errors`; o contrato
+        é anexar o aviso ao campo — não depender de erro global sem texto.
+        """
         form = ChangePassword(data=self.payload(new_password2="Outra@999"), user=self.user)
 
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
+        self.assertIn("new_password2", form.errors)
+        self.assertTrue(form.errors["new_password2"][0].strip())
 
     def test_nova_senha_fraca_e_invalida(self):
+        """A nova senha fraca é reprovada e o erro visível fica em ``new_password1``.
+
+        Observação registrada no relatório (A3): o ``clean()`` também emite um
+        non-field error com string vazia (``raise forms.ValidationError("")``),
+        que renderiza uma caixa de erro sem texto no template — limpeza
+        pendente, sem impacto funcional.
+        """
         form = ChangePassword(data=self.payload(new_password1="123", new_password2="123"), user=self.user)
 
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
+        self.assertIn("new_password1", form.errors)
+        self.assertTrue(form.errors["new_password1"][0].strip())
 
     def test_form_nao_valida_a_senha_atual(self):
         """O form apenas recebe a senha atual; quem confere e a view."""
@@ -2001,23 +2044,65 @@ class EscalonamentoDeCargoTests(CacheLimpoTestCase):
 
 
 # ---------------------------------------------------------------------------
+# 9.5 Integridade do grafo de migrations
+# ---------------------------------------------------------------------------
+class MigrationsSemConflitoTests(TestCase):
+    """I1 (relatorio.md) — cada app precisa de UM leaf no grafo de migrations.
+
+    No branch ``merged/auth/metrics`` a app ``authentication`` tem DOIS ``0004``
+    (``0004_alter_studentprofile_period`` e
+    ``0004_remove_user_birth_date_studentprofile_birth_date_and_more``), o que
+    derruba ``manage.py test``/``migrate`` com "Conflicting migrations
+    detected" — ou seja, esta suíte só roda depois de um
+    ``python manage.py makemigrations --merge``. O teste fica como trava para
+    o conflito não voltar.
+    """
+
+    def test_cada_app_tem_um_unico_leaf_de_migration(self):
+        loader = MigrationLoader(None, ignore_no_migrations=True)
+        folhas = {}
+        for app_label, nome in loader.graph.leaf_nodes():
+            if app_label in {"authentication", "metrics"}:
+                folhas.setdefault(app_label, []).append(nome)
+
+        conflitos = {app: nodes for app, nodes in folhas.items() if len(nodes) > 1}
+
+        self.assertEqual(
+            conflitos, {},
+            "I1 (relatorio.md): mais de um leaf no grafo de migrations — "
+            f"{conflitos}. Rodar `python manage.py makemigrations --merge`, "
+            "commitar o merge e reexecutar a suíte.",
+        )
+
+
+# ---------------------------------------------------------------------------
 # 10. Falhas sistematicas encontradas - CORRIGIR COM URGENCIA
 # ---------------------------------------------------------------------------
 class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
-    """Testes vermelhos de proposito: descrevem o comportamento correto esperado.
+    """Problemas reais da app `authentication` — vermelho É a evidência.
 
-    Cada teste aponta um problema real encontrado na app `authentication`.
-    Enquanto o problema existir o teste falha - de proposito - para lembrar o
-    time do que precisa ser corrigido antes de colocar o sistema em uso.
+    Cada teste aponta um comportamento correto esperado. Enquanto o problema
+    existir o teste falha de propósito, para lembrar o time do que precisa ser
+    corrigido antes de colocar o sistema em uso.
+
+    Situação na auditoria de 25/09/2026 (branch ``merged/auth/metrics``):
+
+    * **A1 — VERMELHO**: convite para e-mail que já tem conta falha em
+      silêncio (``signup_role.html`` não renderiza o erro do e-mail).
+    * **A2 — VERMELHO**: troca de senha com a senha ATUAL errada não mostra a
+      mensagem específica (``{{ error }}`` não é renderizado).
+    * Os demais (login, troca de senha divergente, validadores do Django,
+      período 1..12, duplicidade por caixa) JÁ passam: viraram travas de
+      regressão dos fixes já feitos no app.
     """
 
     # -- 2. erros de formulario invisiveis para o usuario --------------------
     def test_login_deve_mostrar_o_erro_para_o_usuario(self):
-        """URGENTE - falha silenciosa na tela de login.
+        """RESOLVIDO (trava de regressão) — o login já mostra o erro ao usuário.
 
-        A view adiciona "E-mail ou senha inválidos." em `form_login`, mas
-        `login.html` nao renderiza `form.errors`: o usuario volta para a mesma
-        tela sem saber o que aconteceu.
+        Contexto original: a view adicionava "E-mail ou senha inválidos." em
+        `form_login`, mas `login.html` não renderizava `form.errors`. Hoje o
+        erro aparece e este teste garante que não volta a sumir.
         """
         criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
 
@@ -2035,11 +2120,12 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
 
     def test_troca_de_senha_deve_mostrar_o_erro_para_o_usuario(self):
-        """URGENTE - falha silenciosa ao trocar senha.
+        """RESOLVIDO (trava de regressão) — a tela já mostra os erros do form.
 
-        Se as senhas novas nao batem (ou sao fracas), `ChangePassword` fica
-        invalido e a view apenas re-renderiza `change_password.html`, que tambem
-        nao mostra `form.errors`: o usuario acha que a senha foi alterada.
+        Contexto original: se as senhas novas não batem (ou são fracas),
+        `ChangePassword` fica inválido e a view apenas re-renderizava
+        `change_password.html`, sem mostrar `form.errors`. Hoje o template
+        renderiza os erros de campo e este teste trava a regressão.
         """
         usuario = criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
         self.client.force_login(usuario)
@@ -2061,11 +2147,14 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         )
 
     def test_convite_deve_mostrar_erro_quando_email_ja_tem_conta(self):
-        """URGENTE - convite para e-mail ja cadastrado falha em silencio.
+        """A1 — convite para e-mail já cadastrado falha em silêncio (VERMELHO).
 
-        Se o e-mail do convite ja possui conta, `signup_form.is_valid()` e False
-        e a view re-renderiza `signup_role.html` sem nenhuma explicacao.
-        O convidado (futuro gestor/motorista) fica travado sem saber o motivo.
+        Se o e-mail do convite já possui conta, `form_account.is_valid()` é
+        False e a view re-renderiza `signup_role.html`; o template só desenha
+        `full_name` e erros globais, então o erro do e-mail — o único possível
+        aqui, já que o e-mail vem assinado no token — não aparece. O convidado
+        (futuro gestor/motorista) fica travado sem saber o motivo. Corrigir
+        renderizando `form_account.email.errors` no template.
         """
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
         criar_usuario(email="ja.existe@unirotas.com")
@@ -2078,17 +2167,19 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         )
         self.assertTrue(
             visiveis,
-            "A tela de convite nao avisa que o e-mail ja possui conta "
-            "(form_account.errors nao e renderizado).",
+            "A1 (relatorio.md): a tela de convite não avisa que o e-mail já "
+            "possui conta (form_account.email.errors não é renderizado no "
+            "signup_role.html).",
         )
 
     # -- 3. validadores oficiais de senha ignorados --------------------------
     def test_troca_de_senha_deve_rodar_os_validadores_do_django(self):
-        """URGENTE - `ChangePassword` nao usa AUTH_PASSWORD_VALIDATORS.
+        """RESOLVIDO (trava de regressão) — o form já roda `validate_password`.
 
-        O form valida apenas o regex proprio, entao senhas parecidas com o
-        e-mail/nome do usuario (ou da lista de senhas comuns) passam - diferente
-        do reset de senha, que usa `validate_password`.
+        Contexto original: o form validava apenas o regex próprio e senhas
+        parecidas com o e-mail/nome do usuário (ou da lista de senhas comuns)
+        passavam. Corrigido no commit ``83facbb``: `ChangePassword.clean()`
+        chama `password_validation.validate_password`.
         """
         usuario = criar_usuario(
             email="carlos.eduardo@unirotas.com",
@@ -2118,11 +2209,13 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         )
 
     def test_troca_de_senha_deve_avisar_quando_a_senha_atual_esta_errada(self):
-        """URGENTE - a mensagem de senha atual incorreta nunca aparece na tela.
+        """A2 — a mensagem de senha atual incorreta nunca aparece (VERMELHO).
 
-        A view coloca `error` no contexto, mas `change_password.html` nao
-        renderiza `{{ error }}` nem `{{ form.errors }}`: o usuario tenta trocar a
-        senha, erra a senha atual e recebe a mesma tela de volta, sem nenhum aviso.
+        A view coloca `error` no contexto, mas `change_password.html` não
+        renderiza `{{ error }}`; o usuário vê apenas o aviso genérico anexado a
+        `new_password2` ("a senha tem que atender aos requisitos..."), que
+        culpa a senha nova em vez de dizer que a senha ATUAL está errada.
+        Corrigir renderizando a mensagem da view.
         """
         usuario = criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
         self.client.force_login(usuario)
@@ -2140,10 +2233,12 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
     # -- 4. dados academicos/pessoais sem validacao ---------------------------
     def test_cadastro_deve_validar_periodo_entre_1_e_12(self):
-        """URGENTE - `period` aceita 0 e valores acima do teto da UI (12).
+        """RESOLVIDO (trava de regressão) — `period` é validado entre 1 e 12.
 
-        O widget sugere min=1/max=12, mas o model usa PositiveIntegerField sem
-        validators, entao o servidor aceita qualquer inteiro >= 0.
+        Contexto original: o widget sugeria min=1/max=12, mas o model usava
+        `PositiveIntegerField` sem validators e o servidor aceitava qualquer
+        inteiro >= 0. Hoje o model usa `MinValueValidator(1)` /
+        `MaxValueValidator(12)`.
         """
         for email, periodo in (
             ("periodo.zero@unirotas.com", 0),
@@ -2162,12 +2257,15 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
     # -- 5. unicidade de e-mail case-sensitive --------------------------------
     def test_email_nao_deve_permitir_duplicidade_por_caixa(self):
-        """URGENTE - unicidade de e-mail e case-sensitive no banco.
+        """RESOLVIDO NA PRÁTICA (trava) — o e-mail é normalizado no ``save``.
 
-        O formulario baixa a caixa do e-mail, mas o banco nao: qualquer escrita
-        que nao passe pelo form (admin, shell, outras apps/APIs) cria duas contas
-        para a mesma pessoa ("Joao@x.com" e "joao@x.com"). Depois disso, a regra
-        de unicidade do form nunca mais casa com o registro real.
+        Contexto original: o formulário baixava a caixa do e-mail, mas o banco
+        não, então qualquer escrita fora do form poderia criar duas contas para
+        a mesma pessoa. Hoje `User.save()` faz `lower()/strip()` antes de
+        gravar, então a segunda escrita estoura `IntegrityError`.
+        Limitação conhecida: escrita em massa (``bulk_create``/``update``) não
+        passa pelo ``save()`` e pode divergir — o caminho normal (view/admin/
+        formulários) está coberto.
         """
         User.objects.create(email="Joao.Silva@UniRota.com", password="x", full_name="A")
 
@@ -2187,12 +2285,14 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 # 11. Falhas aceitaveis para um MVP (documentadas, podem esperar)
 # ---------------------------------------------------------------------------
 class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
-    """Testes marcados com `expectedFailure`: documentam lacunas conhecidas.
+    """Lacunas conhecidas: `expectedFailure` + testes já RESOLVIDOS.
 
-    Eles falham hoje de forma esperada (o runner mostra "expected failures"),
-    mas nao devem ser esquecidos: ficam aqui para serem resolvidos quando o
-    fluxo principal do MVP estiver estavel. Se algum deles passar a passar, o
-    runner acusa "unexpected success" e o decorator deve ser removido.
+    Os marcados falham hoje de forma esperada (o runner mostra "expected
+    failures"), mas não devem ser esquecidos: ficam aqui para serem resolvidos
+    quando o fluxo principal do MVP estiver estável. Se algum deles passar a
+    passar, o runner acusa "unexpected success" e o decorator deve ser
+    removido. Os testes sem decorator nesta classe são casos já resolvidos
+    (ex.: token do convite, limpeza do avatar antigo) que ficaram como trava.
     """
 
     @expectedFailure
@@ -2296,12 +2396,13 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
         self.assertFalse(User.objects.filter(email="futuro@unirotas.com").exists())
 
-    @expectedFailure
     def test_avatar_antigo_deve_ser_removido_ao_trocar_a_foto(self):
-        """BAIXA - a foto antiga fica orfa no disco (lixo acumulando em media/).
+        """RESOLVIDO — a foto antiga é apagada na troca (commit ``84564ae``).
 
-        `change_avatar` sobrescreve o campo do model sem apagar o arquivo antigo:
-        cada troca de foto deixa um arquivo para tras.
+        A fixture antiga usava bytes que não são imagem válida (``b"a"`` /
+        ``b"b"``): o ``ImageField`` recusava os uploads e o teste falhava por
+        motivo errado. Com PNGs válidos, o fluxo prova que o arquivo antigo
+        não fica órfão em ``media/``.
         """
         usuario = criar_usuario(email="aluno@unirotas.com")
         self.client.force_login(usuario)
@@ -2309,18 +2410,18 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
         self.client.post(
             url,
-            {"profile_picture": SimpleUploadedFile("primeira.png", b"a", "image/png")},
+            {"profile_picture": SimpleUploadedFile("primeira.png", PNG_1X1, "image/png")},
         )
         usuario.refresh_from_db()
         caminho_antigo = self.arquivo_no_media(usuario.profile_picture.name)
 
         self.client.post(
             url,
-            {"profile_picture": SimpleUploadedFile("segunda.png", b"b", "image/png")},
+            {"profile_picture": SimpleUploadedFile("segunda.png", PNG_1X1, "image/png")},
         )
 
         self.assertFalse(
-            caminho_antigo.exists(), "A foto antiga continua ocupando espaco em media/."
+            caminho_antigo.exists(), "A foto antiga continua ocupando espaço em media/."
         )
 
     @expectedFailure

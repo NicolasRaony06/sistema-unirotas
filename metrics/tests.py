@@ -18,35 +18,45 @@ Como rodar:
 
     python manage.py test metrics -v 2
 
-Situação atual esperada: parte verde, parte vermelha (tabela abaixo).
+Situação no branch ``merged/auth/metrics`` (auditoria de 25/09/2026)
 
-+-----------------------------------------------+------------------+
-| Teste                                         | Situação         |
-+-----------------------------------------------+------------------+
-| CalculosPurosTests (5)                        | VERDE            |
-| ContratoDaPrevisaoTests (4)                   | VERDE            |
-| AlunoNaRotaTests (4)                          | VERDE            |
-| MigracaoPendenteTests (2)                     | VERDE - 4.1 (fix)|
-| CabecalhoDoDiaTests (2)                       | VERMELHO - 4.2   |
-| RegistroDuplicadoTests (1)                    | VERMELHO - 4.2   |
-| ConclusaoDaRotaTests (2)                      | VERMELHO - 4.4   |
-| PrevisaoNoFluxoRealTests (1)                  | VERMELHO - 4.3   |
-| PrevisaoSemFiltroDeDataTests (1)              | VERMELHO - 5.2   |
-| ContratoDeRetornoTests (3)                    | VERMELHO - 5.4   |
-| CancelamentoDeInscricaoTests (1)              | VERMELHO - 5.5   |
-| AssinaturaDosServicesTests (1)                | VERMELHO - 5.3   |
-| CodigoMortoTests (1)                          | VERMELHO - 5.7   |
-| ModelDivergenteDaSpecTests (1)                | VERMELHO - 5.6   |
-| AdminVazioTests (1)                           | VERMELHO - 5.8   |
-| IntegracaoPendenteTests (2)                   | VERMELHO - 4.6   |
-| ChaveDeCacheTests (1)                         | VERMELHO - extra |
-+-----------------------------------------------+------------------+
+Os bloqueadores **I1** (migrations conflitantes em ``authentication``) e
+**I2** (``E032`` — nome de constraint repetido em ``LastRouteDay`` e
+``StopMetrics``) impedem a suíte INTEIRA de rodar: ``manage.py test`` morre na
+criação do banco por causa do I1 e, resolvido o I1, os checks do runner
+abortam no I2. A tabela abaixo pressupõe I1/I2 corrigidos (foi assim que a
+execução de referência desta auditoria foi feita — ver ``relatorio.md``).
 
-Contagem da execução atual: **33 testes — 15 verdes, 18 vermelhos** (0 erros
-de execução). Cada vermelho corresponde a um item do ``relatorio.md``.
-"(fix)" = o item 4.1 foi corrigido durante esta sessão (migration ``0002``
-gerada e aplicada em 25/09/2026) e os dois testes passaram a ser a trava de
-regressão.
++-----------------------------------------------+------------------------------+
+| Teste                                         | Situação                     |
++-----------------------------------------------+------------------------------+
+| CalculosPurosTests (5)                        | VERDE                        |
+| AlunoNaRotaTests (4)                          | VERDE                        |
+| AssinaturaDosServicesTests (1)                | VERDE (item antigo 5.3 fix)  |
+| ContratoDeRetornoTests (3)                    | VERDE (item antigo 5.4 fix)  |
+| ModelDivergenteDaSpecTests (1)                | VERDE (item antigo 5.6 fix)  |
+| MigracaoPendenteTests (2)                     | VERDE com I2/M2 corrigidos   |
+| ContratoDaPrevisaoTests (4)                   | VERMELHO — M1                |
+| CabecalhoDoDiaTests (2)                       | VERMELHO — M1                |
+| RegistroDuplicadoTests (1)                    | VERMELHO — M1                |
+| ConclusaoDaRotaTests (2)                      | VERMELHO — M1                |
+| PrevisaoNoFluxoRealTests (1)                  | VERMELHO — M1                |
+| PrevisaoSemFiltroDeDataTests (1)              | VERMELHO — M1 (vira trava)   |
+| ChaveDeCacheTests (1)                         | VERMELHO — M1 (vira trava)   |
+| CancelamentoDeInscricaoTests (1)              | VERMELHO — M4                |
+| AdminVazioTests (1)                           | VERMELHO — M5                |
+| CodigoMortoTests (1)                          | VERMELHO — M6 (limitação)    |
+| IntegracaoPendenteTests (2)                   | VERMELHO — M7 (limitação MVP)|
+| CriacaoDeCabecalhoTests (1)                   | VERMELHO — M1 (trava nova)   |
+| NomesDeConstraintTests (1)                    | VERMELHO — I2 (trava nova)   |
++-----------------------------------------------+------------------------------+
+
+**M1** é a regressão do commit ``78c8773``: ``created_at`` perdeu o
+preenchimento automático (``auto_created=True`` não preenche nada) e a coluna
+é ``NOT NULL`` — qualquer criação de cabeçalho estoura ``IntegrityError``,
+inclusive o ``get_or_create`` do próprio ``set_last_stop_metrics``. Sem
+cabeçalho não entra NENHUM dado e o ETA fica permanentemente em 0 (a regra do
+trecho anterior nunca roda).
 
 LIMITANTES DO MVP (motivo de parte dos testes ficar vermelha)
 =============================================================
@@ -74,10 +84,12 @@ from decimal import Decimal
 from io import StringIO
 from pathlib import Path
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.core.cache import CacheKeyWarning, cache
 from django.core.management import call_command
+from django.core.management.base import SystemCheckError
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
 from django.urls import get_resolver
@@ -119,10 +131,17 @@ def gravar_tramo(line, route, distance_km, duracao_segundos, order=1):
 
     Escreve direto no banco de propósito: é o cenário de uma viagem que já
     aconteceu, para os testes de previsão não dependerem dos bugs de gravação
-    do próprio service (relatório 4.2/4.3).
+    do próprio service (item M1 do ``relatorio.md``).
+
+    ``date`` é explícito no model atual (o service sempre passa
+    ``timezone.localdate()``); o ``created_at`` precisa sair preenchido pelo
+    próprio Django — hoje isso está quebrado (M1) e é o que derruba os testes
+    abaixo com ``IntegrityError``.
     """
     inicio = timezone.now() - timedelta(seconds=duracao_segundos + 300)
-    cabecalho = LastRouteDay.objects.create(line=line, route=route)
+    cabecalho = LastRouteDay.objects.create(
+        line=line, route=route, date=timezone.localdate()
+    )
     fim = inicio + timedelta(seconds=duracao_segundos)
     # created_at/data no passado: é o cabeçalho de quem JÁ rodou aquela viagem
     # (também evita empate de ordenação com cabeçalhos criados pelo teste).
@@ -144,11 +163,12 @@ CONSTRAINT_FALTANDO = None
 
 
 def setUpModule():
-    """Rede de segurança de schema + flag do 4.1 (relatório).
+    """Rede de segurança de schema + flag de migration pendente (relatorio.md).
 
-    RELATÓRIO 4.1 (corrigido na sessão): a migration ``0002`` passou a existir
-    e foi aplicada, então hoje isto aqui é um **no-op**. O remendo fica como
-    rede de segurança: se a migration sumir de novo, o banco de teste nasce sem
+    A migration ``0002`` existe desde 25/09/2026 (item M2 do relatorio.md
+    cobre o drift restante), então isto aqui é um **no-op** hoje. O remendo
+    fica como rede de segurança: se a migration sumir de novo, o banco de
+    teste nasce sem
     ``is_concluded``/constraint e TODO teste que toque em ``LastRouteDay``
     estouraria ``OperationalError``, mascarando os demais bugs que este arquivo
     precisa evidenciar.
@@ -179,7 +199,7 @@ def setUpModule():
 # PARTE 1 — testes VERDES: protegem o que já funciona
 # =========================================================================== #
 class CalculosPurosTests(TestCase):
-    """Funções puras usadas pelo KPI de ETA (relatório 6.3)."""
+    """Funções puras usadas pelo KPI de ETA (contrato do service)."""
 
     def test_delta_time_em_segundos(self):
         inicio = timezone.now()
@@ -201,18 +221,30 @@ class CalculosPurosTests(TestCase):
         self.assertEqual(service.calculate_meters_per_second(0, 5.0), 0.0)
         self.assertEqual(service.calculate_meters_per_second(-10, 5.0), 0.0)
 
-    def test_contagem_para_a_proxima_parada_arredonda_para_baixo(self):
-        # 125 m a 6 m/s = 20,83 s -> 20 s
-        self.assertEqual(service.calculate_next_stop_time(6.0, 0.125), 20)
+    def test_contagem_para_a_proxima_parada_arredonda_para_cima(self):
+        """O arredondamento é sempre para CIMA (ceil), como no ETA.
+
+        Decisão registrada no commit ``78c8773`` ("constancia no retorno do
+        arredondamento do tempo"): ``get_time_prediction`` e
+        ``calculate_next_stop_time`` usam ``math.ceil`` — nunca subestimar a
+        chegada. O teste antigo pedia ``floor`` e foi atualizado nesta
+        auditoria para travar a decisão atual.
+        """
+        # 125 m a 6 m/s = 20,83 s -> 21 s (ceil)
+        self.assertEqual(service.calculate_next_stop_time(6.0, 0.125), 21)
         self.assertEqual(service.calculate_next_stop_time(0.0, 1.0), 0)
 
 
 class ContratoDaPrevisaoTests(TestCase):
     """Contrato de ``get_time_prediction`` — o que o front pode esperar.
 
-    REGRA DE FRONT (relatório 3/9.1): o retorno é um **inteiro de segundos**;
+    REGRA DE FRONT (contrato do app): o retorno é um **inteiro de segundos**;
     ``0`` significa "não foi possível marcar predição" e > 0 significa que o
     front deve somar os segundos ao horário atual e mostrar ``HH:MM``.
+
+    A regra de negócio do MVP é usar a velocidade do trecho IMEDIATAMENTE
+    anterior; por isso o ``setUp`` grava um tramo (3,6 km em 12 min = 5 m/s).
+    Hoje o ``setUp`` morre no item **M1** do ``relatorio.md``.
     """
 
     def setUp(self):
@@ -297,13 +329,13 @@ class AlunoNaRotaTests(TestCase):
 # Cada docstring diz POR QUE o teste falha hoje e o que precisa mudar.
 # =========================================================================== #
 class MigracaoPendenteTests(TestCase):
-    """RELATÓRIO 4.1 — a migration ``0002`` existia? (VERDE desde a sessão).
+    """Models e migrations precisam andar juntos (itens I2/M2 do relatorio.md).
 
-    Contexto: quando o relatório foi escrito, ``is_concluded`` e a constraint
-    ``unique_order_per_route_day`` não tinham migration e o ``db.sqlite3``
-    estourava ``OperationalError`` em qualquer query em ``LastRouteDay``. A
-    migration foi gerada/aplicada em 25/09/2026 — estes dois testes agora são
-    a trava de regressão: se alguém mexer nos models sem gerar migration, eles
+    ``is_concluded`` e a constraint ``unique_order_per_route_day`` ganharam
+    migration em 25/09/2026, mas o commit ``78c8773`` mexeu em
+    ``date``/``created_at`` e somou outra constraint SEM migration (M2), e o
+    ``makemigrations`` hoje nem roda por causa do ``E032`` (I2). Estes dois
+    testes são a trava: se alguém mexer nos models sem gerar migration, eles
     ficam vermelhos de novo (o ``makemigrations --check`` é a forma canônica
     de cobrir isso no CI).
     """
@@ -315,30 +347,39 @@ class MigracaoPendenteTests(TestCase):
                 "makemigrations", "metrics", "--check", "--dry-run",
                 stdout=saida, stderr=saida,
             )
+        except SystemCheckError as erro:
+            self.fail(
+                "I2 (relatorio.md): o sistema nem deixa rodar o makemigrations "
+                f"por causa de erro de checagem ({erro}). Corrigir o nome de "
+                "constraint duplicado e gerar as migrations."
+            )
         except SystemExit:
             self.fail(
-                "BUG 4.1: existem alterações de modelo sem migration para "
-                f"metrics ({saida.getvalue().strip()}). Para ficar verde, rode "
-                "`python manage.py makemigrations metrics`, commite o arquivo "
-                "gerado e depois `python manage.py migrate`."
+                "M2 (relatorio.md): existem alterações de modelo sem migration "
+                f"para metrics ({saida.getvalue().strip()}). Para ficar verde, "
+                "rode `python manage.py makemigrations metrics`, commite o "
+                "arquivo gerado e depois `python manage.py migrate`."
             )
 
     def test_coluna_is_concluded_existe_no_banco(self):
         self.assertFalse(
             MIGRATION_0002_FALTANDO,
-            "BUG 4.1: o banco nasceu sem a coluna `is_concluded` porque a "
-            "migration 0002 nunca foi gerada (idem no db.sqlite3, relatório 4.1). "
-            "O setUpModule() remenda o schema só para os demais testes "
-            "rodarem; a correção é gerar e aplicar a migration.",
+            "M2 (relatorio.md): o banco nasceu sem a coluna `is_concluded` "
+            "porque a migration 0002 nunca foi gerada. O setUpModule() "
+            "remenda o schema só para os demais testes rodarem; a correção é "
+            "gerar e aplicar a migration.",
         )
 
 
 class CabecalhoDoDiaTests(TestCase):
-    """RELATÓRIO 4.2 — um mesmo dia gera N cabeçalhos ``LastRouteDay`` (VERMELHO esperado).
+    """Um mesmo dia tem UM cabeçalho ``LastRouteDay`` (regressão 4.2).
 
-    Causa: ``date`` é ``DateTimeField(auto_now_add)`` (grava com hora) mas o
-    service faz ``get_or_create(..., date=timezone.localdate())`` (vira
-    meia-noite) — o filtro nunca casa, então cada chamada cria cabeçalho novo.
+    A causa original (``DateTimeField(auto_now_add)`` vs lookup por
+    ``timezone.localdate()``) foi corrigida: ``date`` virou ``DateField``
+    explícito e o ``get_or_create`` do service agora casa. O que derruba
+    estes testes hoje é o item **M1** do ``relatorio.md``: a criação do
+    cabeçalho estoura ``IntegrityError`` porque ``created_at`` perdeu o
+    preenchimento automático e a coluna é ``NOT NULL``.
     """
 
     def setUp(self):
@@ -352,17 +393,23 @@ class CabecalhoDoDiaTests(TestCase):
 
         self.assertEqual(
             cabecalhos, 1,
-            f"BUG 4.2: {cabecalhos} cabeçalhos para a mesma linha/rota/dia. "
-            "Cada chamada cria um LastRouteDay novo (o filtro `date=localdate()` "
-            "nunca casa com o DateTimeField), o que ainda por cima anula a "
-            "constraint unique_order_per_route_day. Corrigir o tipo do campo "
-            "(DateField) ou o lookup (`date__date`) e somar "
-            "UniqueConstraint(line, route, date).",
+            f"M1 (relatorio.md): {cabecalhos} cabeçalhos para a mesma "
+            "linha/rota/dia. O service precisa reaproveitar o cabeçalho do "
+            "dia (get_or_create por line/route/date) e a criação não pode "
+            "estourar por causa de `created_at`.",
         )
 
     def test_cabecalho_criado_agora_e_reaproveitado(self):
-        """Reproduz literalmente o get_or_create de ``set_last_stop_metrics``."""
-        cabecalho = LastRouteDay.objects.create(line=LINHA, route=ROTA)
+        """Reproduz literalmente o ``get_or_create`` de ``set_last_stop_metrics``.
+
+        Contrato atual do model: ``date`` é explícito (o service passa
+        ``timezone.localdate()``) e ``created_at`` deve ser preenchido
+        automaticamente — hoje ele explode com ``IntegrityError`` por causa
+        do item **M1** do ``relatorio.md``.
+        """
+        cabecalho = LastRouteDay.objects.create(
+            line=LINHA, route=ROTA, date=timezone.localdate()
+        )
 
         _, criado = LastRouteDay.objects.get_or_create(
             line=LINHA, route=ROTA, date=timezone.localdate()
@@ -370,15 +417,14 @@ class CabecalhoDoDiaTests(TestCase):
 
         self.assertFalse(
             criado,
-            "BUG 4.2 (causa raiz): o service registrou a rota AGORA e o "
-            "get_or_create por `date=localdate()` criou outro cabeçalho "
-            f"(pk {cabecalho.pk}) em vez de reaproveitar. Comparar DateTimeField "
-            "com Date vira meia-noite e não casa — relatório 4.2.",
+            "M1 (relatorio.md): o cabeçalho registrado agora precisa ser "
+            f"reaproveitado pelo get_or_create (pk {cabecalho.pk}), não "
+            "duplicado.",
         )
 
 
 class RegistroDuplicadoTests(TestCase):
-    """RELATÓRIO 4.2 — a constraint não segura retry de parada (VERMELHO esperado)."""
+    """Retry da mesma parada não duplica registro (regressão 4.2)."""
 
     def setUp(self):
         cache.clear()
@@ -397,19 +443,20 @@ class RegistroDuplicadoTests(TestCase):
 
         self.assertEqual(
             duplicados, 1,
-            f"BUG 4.2: {duplicados} registros para a mesma parada (order=1). A "
-            "constraint unique_order_per_route_day é por `last_route_day`, e "
-            "cada retry gera um cabeçalho novo, então ela nunca é violada "
-            "(relatório 4.2/4.3).",
+            f"M1 (relatorio.md): {duplicados} registros para a mesma parada "
+            "(order=1). Com o cabeçalho do dia único, o get_or_create por "
+            "(last_route_day, order) precisa segurar o retry da view.",
         )
 
 
 class ConclusaoDaRotaTests(TestCase):
-    """RELATÓRIO 4.4 — ``set_route_as_done`` nunca encontra a rota do dia (VERMELHO esperado).
+    """``set_route_as_done`` precisa achar a rota registrada hoje (regressão 4.4).
 
     Isso entra direto na regra do time: a conclusão da viagem é uma das duas
     metades da unicidade do aluno (a outra é a presença) e acontece fora do
     app metrics — mas só funciona se este service achar o cabeçalho do dia.
+    Hoje quem derruba estes testes é o item **M1** (criação do cabeçalho),
+    não mais o filtro por data (que já usa ``timezone.localdate()``).
     """
 
     def setUp(self):
@@ -422,9 +469,9 @@ class ConclusaoDaRotaTests(TestCase):
             service.set_route_as_done(LINHA, ROTA)
         except ValueError as erro:
             self.fail(
-                "BUG 4.4: a rota foi registrada agora e a conclusão lançou "
-                f"`ValueError: {erro}`. Causa: o filtro `date=localdate()` não "
-                "encontra o DateTimeField gravado (relatório 4.2/4.4)."
+                "M1 (relatorio.md): a rota foi registrada agora e a conclusão "
+                f"lançou `ValueError: {erro}`. O service não deve lançar em "
+                "cenário previsto — devolver status tratável."
             )
 
     def test_filtro_do_dia_encontra_o_cabecalho_registrado_agora(self):
@@ -436,20 +483,21 @@ class ConclusaoDaRotaTests(TestCase):
 
         self.assertIsNotNone(
             encontrado,
-            "BUG 4.4 (causa raiz): a rota foi registrada hoje, mas o filtro "
-            "que `set_route_as_done` usa não devolve o cabeçalho — por isso a "
-            "conclusão sempre falha com 'esta rota não foi registrada hoje'.",
+            "M1 (relatorio.md): a rota foi registrada hoje, mas o filtro que "
+            "`set_route_as_done` usa não devolveu o cabeçalho — conferir "
+            "`date=timezone.localdate()` e a criação do cabeçalho.",
         )
 
 
 class PrevisaoNoFluxoRealTests(TestCase):
-    """RELATÓRIO 4.3 — no fluxo real a previsão sai sempre 0 (VERMELHO esperado).
+    """A previsão usa o trecho imediatamente anterior (regra do MVP).
 
-    É o teste que prova que o aluno **nunca** veria horário previsto: o
-    ``set_last_stop_metrics`` cria um cabeçalho novo antes de procurar o tramo
-    anterior, então ``get_last_stop_metrics`` acha um cabeçalho vazio e o ETA
-    morre. É a regra de front (0 = "não foi possível marcar predição")
-    escondendo um bug, não um caso de borda.
+    Cenário: o trecho 1 já aconteceu (3,6 km em 12 min = 5 m/s) e o service
+    registra a chegada na segunda parada; a previsão do trecho 2 (2 km) tem de
+    dar 400 s. Hoje o fluxo morre no item **M1** (criação do cabeçalho estoura
+    antes de qualquer cálculo); depois de M1 corrigido, se a previsão seguir
+    0, o fluxo voltou a criar cabeçalho novo no meio do caminho — exatamente o
+    que este teste trava.
     """
 
     def setUp(self):
@@ -465,47 +513,49 @@ class PrevisaoNoFluxoRealTests(TestCase):
 
         self.assertGreater(
             previsao, 0,
-            "BUG 4.3: existia tramo anterior (2 km a 5 m/s = 400 s) e a "
-            f"previsão veio {previsao}. O service criou um LastRouteDay novo "
-            "antes de buscar o tramo anterior, então `get_last_stop_metrics` "
-            "encontrou o cabeçalho recém-criado e vazio e devolveu None. "
-            "Com a correção do 4.2 o retorno esperado é 400.",
+            "M1 (relatorio.md): existia tramo anterior (2 km a 5 m/s = 400 s) "
+            f"e a previsão veio {previsao}. Esperado 400 com a regra do trecho "
+            "imediatamente anterior; se continuar 0, o fluxo de previsão está "
+            "perdendo o tramo anterior (cabeçalho novo / filtro errado).",
         )
 
 
 class PrevisaoSemFiltroDeDataTests(TestCase):
-    """RELATÓRIO 5.2 — ``get_last_stop_metrics`` não filtra data nem is_concluded."""
+    """O trecho anterior precisa ser do DIA da viagem (regressão 5.2).
+
+    O código atual JÁ filtra ``date=timezone.localdate()`` em
+    ``get_last_stop_metrics`` — este teste é a trava de regressão. Antes da
+    correção o tramo de ontem vazava para a previsão de hoje; depois do item
+    **M1** corrigido ele fica verde e impede a regressão.
+    """
 
     def setUp(self):
         cache.clear()
 
-    def test_tramo_de_dia_anterior_nao_serva_para_a_viagem_de_hoje(self):
+    def test_tramo_de_dia_anterior_nao_serve_para_a_viagem_de_hoje(self):
         cabecalho = gravar_tramo(LINHA, ROTA, 3.6, 720, order=1)
-        # data do cabeçalho forçada para ontem (auto_now_add não deixa na criação)
+        # data do cabeçalho forçada para ontem (o model exige date explícito)
         LastRouteDay.objects.filter(pk=cabecalho.pk).update(
             date=timezone.localdate() - timedelta(days=1)
         )
 
-        ultimo = service.get_last_stop_metrics(ROTA, LINHA, 2)
+        ultimo = service.get_last_stop_metrics(LINHA, ROTA, 2)
 
         self.assertIsNone(
             ultimo,
-            "BUG 5.2: hoje não existe viagem registrada e o service devolveu "
-            f"o tramo de ontem ({ultimo}) porque filtra só por linha/rota e "
-            "pega o `.first()` mais recente, sem olhar `date` nem "
-            "`is_concluded`. Decisão pendente (relatório 5.2/9.3): filtrar o "
-            "dia da viagem atual ou documentar que o ETA é histórico.",
+            "Regressão 5.2: hoje não existe viagem registrada e o service "
+            f"devolveu o tramo de ontem ({ultimo}) porque parou de filtrar "
+            "`date=timezone.localdate()` em `get_last_stop_metrics`.",
         )
 
 
 class ContratoDeRetornoTests(TestCase):
-    """RELATÓRIO 5.4 — falta de retorno explícito nas funções principais.
+    """Retorno explícito das funções principais (item antigo 5.4 — RESOLVIDO).
 
-    O commit ``e5e9db8`` promete "todas funções auxiliares e principais têm um
-    retorno explícito para ser tratado em caso de falha", mas hoje
-    ``register_student``/``destruct_student`` devolvem ``None`` e
-    ``set_route_as_done`` lança exceção. Sem retorno, a view que chama o
-    service (inscrição/cancelamento/conclusão) não tem como saber se deu certo.
+    ``register_student`` devolve o resultado do ``get_or_create``,
+    ``destruct_student`` devolve bool e ``set_route_as_done`` devolve bool em
+    vez de lançar exceção (commits ``4142b53``/``6adcc54``). Os três testes
+    abaixo são as travas de regressão do contrato.
     """
 
     def setUp(self):
@@ -517,10 +567,8 @@ class ContratoDeRetornoTests(TestCase):
 
         self.assertIsNotNone(
             resultado,
-            "BUG 5.4: `register_student` devolveu None — a view de inscrição "
-            "não tem como saber se o registro aconteceu sem reconsultar o "
-            "banco. Retornar algo explícito (ex.: o próprio StudentsUsingBus "
-            "ou um status).",
+            "Contrato: `register_student` devolveu None — a view de inscrição "
+            "precisa de um retorno tratável, sem reconsultar o banco.",
         )
 
     def test_destruct_student_retorna_resultado(self):
@@ -530,9 +578,9 @@ class ContratoDeRetornoTests(TestCase):
 
         self.assertIsNotNone(
             resultado,
-            "BUG 5.4: `destruct_student` devolveu None — a view de cancelamento "
-            "de inscrição não sabe se apagou algo (e hoje, se não houver "
-            "registro de hoje, ela apaga 0 linhas em silêncio).",
+            "Contrato: `destruct_student` devolveu None — a view de "
+            "cancelamento precisa saber se apagou algo (hoje o service já "
+            "devolve bool: True/False).",
         )
 
     def test_set_route_as_done_retorna_status_em_vez_de_lancar(self):
@@ -540,24 +588,25 @@ class ContratoDeRetornoTests(TestCase):
             resultado = service.set_route_as_done(LINHA, ROTA)
         except ValueError as erro:
             self.fail(
-                "BUG 5.4: rota ainda não registrada é um cenário de negócio "
+                "Contrato: rota ainda não registrada é um cenário de negócio "
                 f"legítimo e o service lançou `ValueError: {erro}` em vez de "
                 "retornar um status tratável pela view."
             )
 
         self.assertIsNotNone(
             resultado,
-            "BUG 5.4: `set_route_as_done` devolveu None mesmo no caminho de "
-            "sucesso — o resto dos services já retorna valor explícito.",
+            "Contrato: `set_route_as_done` devolveu None mesmo no caminho de "
+            "sucesso — hoje ele devolve bool (True/False).",
         )
 
 
 class CancelamentoDeInscricaoTests(TestCase):
-    """REGRA DO TIME + RELATÓRIO 5.5 — cancelar inscrição destrói o aluno na métrica.
+    """M4 (relatorio.md) — cancelar inscrição precisa limpar o histórico do aluno.
 
     A view de cancelamento (ainda não escrita, ver ``IntegracaoPendenteTests``)
     precisa chamar ``destruct_student``. Aqui fica evidenciado que o método,
-    como está, só apaga o registro do dia corrente.
+    como está, só apaga o registro do dia corrente — decisão de escopo
+    pendente (apagar só o pendente do dia ou o histórico todo).
     """
 
     def test_cancelamento_apaga_todo_o_historico_do_aluno_na_rota(self):
@@ -572,15 +621,20 @@ class CancelamentoDeInscricaoTests(TestCase):
 
         self.assertEqual(
             restantes, 0,
-            f"BUG 5.5: o cancelamento deixou {restantes} registro(s) antigo(s) "
-            "no banco, porque `destruct_student` filtra por "
-            "`day=timezone.localdate()`. Definir (relatório 5.5/9.2) se o "
-            "cancelamento apaga só o pendente do dia ou o histórico todo.",
+            f"M4 (relatorio.md): o cancelamento deixou {restantes} registro(s) "
+            "antigo(s) no banco, porque `destruct_student` filtra por "
+            "`day=timezone.localdate()`. Definir se o cancelamento apaga só o "
+            "pendente do dia ou o histórico todo.",
         )
 
 
 class AssinaturaDosServicesTests(TestCase):
-    """RELATÓRIO 5.3 — ``set_`` e ``get_`` trocam a ordem de ``line``/``route``."""
+    """``set_`` e ``get_`` usam a mesma ordem de argumentos (5.3 — RESOLVIDO).
+
+    Os dois services foram alinhados no commit ``6adcc54``; a trava impede
+    que a troca volte (as duas primeiras posições são strings e uma view
+    posicional trocaria linha por rota em silêncio).
+    """
 
     def test_set_e_get_usam_a_mesma_ordem_de_argumentos(self):
         ordem_set = list(inspect.signature(service.set_last_stop_metrics).parameters)[:2]
@@ -588,16 +642,15 @@ class AssinaturaDosServicesTests(TestCase):
 
         self.assertEqual(
             ordem_set, ordem_get,
-            "BUG 5.3: `set_last_stop_metrics(line, route, ...)` e "
+            "Regressão 5.3: `set_last_stop_metrics(line, route, ...)` e "
             f"`get_last_stop_metrics({', '.join(ordem_get)}, ...)` têm ordens "
-            "diferentes. As duas primeiras posições são strings, então uma "
-            "view chamando sem keyword troca linha por rota silenciosamente. "
-            "Unificar a ordem (ou usar keyword-only).",
+            "diferentes — uma view chamando sem keyword troca linha por rota "
+            "silenciosamente.",
         )
 
 
 class CodigoMortoTests(TestCase):
-    """RELATÓRIO 5.7 — ``build_route_timeline_prediction`` é código morto.
+    """M6 (relatorio.md) — ``build_route_timeline_prediction`` é código morto.
 
     O corpo itera sobre ``route_stops = []`` (o model ``RouteStop``/``RotaParadas``
     não existe nesta branch) e, mesmo se existisse, mistura objeto FK
@@ -610,19 +663,19 @@ class CodigoMortoTests(TestCase):
 
         self.assertTrue(
             resultado.get("timeline"),
-            "BUG 5.7: a função promete a timeline de todas as paradas com ETA e "
-            f"devolve {resultado!r} — o laço roda sobre `route_stops = []` "
-            "hardcoded. Implementar de verdade (depende da app de rotas) ou "
-            "remover/isolar com NotImplementedError.",
+            "M6 (relatorio.md): a função promete a timeline de todas as paradas "
+            f"com ETA e devolve {resultado!r} — o laço roda sobre "
+            "`route_stops = []` hardcoded. Implementar de verdade (depende da "
+            "app de rotas) ou remover/isolar com NotImplementedError.",
         )
 
 
 class ModelDivergenteDaSpecTests(TestCase):
-    """RELATÓRIO 5.6 — ``StopMetrics.distance`` sem precisão definida.
+    """``StopMetrics.distance`` precisa de precisão definida (5.6 — RESOLVIDO).
 
-    O ``agent.md`` 2.1 manda ``max_digits=6, decimal_places=2``; sem isso o
-    SQLite aceita qualquer coisa e o Postgres (já previsto no venv) cria um
-    ``numeric`` sem precisão.
+    O campo usa ``max_digits=6, decimal_places=2`` (migration ``0004``); sem
+    isso o SQLite aceita qualquer coisa e o Postgres criaria um ``numeric``
+    sem precisão. A trava impede a regressão.
     """
 
     def test_distance_tem_precisao_definida(self):
@@ -630,15 +683,14 @@ class ModelDivergenteDaSpecTests(TestCase):
 
         self.assertEqual(
             (campo.max_digits, campo.decimal_places), (6, 2),
-            "BUG 5.6: `StopMetrics.distance` foi declarada como "
-            "DecimalField() sem max_digits/decimal_places (valor atual: "
-            f"{campo.max_digits}/{campo.decimal_places}). Usar os valores da "
-            "spec: max_digits=6, decimal_places=2.",
+            "Regressão 5.6: `StopMetrics.distance` perdeu a precisão "
+            f"(valor atual: {campo.max_digits}/{campo.decimal_places}). "
+            "Manter max_digits=6, decimal_places=2.",
         )
 
 
 class AdminVazioTests(TestCase):
-    """RELATÓRIO 5.8 — o admin funcional foi apagado (commit ``64af95a``).
+    """M5 (relatorio.md) — o admin funcional foi apagado (commit ``64af95a``).
 
     LIMITANTE: sem dashboard e sem admin, hoje não existe nenhuma tela em que
     o gestor veja uma métrica sequer.
@@ -650,9 +702,9 @@ class AdminVazioTests(TestCase):
 
         self.assertEqual(
             faltando, [],
-            f"BUG 5.8: models sem admin registrada(o): {faltando}. Restaurar o "
-            "`metrics/admin.py` apagado no commit 64af95a — visibilidade "
-            "mínima do gestor enquanto o dashboard não existe.",
+            f"M5 (relatorio.md): models sem admin registrado: {faltando}. "
+            "Restaurar o `metrics/admin.py` apagado no commit 64af95a — "
+            "visibilidade mínima do gestor enquanto o dashboard não existe.",
         )
 
 
@@ -671,7 +723,7 @@ def _codigo_das_outras_apps():
 
 
 class IntegracaoPendenteTests(TestCase):
-    """RELATÓRIO 4.6 — ninguém chama os services do metrics (VERMELHO esperado).
+    """M7 (relatorio.md) — ninguém chama os services do metrics (VERMELHO esperado).
 
     LIMITANTE DO MVP: o projeto está em desenvolvimento e só tem as partes de
     **métricas** e **autenticação** — **ainda não existem as views de
@@ -687,7 +739,7 @@ class IntegracaoPendenteTests(TestCase):
 
         self.assertIn(
             "metrics/", padroes,
-            "LIMITANTE DO MVP (relatório 4.6): o include de metrics está "
+            "LIMITANTE DO MVP (M7/relatorio.md): o include de metrics está "
             "comentado em core/urls.py e o arquivo metrics/urls.py nem existe. "
             "Hoje não há endpoint nenhum ligado às métricas.",
         )
@@ -706,7 +758,7 @@ class IntegracaoPendenteTests(TestCase):
 
         self.assertEqual(
             faltantes, [],
-            "LIMITANTE DO MVP (relatório 4.6): nenhum código fora de metrics "
+            "LIMITANTE DO MVP (M7/relatorio.md): nenhum código fora de metrics "
             f"chama os services ainda. Faltando: {faltantes}. Enquanto as "
             "views do restante do MVP não existirem, nenhum dado entra e "
             "nenhum dado sai deste app.",
@@ -714,15 +766,18 @@ class IntegracaoPendenteTests(TestCase):
 
 
 class ChaveDeCacheTests(TestCase):
-    """EXTRA (não constava no relatório) — a chave da partida tem espaços.
+    """A chave da partida precisa continuar portável para qualquer backend.
 
-    Apareceu na primeira execução desta suíte: o Django emite
-    ``CacheKeyWarning`` para a chave ``trip_start:Linha 1:Rota Centro:2026-09-25``,
-    porque ``start_trip_metric`` monta a chave com os nomes literais de linha e
-    rota. No LocMemCache (padrão atual, e ainda por cima por processo —
-    relatório 5.1) isso é só um aviso; com memcached/redis em produção a chave
-    é rejeitada, a partida da viagem se perde e o fluxo cai de volta no bug 4.3
-    (ETA sempre 0).
+    O service monta a chave como ``trip_start-{line}-{route}-{date}`` e limpa
+    os espaços (``.replace(" ", "")``); sem essa limpeza, memcached/redis
+    rejeitam a chave, a partida da viagem se perde e o ETA volta a ser sempre
+    0. Este teste usa o fluxo real (``start_trip_metric`` +
+    ``set_last_stop_metrics``) e é a trava: o LocMemCache do Django 6.1 emite
+    ``CacheKeyWarning`` para chaves com espaço (confirmado por sonda nesta
+    auditoria), então uma regressão na montagem da chave é pega aqui.
+
+    Hoje o teste depende do item **M1** para chegar ao fluxo (a criação do
+    cabeçalho estoura antes); depois de M1 ele fica verde.
     """
 
     def setUp(self):
@@ -740,10 +795,66 @@ class ChaveDeCacheTests(TestCase):
 
         self.assertEqual(
             avisos, [],
-            "EXTRA: a chave do cache não é portável para memcached/redis "
-            f"(avisos: {avisos}). Sanitizar a chave em "
-            "`start_trip_metric`/`set_last_stop_metrics` (ex.: sem espaços e "
-            "sem `:` solto) e/ou configurar CACHES nos settings (relatório 5.1).",
+            "M3 (relatorio.md): a chave do cache não é portável para "
+            f"memcached/redis (avisos: {avisos}). Manter a limpeza de espaços "
+            "em `start_trip_metric`/`set_last_stop_metrics` e configurar "
+            "CACHES antes de sair do LocMemCache (per-process).",
+        )
+
+
+class CriacaoDeCabecalhoTests(TestCase):
+    """M1 (relatorio.md) — ``LastRouteDay`` precisa nascer sem ``created_at`` manual.
+
+    Regressão do commit ``78c8773``: ``created_at`` virou
+    ``DateTimeField(auto_created=True)`` — que NÃO preenche nada — e a coluna
+    no banco é ``NOT NULL``. Resultado: toda criação de cabeçalho (inclusive o
+    ``get_or_create`` do próprio ``set_last_stop_metrics``) estoura
+    ``IntegrityError`` e nenhum dado de viagem entra no módulo. Restaurar o
+    preenchimento automático (``auto_now_add``/``default``) e gerar a
+    migration correspondente.
+    """
+
+    def test_cabecalho_do_dia_e_criado_com_created_at_automatico(self):
+        cabecalho = LastRouteDay.objects.create(
+            line=LINHA, route=ROTA, date=timezone.localdate()
+        )
+
+        self.assertIsNotNone(
+            cabecalho.created_at,
+            "M1 (relatorio.md): `created_at` não foi preenchido "
+            "automaticamente — a criação do cabeçalho do dia precisa "
+            "funcionar passando só line/route/date (como o service faz).",
+        )
+
+
+class NomesDeConstraintTests(TestCase):
+    """I2 (relatorio.md) — nome de constraint precisa ser único no app.
+
+    O Django recusa o projeto inteiro com ``E032`` quando dois models declaram
+    a mesma ``name`` de ``UniqueConstraint`` — é o caso de ``LastRouteDay`` e
+    ``StopMetrics`` hoje (ambos usam ``unique_order_per_route_day``): o
+    ``manage.py check`` fica vermelho e o próprio ``manage.py test`` aborta ao
+    rodar os checks pós-criação do banco.
+    """
+
+    def test_nomes_de_constraint_sao_unicos_no_app(self):
+        vistos = {}
+        colisoes = []
+        for model in apps.get_app_config("metrics").get_models():
+            for constraint in model._meta.constraints:
+                nome = getattr(constraint, "name", None)
+                if not nome:
+                    continue
+                if nome in vistos:
+                    colisoes.append((nome, vistos[nome], model.__name__))
+                else:
+                    vistos[nome] = model.__name__
+
+        self.assertEqual(
+            colisoes, [],
+            "I2 (relatorio.md): constraint(s) com nome repetido em models "
+            f"diferentes: {colisoes}. Dar nomes únicos (ex.: "
+            "`unique_route_per_day` em LastRouteDay) e gerar a migration.",
         )
 
 
