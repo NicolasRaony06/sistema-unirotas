@@ -66,7 +66,7 @@ def get_last_stop_metrics(line, route, current_order: int):
     last_stop = StopMetrics.objects.filter(last_route_day=last_route, order=last_order).first()
     return last_stop
 
-def set_last_stop_metrics(line, route, current_stop, current_order: int, distance: float):
+def set_last_stop_metrics(line, route, current_stop, current_order: int, distance):
     now = timezone.now()  # Datetime completo com timezone em UTC
     today = timezone.localdate()
     with transaction.atomic():
