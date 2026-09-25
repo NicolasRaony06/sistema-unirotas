@@ -10,7 +10,14 @@
 </head>
 
 <body>
-
+    <!-- Depois adicionar oficialmente messages -->
+    {% if messages %}
+        <div class="messages">   
+            {% for message in messages %}
+                <div class="message.tags">{{message}}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
     <main class="app-shell">
 
         {% include 'partials/side_bar.html'%}
