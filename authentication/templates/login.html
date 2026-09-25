@@ -24,16 +24,28 @@
                 {% csrf_token %}
                 
                 <div class="input-group input-with-icon">
-                        <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
-
-                        {{ form_login.email }}
+                    <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
+                    {{ form_login.email }}
                 </div>
+                {% if form_login.email.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_login.email.errors.0 }}</div>
+                {% endif %}
                 
                 <div class="input-group input-with-icon">
                     <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
-
                     {{ form_login.password }}
                 </div>
+                {% if form_login.password.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_login.password.errors.0 }}</div>
+                {% endif %}
+
+                <!-- Erros globais de login (ex: e-mail ou senha incorretos) -->
+                {% if form_login.non_field_errors %}
+                    <div class="field-error-msg" style="margin-bottom: 1rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div>{{ form_login.non_field_errors.0 }}</div>
+                    </div>
+                {% endif %}
 
                 <div class="form-actions-inline">
                     <label class="remember-me">
