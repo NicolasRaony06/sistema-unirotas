@@ -10,7 +10,7 @@ class LastRouteDay(models.Model):
     line = models.CharField(max_length=50)
     route = models.CharField(max_length=50)
     is_concluded = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -28,7 +28,12 @@ class StopMetrics(models.Model):
     )
     start_stop = models.CharField(max_length=100)
     end_stop = models.CharField(max_length=100)
-    distance = models.DecimalField()
+    distance = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        null=False,      # Ajuste conforme necessidade
+        blank=False
+    )
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     order = models.PositiveIntegerField()

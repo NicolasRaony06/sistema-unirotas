@@ -8,27 +8,32 @@ from decimal import Decimal
 from datetime import timedelta
 
 def register_student(user, route):
-    StudentsUsingBus.objects.get_or_create(
+    return StudentsUsingBus.objects.get_or_create(
         user=user, 
         route=route, 
         day=timezone.localdate()
     )
 
 def destruct_student(user, route):
-    StudentsUsingBus.objects.filter(
+    student = StudentsUsingBus.objects.filter(
         user=user, 
         route=route, 
         day=timezone.localdate()
-    ).delete()
+    ).first()
+    if not student:
+        return False
+    student.delete()
+    return False
 
 def set_route_as_done(line, route):
     route_day = LastRouteDay.objects.filter(line=line, route=route, date=timezone.localdate()).first()
     if not route_day:
-        raise ValueError("esta rota não foi registrada hoje")
+        return False
 
     if not route_day.is_concluded:
         route_day.is_concluded = True
         route_day.save(update_fields=['is_concluded'])
+    return True
 
 def calculate_delta_time(start, end):
     return (end - start).total_seconds()
@@ -53,10 +58,10 @@ def calculate_next_stop_time(meters_per_second, next_stop_distance):
     time_remaining_seconds = math.floor(next_stop_meters / meters_per_second)
     return time_remaining_seconds
 
-def get_last_stop_metrics(route, line, current_order: int):
+def get_last_stop_metrics(line, route, current_order: int):
     if current_order <= 1:
         return None
-    last_route = LastRouteDay.objects.filter(route = route, line = line).first()
+    last_route = LastRouteDay.objects.filter(route = route, line = line, date=timezone.localdate()).first()
     last_order = current_order - 1
     last_stop = StopMetrics.objects.filter(last_route_day=last_route, order=last_order).first()
     return last_stop
@@ -66,11 +71,11 @@ def set_last_stop_metrics(line, route, current_stop, current_order: int, distanc
     today = timezone.localdate()
     with transaction.atomic():
         route_day, _ = LastRouteDay.objects.get_or_create(
-            route=route, line=line, date=today
+            line=line, route=route, date=today
         )
 
         if current_order == 1:
-            cache_key = f"trip_start:{line}:{route}:{today}"
+            cache_key = f"trip_start-{line}-{route}-{today}".replace(" ", "").strip()
             start_data = cache.get(cache_key)
             if start_data:
                 start_stop = start_data["start_stop"]
@@ -80,7 +85,7 @@ def set_last_stop_metrics(line, route, current_stop, current_order: int, distanc
                 start_stop = current_stop
                 start_time = now
         else:
-            last_stop = get_last_stop_metrics(route, line, current_order)
+            last_stop = get_last_stop_metrics(line, route, current_order)
             if not last_stop:
                 start_stop = current_stop
                 start_time = now
@@ -105,7 +110,7 @@ def set_last_stop_metrics(line, route, current_stop, current_order: int, distanc
         return new_stop
 
 def get_time_prediction(line, route, order, distance):
-    last_stop = get_last_stop_metrics(route, line, order)
+    last_stop = get_last_stop_metrics(line, route, order)
     if not last_stop:
         return 0
     delta_time = calculate_delta_time(last_stop.start_time, last_stop.end_time)
@@ -120,7 +125,7 @@ def start_trip_metric(line, route, start_stop, ttl=28800):
     now = timezone.now()
     today = timezone.localdate()
 
-    cache_key = f"trip_start:{line}:{route}:{today}"
+    cache_key = f"trip_start-{line}-{route}-{today}".replace(" ", "").strip()
 
     cache.set(
         cache_key,
