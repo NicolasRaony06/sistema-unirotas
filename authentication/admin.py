@@ -7,4 +7,8 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(StudentProfile)
 class StudentAdmin(admin.ModelAdmin):
     ...
+
+@admin.register(PersonelProfile)
+class PersonelAdmin(admin.ModelAdmin):
+    ...
 # Register your models here.
