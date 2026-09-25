@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm, PersonelProfileForm
-from .models import StudentProfile, User, UserRole
+from .models import StudentProfile, User, UserRole, PersonelProfile
 from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.core.signing import TimestampSigner, BadSignature
 from django.core.cache import cache
@@ -106,6 +106,10 @@ def signup_with_role(request, token):
                     # birth_date hoje mora no PersonelProfile (placeholder);
                     # quando city/management liberar, volta para o User.
                     personel_form.instance.user = user
+                    higher_additional_info = getattr(higher, 'personel_profile', None)
+                    if higher_additional_info:
+                        pass #remova depois que descomentar esse bloco
+                        #personel_form.instance.city = higher_additional_info.city
                     personel_form.save()
 
                     cache.delete(cache_key)
