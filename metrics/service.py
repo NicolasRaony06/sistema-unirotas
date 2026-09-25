@@ -55,7 +55,7 @@ def calculate_next_stop_time(meters_per_second, next_stop_distance):
         return 0
 
     next_stop_meters = convert_km_to_m(next_stop_distance)
-    time_remaining_seconds = math.floor(next_stop_meters / meters_per_second)
+    time_remaining_seconds = math.ceil(next_stop_meters / meters_per_second)
     return time_remaining_seconds
 
 def get_last_stop_metrics(line, route, current_order: int):

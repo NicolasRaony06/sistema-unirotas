@@ -10,11 +10,17 @@ class LastRouteDay(models.Model):
     line = models.CharField(max_length=50)
     route = models.CharField(max_length=50)
     is_concluded = models.BooleanField(default=False)
-    date = models.DateField(auto_now_add=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_created=True)
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+                    models.UniqueConstraint(
+                        fields=['line', 'route', 'date'], 
+                        name='unique_order_per_route_day'
+                    )
+                ]
 
     def __str__(self):
         return f"{self.line} - {self.route} ({self.date})"
