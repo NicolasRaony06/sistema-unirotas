@@ -93,7 +93,7 @@ class PersonelProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='personel_profile')
     birth_date = models.DateField(null=True, blank=True) #depois voltar pra userBase somente para não quebrar o codigo
-    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
