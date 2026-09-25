@@ -38,11 +38,6 @@ def criar_municipio(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def invite_driver(request):
-    #TODO alterar por decorator de keven
-    if request.user.role != UserRole.MANAGER:
-        messages.error(request, "Você precisa estar logado como um gestor para ter acesso.")
-        return redirect('management:home')
-
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         confirm_email = request.POST.get('confirm_email', '').strip()
@@ -69,10 +64,10 @@ def invite_driver(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def register_bus(request):
-    if request.user.role != UserRole.MANAGER:
-        messages.error(request, "Você precisa estar logado como um gestor para ter acesso.")
+    if not request.user.personel_profile.city.ofertado_pelo_sistema:
+        messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
         return redirect('management:home')
-    
+
     if request.method == 'POST':
         form = BusForm(request.POST)
         if form.is_valid():
