@@ -6,5 +6,6 @@ app_name = 'management'
 urlpatterns = [
     path('home/',home, name='home'),
     path('cadastrar-municipio/',criar_municipio,name='criar-municipio '),
-    path('invite_driver/', invite_driver, name="invite_driver")
+    path('invite_driver/', invite_driver, name="invite_driver"),
+    path('register_bus/', register_bus, name="register_bus"),
 ]

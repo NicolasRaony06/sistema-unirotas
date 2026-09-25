@@ -3,8 +3,9 @@ from django.contrib import messages
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from .models import *
-from authentication.models import UserRole
+from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
+from .forms import BusForm
 from .handlers import cadastrar_municipio
 # Create your views here.
 
@@ -31,7 +32,7 @@ def criar_municipio(request):
     
     return HttpResponse(f"Municipio criado com sucesso por: {request.user.role}")
 
-#TODO adicionar login decorador
+#TODO adicionar login e keven decorador
 def invite_driver(request):
     #TODO alterar por decorator de keven
     if request.user.role != UserRole.MANAGER:
@@ -61,4 +62,21 @@ def invite_driver(request):
 
     return render(request, "invite_driver.html")
 
+#TODO adicionar login e keven decorador
+def register_bus(request):
+    if request.user.role != UserRole.MANAGER:
+        messages.error(request, "Você precisa estar logado como um gestor para ter acesso.")
+        return redirect('management:home')
+    
+    if request.method == 'POST':
+        form = BusForm(request.POST)
+        if form.is_valid():
+            bus = form.save(commit=False)
+            bus.city = request.user.personel_profile.city
+            bus.save()
+            return redirect('management:home')
         
+        messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
+    else:
+        form = BusForm()
+    return render(request, "register_bus.html", {'form': form})
