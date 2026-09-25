@@ -23,7 +23,7 @@ def destruct_student(user, route):
     if not student:
         return False
     student.delete()
-    return False
+    return True
 
 def set_route_as_done(line, route):
     route_day = LastRouteDay.objects.filter(line=line, route=route, date=timezone.localdate()).first()
