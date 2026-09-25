@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm
-from .models import StudentProfile, User
+from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm, PersonelProfileForm
+from .models import StudentProfile, User, UserRole
 from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.core.signing import TimestampSigner, BadSignature
 from django.core.cache import cache
@@ -9,6 +9,18 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 # Create your views here.
+
+def birth_date_do(user):
+    """Le a data de nascimento do perfil do usuario.
+
+    Por enquanto ``birth_date`` vive nos perfis (StudentProfile /
+    PersonelProfile) como placeholder; quando o campo voltar para o
+    ``User`` basta trocar aqui por ``user.birth_date``.
+    """
+    perfil = getattr(user, "student_profile", None)
+    if perfil is None:
+        perfil = getattr(user, "personel_profile", None)
+    return perfil.birth_date if perfil else None
 
 def signup(request):
     if request.method == 'POST':
@@ -23,6 +35,7 @@ def signup(request):
                         user=user,
                         course=data.get("course"),
                         period=data.get("period"),
+                        birth_date=data.get("birth_date"),
                     )
                 return redirect("authentication:login")
             except Exception as e:
@@ -82,7 +95,9 @@ def signup_with_role(request, token):
         post = request.POST.copy()
         post["email"] = email
         signup_form = UserRegistrationForm(post)
-        if signup_form.is_valid():
+        personel_form = PersonelProfileForm(post)
+
+        if signup_form.is_valid() and personel_form.is_valid():
             try:
                 with transaction.atomic():
                     user = signup_form.save(commit=False)
@@ -90,15 +105,20 @@ def signup_with_role(request, token):
 
                     user.save()
 
+                    # birth_date hoje mora no PersonelProfile (placeholder);
+                    # quando city/management liberar, volta para o User.
+                    personel_form.instance.user = user
+                    personel_form.save()
+
                     cache.delete(cache_key)
                     cache.delete(pointer_key)
                     return redirect("authentication:login")
             except Exception:
-                return render(request, 'signup_role.html', {"form_account": signup_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
+                return render(request, 'signup_role.html', {"form_account": signup_form, 'personel_account':personel_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
     else:
         signup_form = UserRegistrationForm()
-
-    return render(request, 'signup_role.html', {"form_account": signup_form})
+        personel_form = PersonelProfileForm()
+    return render(request, 'signup_role.html', {"form_account": signup_form, 'personel_account':personel_form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 def toggle_notification(request):
@@ -124,7 +144,7 @@ def my_information(request):
         "full_name": request.user.full_name,
         "email": request.user.email,
         #"city",
-        "birth_date": request.user.birth_date,
+        "birth_date": birth_date_do(request.user),
         #"institution": request.user.institution,
         #"campus": request.user.institution.campus,
         'change_avatar_form': AvatarForm()
@@ -135,9 +155,12 @@ def my_information(request):
 def change_avatar(request):
     form = AvatarForm(request.POST, request.FILES)
     if form.is_valid():
-        profile_picture = form.cleaned_data["profile_picture"]
-        request.user.profile_picture = profile_picture
+        new_picture = form.cleaned_data["profile_picture"]
+        old_picture = request.user.profile_picture if request.user.profile_picture else None
+        request.user.profile_picture = new_picture
         request.user.save()
+        if old_picture:
+            old_picture.delete(save=False)
     return redirect("authentication:my_information")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
@@ -151,6 +174,7 @@ def change_password(request):
                 update_session_auth_hash(request, request.user)
                 return redirect("authentication:my_information")
             else:
+                form.add_error("new_password2", "A senha tem que atender a todos os requisitos, se o erro persistir, cheque sua senha atual")
                 return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
     else:
         form = ChangePassword(user=request.user)

@@ -18,7 +18,6 @@
             <div class="steps-track">
                 <div class="step-dot active" id="dot-1">1</div>
                 <div class="step-dot" id="dot-2">2</div>
-
             </div>
             <div class="step-labels">
                 <span class="active" id="label-1">Dados pessoais</span>
@@ -44,11 +43,25 @@
                     <i class="fa-regular fa-user" style="color: #0047ab;"></i>
                     {{ form_account.full_name }}
                 </div>
+                {% if form_account.full_name.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.full_name.errors.0 }}</div>
+                {% endif %}
 
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
-                    {{ form_account.birth_date }}
+                    {{ personel_account.birth_date }}
                 </div>
+                {% if personel_account.birth_date.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ personel_account.birth_date.errors.0 }}</div>
+                {% endif %}
+
+                <!-- Erros globais da etapa 1 se houver -->
+                {% if form_account.non_field_errors %}
+                    <div class="error-msg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div>{{ form_account.non_field_errors.0 }}</div>
+                    </div>
+                {% endif %}
 
                 <div class="info-box">
                     <div class="info-box-icon">i</div>
@@ -73,10 +86,17 @@
                     <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
                     {{ form_account.password }}
                 </div>
+                {% if form_account.password.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.password.errors.0 }}</div>
+                {% endif %}
+
                 <div class="input-group input-with-icon">
                     <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
                     {{ form_account.confirm_password }}
                 </div>
+                {% if form_account.confirm_password.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.confirm_password.errors.0 }}</div>
+                {% endif %}
 
                 <!-- Checklist de Requisitos de Senha -->
                 <div class="password-requirements">
@@ -115,11 +135,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let currentStepIndex = 0;
 
+    // Sincroniza a etapa correta caso o Django recarregue a página com erros na Etapa 2
+    const hasErrorInStep2 = document.querySelector('#step2 .field-error-msg, #step2 .error-msg');
+    if (hasErrorInStep2) {
+        steps[0].classList.remove('active');
+        currentStepIndex = 1;
+        steps[currentStepIndex].classList.add('active');
+    }
+
     function updateStepIndicator() {
         topBanner.style.backgroundImage = `url('${bgImages[currentStepIndex]}')`;
-        stepCounterLabel.textContent = `${currentStepIndex + 1} de 3`;
+        stepCounterLabel.textContent = `${currentStepIndex + 1} de 2`;
 
-        for (let i = 1; i < 3; i++) {
+        for (let i = 1; i <= 2; i++) {
             const dot = document.getElementById(`dot-${i}`);
             const label = document.getElementById(`label-${i}`);
             if (i <= currentStepIndex + 1) {
@@ -131,6 +159,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+
+    // Executa no carregamento para refletir o estado correto se o form veio com erro do back-end
+    updateStepIndicator();
 
     nextButtons.forEach(button => {
         button.addEventListener('click', function () {
@@ -172,9 +203,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Validação em tempo real da senha na Etapa 3
+    // Validação em tempo real da senha na Etapa 2
     const passwordInput = document.querySelector('input[name="password"]');
-    const confirmPasswordInput = document.querySelector('input[name="confirm_password"]');
     
     if (passwordInput) {
         passwordInput.addEventListener('input', function () {
@@ -190,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function checkReq(elementId, condition) {
         const el = document.getElementById(elementId);
+        if (!el) return;
         if (condition) {
             el.classList.remove('invalid');
             el.classList.add('valid');
