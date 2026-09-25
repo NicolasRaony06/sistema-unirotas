@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.core.validators import MinValueValidator
 from authentication.models import User , UserRole
 # Create your models here.
 class Municipio(models.Model):
@@ -20,4 +21,15 @@ class Municipio(models.Model):
         super().save(*args,**kwargs)
         if self.gestor is not  None:
             self.municipios_relacionados.add(self)
-        
+
+class Bus(models.Model):
+    license_plate = models.CharField(max_length=7, unique=True)
+    name = models.CharField(max_length=50)
+    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    color = models.CharField(max_length=15, null=True, blank=True)
+    identification_photo = models.ImageField(upload_to='bus/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    city = models.ForeignKey("Municipio", on_delete=models.CASCADE, related_name='buses')
+
+    def __str__(self):
+        return f"{self.name} {self.license_plate}" 
