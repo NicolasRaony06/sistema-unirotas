@@ -9,10 +9,10 @@ User = get_user_model()
 
 class Validation:
     def is_password_invalid(self, password, confirm_password):
-            if not password or not confirm_password:
-                return True
-            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
-            return not validation or password != confirm_password
+        if not password or not confirm_password:
+            return True
+        validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+        return not validation or password != confirm_password
     
 
 class UserRegistrationForm(forms.ModelForm, Validation):
@@ -176,17 +176,14 @@ class ChangePassword(forms.Form, Validation):
         password = cleaned.get("new_password1")
         confirm_password = cleaned.get("new_password2")
 
-        # 2. Valida se as novas senhas coincidem
         if password and confirm_password and password != confirm_password:
-            self.add_error('new_password2', 'A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual')
+            self.add_error('new_password2', 'A senha tem que ser igual a confirmação de senha')
         if self.is_password_invalid(password, confirm_password):
-            self.add_error("new_password2", "A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual")
+            self.add_error("new_password1", "A senha tem que atender a todos os requisitos")
 
-        # 3. Valida as regras de complexidade do Django
         if password:
             try:
                 password_validation.validate_password(password, user=self.user)
             except ValidationError as e:
-                self.add_error('new_password1', "A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual")
-                raise forms.ValidationError("")
+                self.add_error('new_password1', "digite a sua senha atual")
         return cleaned

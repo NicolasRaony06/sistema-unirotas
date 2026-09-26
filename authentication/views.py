@@ -8,15 +8,10 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
+from .handlers import *
 # Create your views here.
 
 def birth_date_do(user):
-    """Le a data de nascimento do perfil do usuario.
-
-    Por enquanto ``birth_date`` vive nos perfis (StudentProfile /
-    PersonelProfile) como placeholder; quando o campo voltar para o
-    ``User`` basta trocar aqui por ``user.birth_date``.
-    """
     perfil = getattr(user, "student_profile", None)
     if perfil is None:
         perfil = getattr(user, "personel_profile", None)
@@ -39,10 +34,8 @@ def signup(request):
                     )
                 return redirect("authentication:login")
             except Exception as e:
-                print("erro: ", e)
-                return render(request, 'signup.html', {'form_student': form_student, 'form_account': form_account, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
+                form_account.add_error(None, "Ocorreu um erro ao cadastrar a conta. Tente novamente.")
                 # pos mvp: enviar mensagem pro email caso o usuario ja esteja com email cadastrado e tentando cadastrar novamente
-
     else:
         form_student = StudentProfileForm()
         form_account = UserRegistrationForm()
@@ -53,9 +46,9 @@ def signin(request):
         form_login = LoginForm(request.POST)
         if form_login.is_valid():
             data = form_login.cleaned_data
-            user = authenticate(request, username=data.get("email"), password=data.get("password"))
-            if user is not None:
-                login(request, user)
+            valid_user = authenticate(request, username=data.get("email"), password=data.get("password"))
+            if valid_user is not None:
+                login(request, valid_user)
                 return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")
@@ -64,30 +57,15 @@ def signin(request):
     return render(request, "login.html", {'form_login': form_login})
 
 def signup_with_role(request, token):
-    signer = TimestampSigner()
-
     try:
-        email = signer.unsign(token)
-    except (BadSignature, ValueError):
-        return render(request, 'erro_convite.html', {'mensagem': 'Link inválido ou adulterado.'})
-
-    cache_key = f"invitation_{token}"
-
-    invitation_data = cache.get(cache_key)
-    
-    if not invitation_data:
+        email, invitation_data, cache_key = get_invitation_data(token)
+        if not email or not invitation_data:
+            raise ValueError("Este convite expirou ou já foi utilizado.")
+        role, higher_role_email, higher_obj = validate_invitation_integraty(invitation_data)
+    except:
         return render(request, 'erro_convite.html', {'mensagem': 'Este convite expirou ou já foi utilizado.'})
 
-    role = invitation_data.get("role")
-    higher_role_email = invitation_data.get("higher_role_email")
-    higher = User.objects.filter(email__iexact=higher_role_email).first()
-
     pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
-
-    if not higher:
-        return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
-    if  not higher.can_invite(role):
-            return render(request, 'erro_convite.html', {'mensagem': 'Este convite não é válido.'})
 
     if request.method == "POST":
         post = request.POST.copy()
@@ -106,7 +84,7 @@ def signup_with_role(request, token):
                     # birth_date hoje mora no PersonelProfile (placeholder);
                     # quando city/management liberar, volta para o User.
                     personel_form.instance.user = user
-                    higher_additional_info = getattr(higher, 'personel_profile', None)
+                    higher_additional_info = getattr(higher_obj, 'personel_profile', None)
                     if higher_additional_info:
                         pass #remova depois que descomentar esse bloco
                         #personel_form.instance.city = higher_additional_info.city
@@ -123,6 +101,7 @@ def signup_with_role(request, token):
     return render(request, 'signup_role.html', {"form_account": signup_form, 'personel_account':personel_form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
+@require_POST
 def toggle_notification(request):
     if request.method == 'POST':
         request.user.notifications = not request.user.notifications
