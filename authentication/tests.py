@@ -805,9 +805,16 @@ class SignupViewTests(CacheLimpoTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "signup.html")
-        self.assertIn("erro", response.context["error"].lower())
+        
+        # 1. Recupera o formulário vindo no contexto da resposta
+        form_account = response.context["form_account"]
+        
+        # 2. Verifica se a mensagem de erro geral (non-field error) está presente
+        self.assertTrue(form_account.non_field_errors())
+        self.assertIn("ocorreu um erro ao cadastrar a conta", form_account.non_field_errors()[0].lower())
+        
+        # 3. Valida se o rollback atômico do banco funcionou corretamente
         self.assertFalse(User.objects.filter(email="rollback@unirotas.com").exists())
-
 
 # ---------------------------------------------------------------------------
 # 4. Login e logout

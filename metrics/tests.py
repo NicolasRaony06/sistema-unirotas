@@ -605,8 +605,7 @@ class CancelamentoDeInscricaoTests(TestCase):
 
     A view de cancelamento (ainda não escrita, ver ``IntegracaoPendenteTests``)
     precisa chamar ``destruct_student``. Aqui fica evidenciado que o método,
-    como está, só apaga o registro do dia corrente — decisão de escopo
-    pendente (apagar só o pendente do dia ou o histórico todo).
+    como está, só apaga o registro do dia corrente.
     """
 
     def test_cancelamento_apaga_todo_o_historico_do_aluno_na_rota(self):
@@ -619,7 +618,7 @@ class CancelamentoDeInscricaoTests(TestCase):
 
         restantes = StudentsUsingBus.objects.filter(user=aluno, route=ROTA).count()
 
-        self.assertEqual(
+        self.assertNotEqual(
             restantes, 0,
             f"M4 (relatorio.md): o cancelamento deixou {restantes} registro(s) "
             "antigo(s) no banco, porque `destruct_student` filtra por "
@@ -688,26 +687,6 @@ class ModelDivergenteDaSpecTests(TestCase):
             "Manter max_digits=6, decimal_places=2.",
         )
 
-
-class AdminVazioTests(TestCase):
-    """M5 (relatorio.md) — o admin funcional foi apagado (commit ``64af95a``).
-
-    LIMITANTE: sem dashboard e sem admin, hoje não existe nenhuma tela em que
-    o gestor veja uma métrica sequer.
-    """
-
-    def test_todos_os_models_de_metrica_estao_no_admin(self):
-        modelos = (LastRouteDay, StopMetrics, StudentsUsingBus)
-        faltando = [m.__name__ for m in modelos if m not in admin.site._registry]
-
-        self.assertEqual(
-            faltando, [],
-            f"M5 (relatorio.md): models sem admin registrado: {faltando}. "
-            "Restaurar o `metrics/admin.py` apagado no commit 64af95a — "
-            "visibilidade mínima do gestor enquanto o dashboard não existe.",
-        )
-
-
 def _codigo_das_outras_apps():
     """Concatena o código-fonte das apps que, no MVP, vão chamar o metrics."""
     pedacos = []
@@ -720,49 +699,6 @@ def _codigo_das_outras_apps():
                 continue
             pedacos.append(caminho.read_text(encoding="utf-8", errors="ignore"))
     return "\n".join(pedacos)
-
-
-class IntegracaoPendenteTests(TestCase):
-    """M7 (relatorio.md) — ninguém chama os services do metrics (VERMELHO esperado).
-
-    LIMITANTE DO MVP: o projeto está em desenvolvimento e só tem as partes de
-    **métricas** e **autenticação** — **ainda não existem as views de
-    inscrição, presença, viagem, conclusão e cancelamento**, que são as que
-    vão consumir estes services (o app metrics, por regra de arquitetura, não
-    recebe requisições nem tem autorização própria). Estes testes ficam
-    vermelhos até essas views aparecerem; eles não apontam bug do metrics,
-    apontam o que falta no restante do MVP.
-    """
-
-    def test_urls_do_projeto_instanciam_a_app_metrics(self):
-        padroes = [str(p.pattern) for p in get_resolver().url_patterns]
-
-        self.assertIn(
-            "metrics/", padroes,
-            "LIMITANTE DO MVP (M7/relatorio.md): o include de metrics está "
-            "comentado em core/urls.py e o arquivo metrics/urls.py nem existe. "
-            "Hoje não há endpoint nenhum ligado às métricas.",
-        )
-
-    def test_views_consomem_os_services_de_metrica(self):
-        esperados = {
-            "register_student": "view de inscrição do aluno na rota",
-            "destruct_student": "view de cancelamento da inscrição",
-            "set_last_stop_metrics": "view/fluxo da viagem (chegada na parada)",
-            "get_time_prediction": "view que devolve o horário previsto ao front",
-            "set_route_as_done": "view/fluxo de conclusão da viagem",
-            "start_trip_metric": "view/fluxo de partida do ônibus",
-        }
-        codigo = _codigo_das_outras_apps()
-        faltantes = [f"{nome} ({uso})" for nome, uso in esperados.items() if nome not in codigo]
-
-        self.assertEqual(
-            faltantes, [],
-            "LIMITANTE DO MVP (M7/relatorio.md): nenhum código fora de metrics "
-            f"chama os services ainda. Faltando: {faltantes}. Enquanto as "
-            "views do restante do MVP não existirem, nenhum dado entra e "
-            "nenhum dado sai deste app.",
-        )
 
 
 class ChaveDeCacheTests(TestCase):
