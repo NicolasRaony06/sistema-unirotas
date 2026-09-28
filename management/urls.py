@@ -13,5 +13,5 @@ urlpatterns = [
     path('desabilitar-municipio/',desabilitar_mun,name='desabilitar-municipio'),
     path('listagem/',listar_municipios),
 
-    #path('home-manager/',home_manager, name='home-manager'),
+    path('home-manager/',home_manager, name='home-manager'),
 ]

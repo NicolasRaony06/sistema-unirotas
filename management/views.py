@@ -20,6 +20,18 @@ def home(request):
         'role': request.user.role,
         'profile_picture': request.user.profile_picture
     })
+@login_required
+def home_manager(request):
+    municipios = Municipio.objects.count()
+    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
+    return render(request,'home_manager.html',{
+        'estudantes':estudantes,
+        'municipios': municipios,
+        'full_name' : request.user.full_name,
+        'data': datetime.now(),
+        'role': request.user.role,
+        'profile_picture': request.user.profile_picture
+    })
 
 @login_required
 def gestores(request):
