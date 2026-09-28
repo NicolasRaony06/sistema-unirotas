@@ -7,14 +7,14 @@ class Municipio(models.Model):
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
-    gestor = models.ForeignKey(User,null=True,on_delete=models.SET_NULL)
+    gestor = models.ForeignKey(User,null=True,on_delete=models.SET_NULL,related_name='municipio')
 
     def __str__(self):
         return self.nome
 
     def save(self,*args,**kwargs):
         
-        if self.gestor and self.gestor.role != UserRole.ADMIN:
+        if self.gestor and self.gestor.role != UserRole.MANAGER:
             raise ValidationError("Este município só pode ter um gestor do tipo gerente.")
 
         super().save(*args,**kwargs)
