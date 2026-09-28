@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestores | Admin{% endblock %}
+
+{% block side_bar%} 
+{% include 'partials/side_bar.html' %} 
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Gestores</h1>
+    <p>Gerencie os gestores municipais do Alto Oeste Potiguar</p>
+</header>
+
+<div class="dashboard municipios-page">
+
+    {% include 'partials/metrics.html' %}
+    
+    <div class="content-grid">
+
+        {% include 'partials/gestores_lista.html' %}
+
+
+    </div>
+
+</div>
+{% endblock %}

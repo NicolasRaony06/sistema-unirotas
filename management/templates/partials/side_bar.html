@@ -2,18 +2,24 @@
 
 <aside class="sidebar">
 
-    <div class="brand" aria-label="UniRota">
-        <img src="{% static 'images/home/Logo.png' %}" alt="">
+    <div class="brand" aria-label="UniRota"> <!--LOGO-->
+        <img src="{% static 'images/home/Logo.png' %}" alt="Logo">
     </div>
 
     <div class="profile">
         <div class="avatar">
-            <img src="{%static 'images/home/Logo.png'%}" alt="">
+            {% if profile_picture %} <!--Validação simples, se ouver ou não foto do usuario-->
+            <img src="{{ profile_picture.url }}" alt="Imagem Usuario">
+            {% else %}
+            <img src="" alt="Imagem Usuario">
+            {% endif %}
         </div>
+
         <div>
             <strong>{{full_name}}</strong>
             <span>{{role}}</span>
         </div>
+
         <span class="icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20">
                 <path d="M0 0h20v20H0z" fill="none" />
@@ -24,41 +30,44 @@
 
     <nav class="nav" aria-label="Menu principal">
         <small>MENU</small>
-        <a class="active" href="#inicio">
+
+        <a class="{% if request.resolver_match.url_name == 'home-admin' %}active{% endif %}" href="{% url 'management:home-admin' %}">
             <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                    <path
-                        d="M3 10a2 2 0 0 1 .7-1.5l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
             </span>
             Início
         </a>
+
         <a href="#notificacoes">
             <span class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                    <path d="M0 0h24v24H0z" fill="none" />
-                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2">
-                        <path
-                            d="M12.721 5.003L11.255 5c-3.344-.008-6.247 2.709-6.27 6v3.79c0 .79-.1 1.561-.531 2.218l-.287.438C3.73 18.11 4.2 19 4.985 19h14.03c.785 0 1.254-.89.818-1.554l-.287-.438c-.43-.657-.531-1.429-.531-2.219v-3.788c-.04-3.292-2.95-5.99-6.294-5.998M15 19a3 3 0 1 1-6 0" />
-                        <path d="M12 2a2 2 0 0 1 2 2v1h-4V4a2 2 0 0 1 2-2" />
-                    </g>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
             </span>
             Notificações
             <i></i>
         </a>
-        <a href="#gestores">
+
+        <a class="{% if request.resolver_match.url_name == 'gestores' %}active{%endif%}" href="{% url 'management:gestores' %}">
             <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="9" cy="8" r="4" />
-                    <path d="M2 20c0-4 3-6 7-6s7 2 7 6M17 8a4 4 0 0 1 0 8" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
             </span>
             Gestores
         </a>
-        <a href="#municipios">
+
+        <a class="{% if request.resolver_match.url_name == 'municipios' %}active{% endif %}"href="{% url 'management:municipios' %}">
             <span class="icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z" />
@@ -67,7 +76,8 @@
             </span>
             Municípios
         </a>
-        <a href="#configuracoes">
+
+        <a class="{% if request.resolver_match.url_name == '#configuracoes' %}active"{% endif %} href="#configuracoes">
             <span class="icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3" />
@@ -77,13 +87,19 @@
             </span>
             Configurações
         </a>
-    </nav>
 
-    <a class="logout" href="">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M14 8l4 4-4 4M18 12H9" />
-            </svg>
-        </span>
-        Sair
-    </a>
+    </nav>
+    
+    <form method="post" action="{% url 'authentication:logout' %}" class="logout">
+        {% csrf_token %}
+        <button type="submit">
+
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M14 8l4 4-4 4M18 12H9" />
+                </svg>
+            </span>
+            Sair
+
+        </button>
+    </form>
 </aside>

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Municípios | Admin{% endblock %}
+
+{% block side_bar%} 
+{% include 'partials/side_bar.html' %} 
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Municípios</h1>
+    <p>Gerencie os municipios do Alto Oeste Potiguar</p>
+</header>
+
+<div class="dashboard municipios-page">
+
+    {% include 'partials/metrics.html' %}
+    
+    <div class="content-grid">
+
+        {% include 'partials/test.html'%}
+
+
+    </div>
+
+</div>
+{% endblock %}
