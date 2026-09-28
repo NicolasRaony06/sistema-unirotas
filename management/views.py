@@ -1,32 +1,142 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import *
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
-from .models import *
-from authentication.models import UserRole
-from .handlers import cadastrar_municipio
-# Create your views here.
 
+from .models import *
+from authentication.models import UserRole, UserManager
+from .handlers import *
+# Create your views here.
+@login_required
 def home(request):
+    municipios = Municipio.objects.count()
+    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
     return render(request,'home.html',{
+        'estudantes':estudantes,
+        'municipios': municipios,
         'full_name' : request.user.full_name,
         'data': datetime.now(),
         'role': request.user.role,
+        'profile_picture': request.user.profile_picture
     })
 
+@login_required
+def gestores(request):
+    gestores = User.objects.filter(role=UserRole.MANAGER)
+    gestores_inativos = User.objects.filter(role = UserRole.MANAGER,is_active=False).count()
+    total_gestores = User.objects.filter(role=UserRole.MANAGER).count() 
+    return render(request,'gestores.html',{
+        'gestores': gestores,
+        'gestores_inativos': gestores_inativos,
+        'total_gestores': total_gestores,
+        'full_name' : request.user.full_name,
+        'role': request.user.role,
+        'profile_picture': request.user.profile_picture
+    })
+
+
+@login_required
+def municipios(request):
+        municipios = Municipio.objects.all()
+        tot_municipios = Municipio.objects.all().count()
+        gestores = User.objects.filter(role=UserRole.MANAGER)
+        return render(request,'municipios.html',{
+        'tot_municipios': tot_municipios,
+        'municipios': municipios,
+        'gestores':gestores,
+        'full_name' : request.user.full_name,
+        'role': request.user.role,
+        'profile_picture': request.user.profile_picture
+    })
+
+
+
+@login_required
 def criar_municipio(request):
-    if request.user.role == UserRole.ADMIN:
-        nome = request.GET.get('nome')
-        cod_ibge = request.GET.get('codigo_ibge')
-        e_ofertado = True
-        cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
-    elif request.user.role == UserRole.MANAGER:
-        nome = request.GET.get('nome')
-        cod_ibge = request.GET.get('codigo_ibge')
-        e_ofertado = False
-        cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
+    if request.method == 'POST':
+        form = MunicipioForm(request.POST)
+
+        if form.is_valid():
+            nome = form.cleaned_data['nome']
+            cod_ibge =form.cleaned_data['codigo_ibge']
+            #gestor =form.cleaned_data['gestor']
+
+            if request.user.role == UserRole.ADMIN:
+                e_ofertado = True
+                #form.save()
+                cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)#''',gestor=gestor'''
+                return redirect('management:municipios')
+
+            '''def home_manager(request):
+                return render(request,'home_manager.html',{
+                    'full_name' : request.user.full_name,
+                    'data': datetime.now(),
+                    'role': request.user.role,
+                    'profile_picture': request.user.profile_picture
+                })
+            '''
+            '''elif request.user.role == UserRole.MANAGER:
+                e_ofertado = False
+                municipio_base = request.user.municipio.first()
+
+                if municipio_base is None:
+                    return HttpResponse("Você não esta associado a nenhum municipio")
+                else:
+                    municipio_criado, *_ = cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
+                    municipio_base.municipios_relacionados.add(municipio_criado)
+                    return redirect('management:home-manager')'''
+        else:
+            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
-        return HttpResponse("Você não tem permissão para cadastrar município.", status=403)
-    
-    return HttpResponse(f"Municipio criado com sucesso por: {request.user.role}")
+        form = MunicipioForm()
+    return render(request, 'cadastro_municipio.html', {'form': form})
+
+@login_required
+def associar_gestor(request):
+    if request.user.role == UserRole.ADMIN:
+        if request.method == 'POST':
+            codigo_ibge = request.POST.get('codigo_ibge')
+            email_gestor = request.POST.get('email_gestor')
+
+            municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
+            email_buscado = User.objects.filter(role=UserRole.MANAGER,email=email_gestor).first()
+
+            if municipio_buscado is None or email_buscado is None:
+                return HttpResponse("Dados não encontrados")
+            atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
+            return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
+        
+    return render(request,'test.html')
 
 
+
+@login_required
+def homologar_mun(request):
+    if request.user.role == UserRole.ADMIN:
+        codigo_ibge = request.GET.get('codigo_ibge')
+        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
+        if municipio_buscado is None:
+            return HttpResponse("Municipio não encontrado")
+        mun = homologar_municipio(codigo_ibge=codigo_ibge)
+        return HttpResponse(f"Municipio {mun} homologado")
+    return HttpResponse("Sem permissão para realizar essa terefa")
+
+@login_required
+def desabilitar_mun(request):
+    if request.user.role == UserRole.ADMIN:
+        codigo_ibge = request.GET.get('codigo_ibge')
+        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
+        if municipio_buscado is None:
+            return HttpResponse("Municipio não encontrado")
+        mun = desabilitar_municipio(codigo_ibge=codigo_ibge)
+        return HttpResponse(f"Municipio {mun} desabilitado")
+    return HttpResponse("Sem permissão para realizar essa terefa")
+
+@login_required
+def listar_municipios(request):
+    if request.user.role != UserRole.ADMIN:
+        return HttpResponse("Sem permissão para realizar essa tarefa", status=403)
+
+    municipios = list(Municipio.objects.values('nome', 'codigo_ibge', 'ofertado_pelo_sistema', 'gestor__email'))
+    return JsonResponse(municipios, safe=False, json_dumps_params={'ensure_ascii': False})
