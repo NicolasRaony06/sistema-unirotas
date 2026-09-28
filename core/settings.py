@@ -89,8 +89,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
+
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
@@ -106,8 +106,23 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'authentication.validators.UnirotaPasswordValidator',
     },
+
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
+
 ]
 
+LOGIN_URL = 'authentication:login' #User não autenticado, e chamado pelo @login_required
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
