@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Início | Gestor{% endblock %}
+
+{% block side_bar%} 
+{% include 'partials/side_bar_manager.html' %} 
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Início</h1>
+    <p>Bem-vindo ao painel do gestor</p>
+</header>
+
+<div class="dashboard">
+    <section class="greeting">
+        <small>{{ data|date:"D, d M Y H:i" }}</small>
+        <h2>Olá, {{ full_name }}!</h2>
+        <p> 4 rotas · 2 ônibus · 2 motoristas</p>
+    </section>
+</div>
+{% endblock %}

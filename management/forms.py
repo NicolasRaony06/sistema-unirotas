@@ -1,5 +1,5 @@
 from django import forms
-from .models import Bus
+from .models import Bus, Municipio
 
 class BusForm(forms.ModelForm):
     class Meta:
@@ -18,3 +18,9 @@ class BusForm(forms.ModelForm):
         data = data.upper().replace('-', '').strip()
         
         return data
+
+class MunicipioForm(forms.ModelForm):
+    class Meta:
+        model = Municipio
+        fields = ['nome', 'codigo_ibge'] #,'gestor'
+

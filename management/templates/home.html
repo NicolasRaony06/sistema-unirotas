@@ -1,55 +1,33 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Início | UniRota</title>
-    <link rel="stylesheet" href="{% static 'styles/home.css' %}" />
-</head>
+{% block title %}Início | Admin{% endblock %}
 
-<body>
-    <!-- Depois adicionar oficialmente messages -->
-    {% if messages %}
-        <div class="messages">   
-            {% for message in messages %}
-                <div class="message.tags">{{message}}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    <main class="app-shell">
+{% block side_bar%} 
+{% include 'partials/side_bar.html' %} 
+{% endblock %}
 
-        {% include 'partials/side_bar.html'%}
+{% block content %}
 
-        <section class="workspace" id="inicio">
-            <header class="topbar">
-                <h1>Início</h1>
-                <p>Bem-vindo ao painel administrativo UniRota</p>
-            </header>
+<header class="topbar">
+    <h1>Início</h1>
+    <p>Bem-vindo ao painel administrativo UniRota</p>
+</header>
 
-            <div class="dashboard">
-                <section class="greeting">
-                    <small>{{ data|date:"D, d M Y H:i" }}</small>
-                    <h2>Olá, {{full_name}}!</h2>
-                    <p>Você tem 2 notificações não lidas e 1 chamado pendente.</p>
-                </section>
+<div class="dashboard">
+    <section class="greeting">
+        <small>{{ data|date:"D, d M Y H:i" }}</small>
+        <h2>Olá, {{ full_name }}!</h2>
+        <p>Você tem 2 notificações não lidas e 1 chamado pendente.</p>
+    </section>
 
-                {% include 'partials/metrics.html'%}
+    {% include 'partials/metrics.html' %}
+    
+    <div class="content-grid">
 
-                <div class="content-grid">
+        {% include 'partials/panel_routes.html'%}
+        {% include 'partials/notifications.html'%}
 
-                    {% include 'partials/panel_routes.html'%}
-                    {% include 'partials/notifications.html'%}
+    </div>
 
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-</body>
-
-</html>
+</div>
+{% endblock %}
