@@ -19,6 +19,12 @@
                 <td>
                 {{driver.user.email}}
                 </td>
+                <td>
+                <a href="{% url "management:edit_driver" driver.id %}">Editar</a>
+                </td>
+                <td>
+                <a href="{% url "management:remove_driver" driver.id %}">Remover</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

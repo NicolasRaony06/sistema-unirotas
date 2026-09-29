@@ -161,6 +161,16 @@ def view_drivers(request):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
+def edit_driver(request, id):
+    pass
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def remove_driver(request, id):
+    pass
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
