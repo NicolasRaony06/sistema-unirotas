@@ -20,10 +20,16 @@
                 {{driver.user.email}}
                 </td>
                 <td>
-                <a href="{% url "management:edit_driver" driver.id %}">Editar</a>
+                    <form id="edit_driver" action="{% url "management:edit_driver" driver.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Editar</button>
+                    </form>
                 </td>
                 <td>
-                <a href="{% url "management:remove_driver" driver.id %}">Remover</a>
+                    <form id="remove_driver" action="{% url "management:remove_driver" driver.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Remover</button>
+                    </form>
                 </td>
             </tr>
         {% endfor %}

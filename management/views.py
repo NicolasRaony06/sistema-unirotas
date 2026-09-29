@@ -10,8 +10,6 @@ from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import BusForm, MunicipioForm
 from .handlers import cadastrar_municipio
-from .models import *
-from authentication.models import UserRole, UserManager
 from .handlers import *
 # Create your views here.
 @login_required
@@ -167,7 +165,10 @@ def edit_driver(request, id):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def remove_driver(request, id):
-    pass
+    if request.method == 'POST':
+        driver = PersonelProfile.objects.get(id=id)
+        driver.delete()
+        return redirect('management:view_drivers')
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
