@@ -155,6 +155,12 @@ def invite_driver(request):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
+def view_drivers(request):
+    drivers = PersonelProfile.objects.filter(user__role=UserRole.DRIVER, city=request.user.personel_profile.city)
+    return render(request, 'view_drivers.html', {'drivers': drivers})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")

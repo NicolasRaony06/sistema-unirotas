@@ -5,6 +5,7 @@ app_name = 'management'
 
 urlpatterns = [
     path('invite_driver/', invite_driver, name="invite_driver"),
+    path('view_drivers/', view_drivers, name="view_drivers"),
     path('register_bus/', register_bus, name="register_bus"),
     path('home/',home, name='home-admin'),
     path('municipios/',municipios,name='municipios'),

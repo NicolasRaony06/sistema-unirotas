@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Drivers teste</title>
+</head>
+<body>
+    {% if drivers %}
+    <table>
+        <tbody>
+        <th>Nome</th>
+        <th>Email</th>
+        {% for driver in drivers %}
+            <tr>
+                <td>
+                {{driver.user}}
+                </td>
+                <td>
+                {{driver.user.email}}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</body>
+</html>
