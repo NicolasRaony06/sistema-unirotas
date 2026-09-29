@@ -1,10 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from operation.models import Viagem, UsuarioDaViagem
 from django.contrib import messages
-from .forms import alunoForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
 #Viagem
 
 def lista_viagens(request):
@@ -77,29 +75,4 @@ def definir_moderador(request, usuario_viagem_id):
         aluno_clicado.save()
 
     return redirect('lista_moderadores', viagem.pk)
-def alocar_aluno(request, viagem_id):
-    viagem = get_object_or_404(Viagem, pk=viagem_id)
 
-    if request.method != 'POST':
-        form = alunoForm()
-    else:
-        form = alunoForm(request.POST)
-        if form.is_valid():
-            usuario_viagem = form.save(commit=False)
-            usuario_viagem.viagem = viagem
-            usuario_viagem.estudante = request.user.student_profile
-            usuario_viagem.presente = True
-            usuario_viagem.save()
-            return redirect('lista_viagens_aluno')
-
-    context = {'form': form, 'viagem': viagem}
-    return render(request, 'lista_viagens_aluno.html', context)
-
-def lista_viagens_aluno(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento').order_by('data').first()
-    
-    if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando').order_by('data').first()
-        
-
-    return render(request, 'lista_viagens_aluno.html', {'viagem': viagem_atual})

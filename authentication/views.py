@@ -43,6 +43,8 @@ def signin(request):
             user = authenticate(request, username=data.get("email"), password=data.get("password"))
             if user is not None:
                 login(request, user)
+                if request.user.role == 'STUDENT':
+                    return redirect("lista_viagens_aluno")
                 return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")
