@@ -204,7 +204,7 @@ def activate_driver(request, id):
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
-        return redirect('management:home')
+        return redirect('management:home-manager')
 
     if request.method == 'POST':
         form = BusForm(request.POST)
@@ -212,12 +212,55 @@ def register_bus(request):
             bus = form.save(commit=False)
             bus.city = request.user.personel_profile.city
             bus.save()
-            return redirect('management:home')
+            return redirect('management:home-manager')
 
         messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
     else:
         form = BusForm()
     return render(request, "register_bus.html", {'form': form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_buses(request):
+    buses = Bus.objects.filter(city=request.user.personel_profile.city)
+    return render(request, "view_buses.html", {'buses': buses})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def edit_bus(request, id):
+    pass
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def deactivate_bus(request, id):
+    if request.method == 'POST':
+        bus = get_object_or_404(
+            Bus,
+            id=id,
+            city=request.user.personel_profile.city
+        )
+
+        if bus.is_active:
+            bus.is_active = False
+            bus.save()
+            messages.success(request, f"Ônibus {bus.name} desativado com sucesso.")
+    return redirect('management:view_buses')
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_bus(request, id):
+    if request.method == 'POST':
+        bus = get_object_or_404(
+            Bus,
+            id=id,
+            city=request.user.personel_profile.city
+        )
+
+        if not bus.is_active:
+            bus.is_active = True
+            bus.save()
+            messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
+    return redirect('management:view_buses')
 
 @login_required
 def homologar_mun(request):
