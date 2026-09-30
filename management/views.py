@@ -228,7 +228,20 @@ def view_buses(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def edit_bus(request, id):
-    pass
+    bus = get_object_or_404(
+        Bus,
+        id=id
+    )
+    if request.method == 'POST':
+        form = BusForm(request.POST, instance=bus)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Ônibus {bus.name} alterado com sucesso.")
+            return redirect("management:view_buses")
+        messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
+    else:
+        form = BusForm(instance=bus)
+    return render(request, 'edit_bus.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
