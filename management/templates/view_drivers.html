@@ -9,27 +9,39 @@
     {% if drivers %}
     <table>
         <tbody>
+        <th>Estado</th>
         <th>Nome</th>
         <th>Email</th>
         {% for driver in drivers %}
             <tr>
                 <td>
-                {{driver.user}}
+                    {% if driver.user.is_active %}
+                        <span style="color: green;">Ativo</span>
+                    {% else %}
+                        <span style="color: red;">Inativo</span>
+                    {% endif %}
                 </td>
                 <td>
-                {{driver.user.email}}
+                    {{driver.user}}
                 </td>
                 <td>
-                    <form id="edit_driver" action="{% url "management:edit_driver" driver.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">Editar</button>
-                    </form>
+                    {{driver.user.email}}
                 </td>
                 <td>
-                    <form id="remove_driver" action="{% url "management:remove_driver" driver.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">Remover</button>
-                    </form>
+                    <a href="{% url "management:edit_driver" driver.id %}">Editar</a>
+                </td>
+                <td>
+                    {% if driver.user.is_active %}
+                        <form id="deactivate_driver" action="{% url "management:deactivate_driver" driver.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Desativar</button>
+                        </form>
+                    {% else %}
+                        <form id="activate_driver" action="{% url "management:activate_driver" driver.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Ativar</button>
+                        </form>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

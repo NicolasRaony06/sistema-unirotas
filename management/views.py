@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -154,7 +154,10 @@ def invite_driver(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_drivers(request):
-    drivers = PersonelProfile.objects.filter(user__role=UserRole.DRIVER, city=request.user.personel_profile.city)
+    drivers = PersonelProfile.objects.filter(
+        user__role=UserRole.DRIVER, 
+        city=request.user.personel_profile.city
+    )
     return render(request, 'view_drivers.html', {'drivers': drivers})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
@@ -164,11 +167,37 @@ def edit_driver(request, id):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
-def remove_driver(request, id):
+def deactivate_driver(request, id):
     if request.method == 'POST':
-        driver = PersonelProfile.objects.get(id=id)
-        driver.delete()
-        return redirect('management:view_drivers')
+        driver_profile = get_object_or_404(
+            PersonelProfile,
+            id=id,
+            user__role=UserRole.DRIVER,
+            city=request.user.personel_profile.city
+        )
+        driver_user = driver_profile.user
+        if driver_user.is_active:
+            driver_user.is_active = False
+            driver_user.save()
+            messages.success(request, f"Motorista {driver_user.full_name} desativado com sucesso.")
+    return redirect('management:view_drivers')
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_driver(request, id):
+    if request.method == 'POST':
+        driver_profile = get_object_or_404(
+            PersonelProfile,
+            id=id,
+            user__role=UserRole.DRIVER,
+            city=request.user.personel_profile.city
+        )
+        driver_user = driver_profile.user
+        if not driver_user.is_active:
+            driver_user.is_active = True
+            driver_user.save()
+            messages.success(request, f"Motorista {driver_user.full_name} ativado com sucesso.")
+    return redirect('management:view_drivers')
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
