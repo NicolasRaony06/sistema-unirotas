@@ -207,7 +207,7 @@ def register_bus(request):
         return redirect('management:home-manager')
 
     if request.method == 'POST':
-        form = BusForm(request.POST)
+        form = BusForm(request.POST, request.FILES)
         if form.is_valid():
             bus = form.save(commit=False)
             bus.city = request.user.personel_profile.city
@@ -230,10 +230,11 @@ def view_buses(request):
 def edit_bus(request, id):
     bus = get_object_or_404(
         Bus,
-        id=id
+        id=id,
+        city=request.user.personel_profile.city
     )
     if request.method == 'POST':
-        form = BusForm(request.POST, instance=bus)
+        form = BusForm(request.POST, request.FILES, instance=bus)
         if form.is_valid():
             form.save()
             messages.success(request, f"Ônibus {bus.name} alterado com sucesso.")
