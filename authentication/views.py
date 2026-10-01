@@ -1,21 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm, PersonelProfileForm
-from .models import StudentProfile, User, UserRole, PersonelProfile
+from django.shortcuts import render, redirect
+from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm
+from .models import StudentProfile, User, PersonelProfile
 from django.contrib.auth import authenticate, login, update_session_auth_hash
-from django.core.signing import TimestampSigner, BadSignature
 from django.core.cache import cache
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from .handlers import *
+from django.utils.http import url_has_allowed_host_and_scheme
 # Create your views here.
-
-def birth_date_do(user):
-    perfil = getattr(user, "student_profile", None)
-    if perfil is None:
-        perfil = getattr(user, "personel_profile", None)
-    return perfil.birth_date if perfil else None
 
 def signup(request):
     if request.method == 'POST':
@@ -30,7 +24,6 @@ def signup(request):
                         user=user,
                         course=data.get("course"),
                         period=data.get("period"),
-                        birth_date=data.get("birth_date"),
                     )
                 return redirect("authentication:login")
             except Exception as e:
@@ -46,59 +39,67 @@ def signin(request):
         form_login = LoginForm(request.POST)
         if form_login.is_valid():
             data = form_login.cleaned_data
-            valid_user = authenticate(request, username=data.get("email"), password=data.get("password"))
+            valid_user = authenticate(
+                request, 
+                username=data.get("email"), 
+                password=data.get("password")
+            )
+            
             if valid_user is not None:
                 login(request, valid_user)
-                return redirect("authentication:settings") #temp ate fazer as outras partes
+
+                next_url = request.GET.get('next')
+                default_redirect = 'authentication:settings'
+
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure()
+                ):
+                    return redirect(next_url)
+
+                return redirect(default_redirect)
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")
     else:
         form_login = LoginForm()
+        
     return render(request, "login.html", {'form_login': form_login})
 
 def signup_with_role(request, token):
     try:
         email, invitation_data, cache_key = get_invitation_data(token)
         if not email or not invitation_data:
-            raise ValueError("Este convite expirou ou já foi utilizado.")
-        role, higher_role_email, higher_obj = validate_invitation_integraty(invitation_data)
-    except:
-        return render(request, 'erro_convite.html', {'mensagem': 'Este convite expirou ou já foi utilizado.'})
-
+            raise ValueError("Este convite não possui os dados válidos para o cadastro.")
+        role, higher_role_email, city_id, higher_obj = validate_invitation_integrity(invitation_data)
+    except ValueError as error:
+        return render(request, 'erro_convite.html', {'mensagem': str(error)})
+    
+    if User.objects.filter(email=email).first() is not None:
+        return render(request, 'erro_convite.html', {'mensagem': 'Este email ja tem uma conta associada, por favor contate ao responsavel pelo convite e tente novamente por um novo email'})
+    
     pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
 
     if request.method == "POST":
         post = request.POST.copy()
         post["email"] = email
         signup_form = UserRegistrationForm(post)
-        personel_form = PersonelProfileForm(post)
 
-        if signup_form.is_valid() and personel_form.is_valid():
+        if signup_form.is_valid():
             try:
                 with transaction.atomic():
                     user = signup_form.save(commit=False)
                     user.role = role
-
                     user.save()
-
-                    # birth_date hoje mora no PersonelProfile (placeholder);
-                    # quando city/management liberar, volta para o User.
-                    personel_form.instance.user = user
-                    higher_additional_info = getattr(higher_obj, 'personel_profile', None)
-                    if higher_additional_info:
-                        pass #remova depois que descomentar esse bloco
-                        #personel_form.instance.city = higher_additional_info.city
-                    personel_form.save()
-
+                    PersonelProfile.objects.create(user=user, city_id=city_id)
                     cache.delete(cache_key)
                     cache.delete(pointer_key)
                     return redirect("authentication:login")
             except Exception:
-                return render(request, 'signup_role.html', {"form_account": signup_form, 'personel_account':personel_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
+                return render(request, 'signup_role.html', {"form_account": signup_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
     else:
         signup_form = UserRegistrationForm()
-        personel_form = PersonelProfileForm()
-    return render(request, 'signup_role.html', {"form_account": signup_form, 'personel_account':personel_form})
+    return render(request, 'signup_role.html', {"form_account": signup_form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @require_POST
@@ -125,7 +126,7 @@ def my_information(request):
         "full_name": request.user.full_name,
         "email": request.user.email,
         #"city",
-        "birth_date": birth_date_do(request.user),
+        "birth_date": request.user.birth_date,
         #"institution": request.user.institution,
         #"campus": request.user.institution.campus,
         'change_avatar_form': AvatarForm()
@@ -155,8 +156,8 @@ def change_password(request):
                 update_session_auth_hash(request, request.user)
                 return redirect("authentication:my_information")
             else:
-                form.add_error("new_password2", "A senha tem que atender a todos os requisitos, se o erro persistir, cheque sua senha atual")
-                return render(request, "change_password.html", {"form": form, "error": "não foi possivel mudar a senha no momento, tente novamente mais tarde"})
+                form.add_error("password", "senha inválida, por favor digite sua senha atual a este campo")
+                return render(request, "change_password.html", {"form": form})
     else:
         form = ChangePassword(user=request.user)
     return render(request, "change_password.html", {"form": form}) 

@@ -53,6 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=UserRole.choices,
         default=UserRole.STUDENT
     )
+    birth_date = models.DateField(null=True, blank=True)
 
     notifications = models.BooleanField(default=True)
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
@@ -91,15 +92,14 @@ class PersonelProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='personel_profile')
-    birth_date = models.DateField(null=True, blank=True) #depois voltar pra userBase somente para não quebrar o codigo
-    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    city_id = models.PositiveIntegerField(blank=True, null=True)
+    #city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
     # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
-    birth_date = models.DateField(null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 

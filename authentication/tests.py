@@ -14,15 +14,41 @@ O que este arquivo cobre:
     7. Reset de senha por e-mail (fluxo completo usando o link que sai em mail.outbox)
     8. Seguranca (CSRF, hashing de senha, enumeracao de usuarios, escalonamento de cargo)
 
+Revisao de 30/09/2026 (branch ``merged/auth/metrics``; trabalho ainda nao
+commitado):
+
+    * O ``InviteDTO`` (``authentication.data_type.InviteDTO``: ``email``,
+      ``role``, ``higher_role_email`` e ``city_id``) virou o padrao do projeto
+      para o service de convite. ``city_id`` e o placeholder da futura FK
+      ``management.City`` (o campo definitivo ``city`` ainda nao existe); ele
+      viaja DTO -> cache -> ``signup_with_role`` -> ``PersonelProfile.city_id``.
+    * ``birth_date`` voltou para o ``User`` (migration ``0006``); o
+      ``StudentProfileForm`` perdeu o campo e o ``PersonelProfileForm`` deixou
+      de existir. O ``UserRegistrationForm`` passou a expor ``birth_date``.
+    * Bugs de integracao B1 (``signup`` derrubado pelo ``birth_date``) e E4
+      (``birth_date_do``) foram corrigidos em 30/09/2026: os ``@expectedFailure``
+      correspondentes sairam e os testes viraram travas de regressao.
+    * UX de erro (A1, A2, E5) foi implementada em 30/09/2026: pagina de erro
+      dedicada no convite, erro anexado ao campo na troca de senha e mensagens
+      especificas por causa (o ``except`` repassa ``str(error)`` para
+      ``erro_convite.html``). Os testes foram alinhados ao contrato real: a
+      fonte de verdade do convite e o cache, nao o token, entao um token
+      valido sem entrada no cache mostra "nao possui os dados validos".
+    * Os ``@expectedFailure`` que restam sao lacunas conhecidas aceitas no MVP
+      (itens S1-S3 e a validacao de data futura do ``relatorio.md``).
+    * O ``InviteDTO`` (``data_type.py``) e o ``recreate_elevated_signup_link``
+      no padrao DTO foram implementados em 30/09/2026: os testes de reenvio
+      deixaram de ser ``expectedFailure`` e viraram travas de regressao.
+
 As classes de revisao (nesta ordem):
 
     * ``MigrationsSemConflitoTests``   -> trava do bloqueador I1: no branch
-      merged/auth/metrics a app authentication tem dois ``0004`` e a suite
-      nem roda antes de um ``python manage.py makemigrations --merge``.
+      merged/auth/metrics a app authentication tinha dois ``0004`` e a suite
+      nem rodava antes de um ``python manage.py makemigrations --merge``.
     * ``FalhasUrgentesTests``          -> problemas reais do app. Na auditoria
-      de 25/09/2026 restam 2 vermelhos (A1: aviso de convite invisivel;
-      A2: mensagem de senha atual incorreta nao renderizada); os demais
-      viraram travas de regressao dos fixes ja feitos.
+      de 30/09/2026 os 2 vermelhos (A1: aviso de convite invisivel; A2:
+      mensagem de senha atual incorreta nao renderizada) foram corrigidos e
+      viraram travas de regressao.
     * ``FalhasAceitaveisParaMVPTests`` -> testes marcados com ``expectedFailure``
       (podem ser adiados, mas devem ser revisitados antes de producao) + os
       casos ja RESOLVIDOS, sem decorator.
@@ -56,10 +82,10 @@ from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from . import service
+from .data_type import InviteDTO
 from .forms import (
     ChangePassword,
     LoginForm,
-    PersonelProfileForm,
     StudentProfileForm,
     UserRegistrationForm,
     Validation,
@@ -150,15 +176,29 @@ def token_do_link(url):
     return [parte for parte in url.split("/") if parte][-1]
 
 
-def convidar(convidador, email, role, request=None):
-    """Gera um convite pelo service e devolve (link, token).
+def convite_dto(email, role, higher_role_email, city_id=None):
+    """Monta o ``InviteDTO`` (padrao do projeto) usado pelo service de convite.
+
+    ``city_id`` e o placeholder da futura FK ``management.City``: entra no
+    convite para ja mocar a integracao entre os apps (o campo definitivo
+    ``city`` ainda nao esta implementado).
+    """
+    return InviteDTO(
+        email=email,
+        role=role,
+        higher_role_email=higher_role_email,
+        city_id=city_id,
+    )
+
+
+def convidar(convidador, email, role, request=None, city_id=None):
+    """Gera um convite pelo service (com ``InviteDTO``) e devolve (link, token).
 
     Usar o proprio service e proposital: valida a integracao
-    convite -> e-mail -> cache -> URL reversa.
+    DTO -> convite -> e-mail -> cache -> URL reversa.
     """
-    link = service.generate_elevated_signup_link(
-        convidador.email, email, role, request=request
-    )
+    invite = convite_dto(email, role, convidador.email, city_id=city_id)
+    link = service.generate_elevated_signup_link(invite, request=request)
     assert link is not None, "o service deveria ter gerado o link de convite"
     return link, token_do_link(link)
 
@@ -246,8 +286,8 @@ class UserManagerTests(TestCase):
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
-        # birth_date nao e mais campo do User: hoje mora nos perfis
-        # (StudentProfile/PersonelProfile) ate o modulo City ser liberado.
+        # birth_date esta de volta no User (migration 0006) e e opcional.
+        self.assertIsNone(user.birth_date)
         self.assertFalse(user.profile_picture)
         self.assertIsNotNone(user.date_joined)
 
@@ -486,6 +526,27 @@ class UserRegistrationFormTests(TestCase):
         self.assertIn("password", form.errors)
         self.assertTrue(form.errors["password"][0].strip())
 
+    def test_cadastro_publico_rodar_os_validadores_do_django(self):
+        """F5 — trava de regressão (30/09/2026): o cadastro público roda
+        ``validate_password`` (``AUTH_PASSWORD_VALIDATORS``), não só o regex
+        próprio do form.
+
+        O mock isola o contrato "a chamada acontece com a senha digitada";
+        o campo de erro apontado no ``except`` é coberto pelos testes de
+        senha fraca acima (que hoje acusam o ``ValueError`` do
+        ``add_error('new_password1', ...)`` — campo inexistente no form).
+        """
+        with patch(
+            "authentication.forms.password_validation.validate_password"
+        ) as spy:
+            form = UserRegistrationForm(
+                data=self.payload(password="Abc@12345", confirm_password="Abc@12345")
+            )
+            self.assertTrue(form.is_valid(), form.errors)
+
+        spy.assert_called_once()
+        self.assertEqual(spy.call_args.args[0], "Abc@12345")
+
     def test_form_rejeita_email_invalido(self):
         form = UserRegistrationForm(data=self.payload(email="nao-e-email"))
 
@@ -498,17 +559,29 @@ class UserRegistrationFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("full_name", form.errors)
 
-    def test_data_de_nascimento_e_ignorado_pelo_form_da_conta(self):
-        """`birth_date` saiu do User: o form da conta nao deve ter o campo.
-
-        Enquanto o modulo `management.City` nao for liberado, a data mora
-        nos perfis (StudentProfile / PersonelProfile).
-        """
-        form = UserRegistrationForm(data=self.payload(birth_date="2000-05-10"))
+    def test_data_de_nascimento_e_campo_opcional_do_form_da_conta(self):
+        """`birth_date` voltou para o User (migration 0006) e pode ficar vazio."""
+        form = UserRegistrationForm(data=self.payload(birth_date=""))
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertNotIn("birth_date", form.fields)
-        self.assertFalse(hasattr(form.save(), "birth_date"))
+        self.assertIn("birth_date", form.fields)
+        self.assertIsNone(form.save().birth_date)
+
+    def test_data_de_nascimento_aceita_iso_e_formato_brasileiro(self):
+        """O widget usa `type=date` (ISO), mas o pt-br ainda aceita ``dd/mm/aaaa``."""
+        for sufixo, entrada, esperado in (
+            ("iso", "2000-05-10", date(2000, 5, 10)),
+            ("br", "10/05/2000", date(2000, 5, 10)),
+        ):
+            with self.subTest(formato=sufixo):
+                form = UserRegistrationForm(
+                    data=self.payload(
+                        email=f"nascimento.{sufixo}@unirotas.com", birth_date=entrada
+                    )
+                )
+
+                self.assertTrue(form.is_valid(), form.errors)
+                self.assertEqual(form.save().birth_date, esperado)
 
     def test_form_nao_aceita_role_enviada_pelo_cliente(self):
         """role nao esta em Meta.fields, entao o POST nao deve influenciar o cargo."""
@@ -551,51 +624,43 @@ class StudentProfileFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("period", form.errors)
 
-    def test_data_de_nascimento_e_opcional(self):
+    def test_form_nao_tem_mais_data_de_nascimento(self):
+        """`birth_date` saiu do StudentProfile (migration 0006) e voltou ao User.
+
+        O formulario academico ignora a chave se ela vier no POST — quem
+        persiste a data e o ``UserRegistrationForm``.
+        """
         form = StudentProfileForm(
-            data={"course": "Engenharia", "period": 5, "birth_date": ""}
+            data={"course": "Engenharia", "period": 5, "birth_date": "2000-05-10"}
         )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertIsNone(form.cleaned_data["birth_date"])
-
-    def test_data_de_nascimento_aceita_formato_brasileiro(self):
-        form = StudentProfileForm(
-            data={"course": "Engenharia", "period": 5, "birth_date": "10/05/2000"}
-        )
-
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["birth_date"], date(2000, 5, 10))
+        self.assertNotIn("birth_date", form.fields)
+        self.assertFalse(hasattr(StudentProfile(), "birth_date"))
 
 
-class PersonelProfileFormTests(TestCase):
-    """Formulario do perfil de quem entra por convite (gestor/motorista).
+class PersonelProfileModelTests(TestCase):
+    """Perfil de gestor/motorista: `city_id` e o placeholder da futura FK `city`.
 
-    Enquanto `management.City` nao for liberado, `birth_date` e um
-    placeholder que mora no `PersonelProfile`.
+    O app `management` ainda nao expoe `City`, entao o vinculo com a cidade
+    fica em ``city_id`` (``PositiveIntegerField`` opcional) e e preenchido
+    pelo convite (``InviteDTO.city_id``) em ``signup_with_role``.
     """
 
-    def test_data_de_nascimento_e_opcional(self):
-        form = PersonelProfileForm(data={"birth_date": ""})
-
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertIsNone(form.cleaned_data["birth_date"])
-
-    def test_data_de_nascimento_aceita_formato_brasileiro(self):
-        form = PersonelProfileForm(data={"birth_date": "10/05/2000"})
-
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["birth_date"], date(2000, 5, 10))
-
-    def test_salva_o_perfil_com_a_data(self):
+    def test_city_id_e_opcional_e_birth_date_nao_mora_aqui(self):
         user = criar_usuario(email="gestor@unirotas.com", role=UserRole.MANAGER)
-        form = PersonelProfileForm(data={"birth_date": "1999-03-15"})
 
-        self.assertTrue(form.is_valid(), form.errors)
-        form.instance.user = user
-        form.save()
+        perfil = PersonelProfile.objects.create(user=user)
 
-        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
+        self.assertIsNone(perfil.city_id)
+        self.assertFalse(hasattr(perfil, "birth_date"))  # data mora no User
+
+    def test_city_id_guarda_o_valor_do_convite(self):
+        user = criar_usuario(email="motorista@unirotas.com", role=UserRole.DRIVER)
+
+        perfil = PersonelProfile.objects.create(user=user, city_id=42)
+
+        self.assertEqual(PersonelProfile.objects.get(pk=perfil.pk).city_id, 42)
 
 
 class LoginFormTests(TestCase):
@@ -696,6 +761,13 @@ class SignupViewTests(CacheLimpoTestCase):
         self.assertIsInstance(response.context["form_student"], StudentProfileForm)
 
     def test_post_valido_cria_conta_e_perfil_e_redireciona_para_login(self):
+        """RESOLVIDO (30/09/2026) — o cadastro publico voltou a criar a conta.
+
+        Contexto: a view ``signup`` chegou a passar ``birth_date`` para
+        ``StudentProfile.objects.create`` (campo removido na migration 0006),
+        derrubando o fluxo (bug B1 do relatorio.md). Com o kwarg removido,
+        este teste virou trava de regressao.
+        """
         response = self.client.post(
             self.url, dados_signup(email="aluno.novo@unirotas.com"), follow=False
         )
@@ -711,8 +783,8 @@ class SignupViewTests(CacheLimpoTestCase):
         perfil = user.student_profile
         self.assertEqual(perfil.course, "Ciencia da Computacao")
         self.assertEqual(perfil.period, 4)
-        # birth_date hoje e placeholder do perfil (depois volta para o User)
-        self.assertEqual(perfil.birth_date, date(2000, 5, 10))
+        # birth_date voltou para o User (migration 0006)
+        self.assertEqual(user.birth_date, date(2000, 5, 10))
 
     def test_post_valido_nao_autentica_o_usuario(self):
         self.client.post(self.url, dados_signup())
@@ -720,6 +792,7 @@ class SignupViewTests(CacheLimpoTestCase):
         self.assertNotIn(SESSION_KEY, self.client.session)
 
     def test_aluno_recem_cadastrado_consegue_logar(self):
+        """RESOLVIDO (30/09/2026) — trava de regressao do fluxo cadastro + login."""
         self.client.post(self.url, dados_signup(email="aluno.login@unirotas.com"))
 
         response = self.client.post(
@@ -730,15 +803,17 @@ class SignupViewTests(CacheLimpoTestCase):
         self.assertRedirects(response, reverse("authentication:settings"))
 
     def test_post_normaliza_email_em_caixa_alta(self):
+        """RESOLVIDO (30/09/2026) — a conta e criada e o e-mail normalizado persiste."""
         self.client.post(self.url, dados_signup(email="ALUNO.CAPS@UniRota.COM"))
 
         self.assertTrue(User.objects.filter(email="aluno.caps@unirota.com").exists())
 
     def test_post_sem_data_de_nascimento_funciona(self):
+        """RESOLVIDO (30/09/2026) — `birth_date` opcional; a data fica no User."""
         self.client.post(self.url, dados_signup(birth_date=""))
 
         user = User.objects.get(email="aluno@unirotas.com")
-        self.assertIsNone(user.student_profile.birth_date)
+        self.assertIsNone(user.birth_date)
 
     def test_post_com_email_ja_cadastrado_nao_cria_nada(self):
         criar_usuario(email="aluno@unirotas.com")
@@ -782,7 +857,7 @@ class SignupViewTests(CacheLimpoTestCase):
                 self.assertFalse(StudentProfile.objects.exists())
 
     def test_post_ignora_role_enviada_no_payload(self):
-        """Escalonamento de cargo pelo cadastro publico nao pode funcionar."""
+        """RESOLVIDO (30/09/2026) — trava de escalonamento de cargo ativa de novo."""
         response = self.client.post(
             self.url,
             dados_signup(role=UserRole.ADMIN, is_staff=True, is_superuser=True),
@@ -950,8 +1025,45 @@ class LogoutViewTests(TestCase):
 # ---------------------------------------------------------------------------
 # 5. Convites para cargos elevados - service
 # ---------------------------------------------------------------------------
+class InviteDTOTests(TestCase):
+    """Contrato do ``InviteDTO`` — padrao do projeto para o service de convite.
+
+    O DTO e montado sempre por palavra-chave (o service depende dos nomes dos
+    campos, nao da ordem deles); ``city_id`` e o placeholder opcional da
+    futura FK ``management.City``.
+    """
+
+    def test_monta_por_palavra_chave_com_city_id_opcional(self):
+        invite = InviteDTO(
+            email="convidado@unirotas.com",
+            role=UserRole.MANAGER,
+            higher_role_email="admin@unirotas.com",
+        )
+
+        self.assertEqual(invite.email, "convidado@unirotas.com")
+        self.assertEqual(invite.role, UserRole.MANAGER)
+        self.assertEqual(invite.higher_role_email, "admin@unirotas.com")
+        self.assertIsNone(invite.city_id)
+
+    def test_city_id_explicito_e_preservado(self):
+        invite = InviteDTO(
+            email="motorista@unirotas.com",
+            role=UserRole.DRIVER,
+            higher_role_email="gerente@unirotas.com",
+            city_id=42,
+        )
+
+        self.assertEqual(invite.city_id, 42)
+
+
 class ConviteServiceTests(CacheLimpoTestCase):
-    """service.generate/abort/recreate_elevated_signup_link e envio de e-mail."""
+    """Convite por e-mail no padrao DTO (``InviteDTO``) — generate/abort/recreate.
+
+    O service recebe um unico ``InviteDTO`` (``email``, ``role``,
+    ``higher_role_email`` e ``city_id``) e devolve a URL assinada; o ``city_id``
+    (placeholder da futura FK ``management.City``) segue para o cache e, no
+    ``signup_with_role``, para o ``PersonelProfile``.
+    """
 
     def setUp(self):
         super().setUp()
@@ -1000,14 +1112,27 @@ class ConviteServiceTests(CacheLimpoTestCase):
         self.assertEqual(convite["email"], self.email_convidado)
         self.assertEqual(convite["role"], UserRole.MANAGER)
         self.assertEqual(convite["higher_role_email"], self.admin.email)
+        self.assertIsNone(convite["city_id"])  # sem cidade no DTO por padrao
+        self.assertEqual(
+            set(convite), {"email", "role", "higher_role_email", "city_id"}
+        )
         self.assertIsNotNone(
             cache.get(self.chave_ponteiro(self.admin.email, self.email_convidado))
         )
 
-    def test_normaliza_emails_com_espacos_e_caixa_alta(self):
-        link = service.generate_elevated_signup_link(
-            "  ADMIN@UniRotaS.COM ", "  Novo.Gestor@UniRotaS.COM  ", UserRole.MANAGER
+    def test_guarda_city_id_do_dto_no_cache(self):
+        """`city_id` e o placeholder da futura FK `management.City` no convite."""
+        _, token = convidar(
+            self.admin, self.email_convidado, UserRole.MANAGER, city_id=42
         )
+
+        self.assertEqual(cache.get(self.chave_convite(token))["city_id"], 42)
+
+    def test_normaliza_emails_com_espacos_e_caixa_alta(self):
+        invite = convite_dto(
+            "  Novo.Gestor@UniRotaS.COM  ", UserRole.MANAGER, "  ADMIN@UniRotaS.COM "
+        )
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNotNone(link)
         token = token_do_link(link)
@@ -1015,17 +1140,17 @@ class ConviteServiceTests(CacheLimpoTestCase):
         self.assertEqual(mail.outbox[0].to, ["novo.gestor@unirotas.com"])
 
     def test_convidador_inexistente_nao_gera_link(self):
-        link = service.generate_elevated_signup_link(
-            "fantasma@unirotas.com", self.email_convidado, UserRole.MANAGER
+        invite = convite_dto(
+            self.email_convidado, UserRole.MANAGER, "fantasma@unirotas.com"
         )
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)
 
     def test_admin_nao_pode_convidar_motorista_diretamente(self):
-        link = service.generate_elevated_signup_link(
-            self.admin.email, self.email_convidado, UserRole.DRIVER
-        )
+        invite = convite_dto(self.email_convidado, UserRole.DRIVER, self.admin.email)
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)
@@ -1033,9 +1158,10 @@ class ConviteServiceTests(CacheLimpoTestCase):
         self.assertIsNone(cache.get(self.chave_convite(token)))
 
     def test_gerente_nao_pode_convidar_gerente(self):
-        link = service.generate_elevated_signup_link(
-            self.gerente.email, self.email_convidado, UserRole.MANAGER
+        invite = convite_dto(
+            self.email_convidado, UserRole.MANAGER, self.gerente.email
         )
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)
@@ -1044,11 +1170,8 @@ class ConviteServiceTests(CacheLimpoTestCase):
     def test_cargos_invalidos_nao_geram_link(self):
         for role in (None, "", "ADMIN", "STUDENT", "SUPERADMIN", UserRole.STUDENT):
             with self.subTest(role=role):
-                self.assertIsNone(
-                    service.generate_elevated_signup_link(
-                        self.admin.email, self.email_convidado, role
-                    )
-                )
+                invite = convite_dto(self.email_convidado, role, self.admin.email)
+                self.assertIsNone(service.generate_elevated_signup_link(invite))
 
         self.assertEqual(len(mail.outbox), 0)
 
@@ -1056,19 +1179,17 @@ class ConviteServiceTests(CacheLimpoTestCase):
         self.admin.is_active = False
         self.admin.save()
 
-        link = service.generate_elevated_signup_link(
-            self.admin.email, self.email_convidado, UserRole.MANAGER
-        )
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)
 
     def test_falha_no_envio_do_email_nao_deixa_convite_no_cache(self):
         """Fallback do service: sem e-mail enviado nao existe convite valido."""
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
         with patch("authentication.service.send_mail", return_value=0):
-            link = service.generate_elevated_signup_link(
-                self.admin.email, self.email_convidado, UserRole.MANAGER
-            )
+            link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         token = TimestampSigner().sign(self.email_convidado)
@@ -1085,24 +1206,31 @@ class ConviteServiceTests(CacheLimpoTestCase):
         )
 
     def test_recreate_envia_novo_email_e_deixa_convite_valido(self):
-        convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+        """RESOLVIDO (30/09/2026) — `recreate` recebe `InviteDTO` e reenvia.
 
-        link = service.recreate_elevated_signup_link(
-            self.admin.email, self.email_convidado, UserRole.MANAGER
-        )
+        Contexto: o service chegou a ficar com a assinatura antiga
+        (``recreate_elevated_signup_link(higher_role_email, email, role)``)
+        repassando argumentos posicionais para o ``generate`` baseado em
+        ``InviteDTO`` (bug C2 do relatorio.md). Quando o `recreate` foi
+        migrado, este teste virou trava de regressao.
+        """
+        convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
+
+        link = service.recreate_elevated_signup_link(invite)
 
         self.assertEqual(len(mail.outbox), 2)
         token = token_do_link(link)
         self.assertIsNotNone(cache.get(self.chave_convite(token)))
 
     def test_recreate_exige_que_o_convidador_ainda_possa_convidar(self):
+        """O reenvio respeita a permissao ATUAL do convidador (`can_invite`)."""
         convidar(self.admin, self.email_convidado, UserRole.MANAGER)
         self.admin.role = UserRole.STUDENT
         self.admin.save()
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
 
-        link = service.recreate_elevated_signup_link(
-            self.admin.email, self.email_convidado, UserRole.MANAGER
-        )
+        link = service.recreate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 1)  # nao enviou o segundo e-mail
@@ -1149,7 +1277,8 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         user = User.objects.get(email="novo.gestor@unirotas.com")
         self.assertEqual(user.role, UserRole.MANAGER)
         self.assertEqual(user.full_name, "Novo Gestor")
-        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
+        self.assertEqual(user.birth_date, date(1999, 3, 15))
+        self.assertIsNone(user.personel_profile.city_id)  # sem cidade no DTO
         self.assertTrue(user.check_password(SENHA_FORTE))
         self.assertFalse(StudentProfile.objects.filter(user=user).exists())
 
@@ -1159,11 +1288,13 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
             cache.get(f"invitation_pointer_{self.admin.email}_novo.gestor@unirotas.com")
         )
 
-        # 6) reutilizar o link nao funciona mais
+        # 6) reutilizar o link nao funciona mais. A fonte de verdade do
+        # convite e o cache (o token continua valido), entao a tela avisa que
+        # o convite nao possui os dados validos para o cadastro.
         resposta_reuso = self.abrir(link)
         self.assertEqual(resposta_reuso.status_code, 200)
         self.assertTemplateUsed(resposta_reuso, "erro_convite.html")
-        self.assertContains(resposta_reuso, "expirou")
+        self.assertContains(resposta_reuso, "não possui os dados válidos")
         self.assertEqual(
             User.objects.filter(email="novo.gestor@unirotas.com").count(), 1
         )
@@ -1186,24 +1317,25 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         )
         self.assertRedirects(resposta_login, reverse("authentication:settings"))
 
-    def test_get_renderiza_o_formulario_de_conta_e_o_do_perfil(self):
+    def test_get_renderiza_o_formulario_de_conta_do_convite(self):
+        """O form de perfil saiu da tela: `birth_date` e `city_id` vem do convite."""
         link, _ = convidar(self.admin, "novo.gestor@unirotas.com", UserRole.MANAGER)
 
         resposta = self.abrir(link)
 
         self.assertEqual(resposta.status_code, 200)
-        self.assertIsInstance(
-            resposta.context["personel_account"], PersonelProfileForm
-        )
+        self.assertIsInstance(resposta.context["form_account"], UserRegistrationForm)
+        self.assertNotIn("personel_account", resposta.context)
 
-    def test_data_de_nascimento_e_salva_no_personel_profile(self):
-        """O birth_date do convite vai para o PersonelProfile (placeholder)."""
+    def test_data_de_nascimento_do_convite_e_salva_no_user(self):
+        """`birth_date` mora no User (migration 0006), nao mais no perfil."""
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
 
         self.consumir(link, birth_date="1999-03-15")
 
         user = User.objects.get(email=self.email_convidado)
-        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
+        self.assertEqual(user.birth_date, date(1999, 3, 15))
+        self.assertTrue(hasattr(user, "personel_profile"))
 
     def test_data_de_nascimento_em_branco_ainda_cria_o_personel_profile(self):
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
@@ -1211,7 +1343,24 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.consumir(link, birth_date="")
 
         user = User.objects.get(email=self.email_convidado)
-        self.assertIsNone(user.personel_profile.birth_date)
+        self.assertIsNone(user.birth_date)
+        self.assertIsNone(user.personel_profile.city_id)
+
+    def test_city_id_do_convite_chega_ao_personel_profile(self):
+        """Integracao mockada do `city_id` (placeholder) ate o perfil.
+
+        Quando o app `management` expuser `City`, a FK `city` substitui o
+        `city_id` sem mudar o fluxo: DTO -> cache -> signup_with_role -> perfil.
+        """
+        link, token = convidar(
+            self.admin, self.email_convidado, UserRole.MANAGER, city_id=27
+        )
+        self.assertEqual(cache.get(f"invitation_{token}")["city_id"], 27)
+
+        self.assertRedirects(self.consumir(link), reverse("authentication:login"))
+
+        perfil = User.objects.get(email=self.email_convidado).personel_profile
+        self.assertEqual(perfil.city_id, 27)
 
     def test_post_repetido_no_mesmo_link_nao_cria_duas_contas(self):
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
@@ -1244,6 +1393,14 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
 
 
     def test_token_adulterado_renderiza_pagina_de_erro(self):
+        """RESOLVIDO (30/09/2026) — E5: o token adulterado tem aviso próprio.
+
+        Antes, token adulterado, convidador sem permissão e convite consumido
+        caíam no mesmo texto "Este convite expirou ou já foi utilizado". Hoje
+        `handlers.get_invitation_data` levanta `ValueError("Convite
+        inválido.")`, a view repassa `str(error)` para `erro_convite.html` e o
+        usuário vê a causa, sem detalhe interno.
+        """
         link, token = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
         # troca a assinatura do token mantendo a URL valida (o token e o ultimo
         # segmento da URL, antes da barra final)
@@ -1257,13 +1414,21 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertFalse(User.objects.filter(email=self.email_convidado).exists())
 
     def test_token_valido_sem_convite_no_cache_nao_cadastra(self):
+        """RESOLVIDO (30/09/2026) — token válido sem cache não cadastra.
+
+        A fonte de verdade do convite é o cache, não o token: um token
+        corretamente assinado, mas sem a entrada correspondente, cai no
+        aviso de que o convite não possui os dados válidos — sem revelar
+        qual etapa interna faltou.
+        """
         token = TimestampSigner().sign(self.email_convidado)
         link = reverse("authentication:elevated_signup", kwargs={"token": token})
 
         resposta = self.abrir(link)
 
         self.assertTemplateUsed(resposta, "erro_convite.html")
-        self.assertContains(resposta, "expirou")
+        self.assertContains(resposta, "não possui os dados válidos")
+        self.assertFalse(User.objects.filter(email=self.email_convidado).exists())
 
     def test_convite_expirado_no_cache_deixa_de_funcionar(self):
         link, token = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
@@ -1275,6 +1440,11 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertFalse(User.objects.filter(email=self.email_convidado).exists())
 
     def test_convite_de_convidador_desativado_deixa_de_funcionar(self):
+        """RESOLVIDO (30/09/2026) — E5: convidador desativado é barrado.
+
+        `validate_invitation_integrity` não acha o convidador e levanta
+        `ValueError`; a tela mostra "não é válido" em vez do texto genérico.
+        """
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
 
         self.admin.is_active = False
@@ -1286,6 +1456,11 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertContains(resposta, "não é válido")
 
     def test_convite_de_convidador_rebaixado_deixa_de_funcionar(self):
+        """RESOLVIDO (30/09/2026) — E5: convidador rebaixado é barrado.
+
+        Sobra a permissão depois do reenvio; `can_invite` falha e a tela
+        mostra "não é válido" em vez do aviso genérico de convite expirado.
+        """
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
 
         self.admin.role = UserRole.STUDENT
@@ -1297,6 +1472,12 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         self.assertContains(resposta, "não é válido")
 
     def test_convite_abortado_deixa_de_funcionar(self):
+        """RESOLVIDO (30/09/2026) — o abort apaga o cache e o link para de servir.
+
+        Como a fonte de verdade é o cache, abortar o convite remove a entrada
+        (`invitation_*` e o pointer) e a tela passa a avisar que o convite não
+        possui os dados válidos.
+        """
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
 
         service.abort_elevated_signup_link(self.admin.email, self.email_convidado)
@@ -1304,13 +1485,13 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         resposta = self.abrir(link)
 
         self.assertTemplateUsed(resposta, "erro_convite.html")
-        self.assertContains(resposta, "expirou")
+        self.assertContains(resposta, "não possui os dados válidos")
 
     def test_convite_recriado_continua_sendo_consumivel(self):
+        """RESOLVIDO (30/09/2026) — o link reenviado pelo `recreate` e consumivel."""
         convidar(self.admin, self.email_convidado, UserRole.MANAGER)
-        novo_link = service.recreate_elevated_signup_link(
-            self.admin.email, self.email_convidado, UserRole.MANAGER
-        )
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
+        novo_link = service.recreate_elevated_signup_link(invite)
 
         resposta = self.consumir(novo_link)
 
@@ -1320,21 +1501,24 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         )
 
     def test_link_antigo_para_de_funcionar_apos_reenvio(self):
-        """O reenvio (recreate) realmente invalida o link anterior.
+        """RESOLVIDO (30/09/2026) — a trava do reenvio voltou a valer.
 
-        Com TimestampSigner cada geracao produz um token novo; o abort
+        O reenvio (recreate) realmente invalida o link anterior.
+
+        O reenvio (recreate) realmente invalida o link anterior: o abort
         interno apaga a entrada antiga do cache, entao consumir o link
-        antigo depois do reenvio nao cadastra ninguem.
+        antigo depois do reenvio nao cadastra ninguem. Como a fonte de
+        verdade e o cache, a tela mostra que o convite nao possui os dados
+        validos.
         """
         link_antigo, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+        invite = convite_dto(self.email_convidado, UserRole.MANAGER, self.admin.email)
 
         with patch("django.core.signing.time.time", return_value=time.time() + 3600):
-            novo_link = service.recreate_elevated_signup_link(
-                self.admin.email, self.email_convidado, UserRole.MANAGER
-            )
+            novo_link = service.recreate_elevated_signup_link(invite)
 
         resposta_antiga = self.client.get(link_antigo)
-        self.assertContains(resposta_antiga, "expirou")
+        self.assertContains(resposta_antiga, "não possui os dados válidos")
 
         # e o link novo segue consumivel ate criar a conta
         resposta_nova = self.consumir(novo_link)
@@ -1468,16 +1652,20 @@ class ToggleNotificationTests(TestCase):
 
 
 class MyInformationViewTests(TestCase):
-    """Tela 'Meus dados'."""
+    """Tela 'Meus dados'.
+
+    Depois da migration 0006 a data de nascimento mora em ``User.birth_date``
+    e a view le direto do usuario (bug E4 corrigido em 30/09/2026).
+    """
 
     def setUp(self):
         self.user = criar_usuario(
             email="aluno@unirotas.com",
             full_name="Aluno Teste",
+            birth_date=date(2000, 5, 10),
         )
         StudentProfile.objects.create(
             user=self.user,
-            birth_date=date(2000, 5, 10),
             course="Ciencia da Computacao",
             period=4,
         )
@@ -1485,6 +1673,11 @@ class MyInformationViewTests(TestCase):
         self.url = reverse("authentication:my_information")
 
     def test_renderiza_dados_pessoais(self):
+        """RESOLVIDO (30/09/2026) — a view le `request.user.birth_date` (bug E4).
+
+        O helper `birth_date_do` (que lia dos perfis antigos) foi removido e a
+        data passou a sair direto do User; este teste virou trava de regressao.
+        """
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
@@ -1495,18 +1688,22 @@ class MyInformationViewTests(TestCase):
         self.assertContains(response, "10/05/2000")
 
     def test_mostra_texto_padrao_sem_data_de_nascimento(self):
-        perfil = self.user.student_profile
-        perfil.birth_date = None
-        perfil.save()
+        """RESOLVIDO (30/09/2026) — sem data a tela cai no texto padrao."""
+        self.user.birth_date = None
+        self.user.save()
 
         response = self.client.get(self.url)
 
         self.assertContains(response, "Não informada")
 
-    def test_le_a_data_do_personel_profile_para_cargos_convocados(self):
-        """Gestor/motorista nao tem StudentProfile; a view le o outro perfil."""
-        gestor = criar_usuario(email="gestor@unirotas.com", role=UserRole.MANAGER)
-        PersonelProfile.objects.create(user=gestor, birth_date=date(1999, 3, 15))
+    def test_le_a_data_do_user_para_cargos_convocados(self):
+        """RESOLVIDO (30/09/2026) — gestor tambem tem a data lida do User."""
+        gestor = criar_usuario(
+            email="gestor@unirotas.com",
+            role=UserRole.MANAGER,
+            birth_date=date(1999, 3, 15),
+        )
+        PersonelProfile.objects.create(user=gestor, city_id=27)
         self.client.force_login(gestor)
 
         response = self.client.get(self.url)
@@ -1515,7 +1712,7 @@ class MyInformationViewTests(TestCase):
         self.assertContains(response, "15/03/1999")
 
     def test_sem_perfil_nao_quebra_a_tela(self):
-        """Usuario sem nenhum perfil (nao tem birth_date em lugar nenhum)."""
+        """Usuario sem perfil e sem data: a tela cai no texto padrao."""
         self.client.force_login(criar_usuario(email="sem.perfil@unirotas.com"))
 
         response = self.client.get(self.url)
@@ -1703,7 +1900,14 @@ class ChangePasswordViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "change_password.html")
-        self.assertIn("não foi possivel", response.context["error"])
+        # F14: a view agora anexa o erro ao campo "password" (add_error)
+        # em vez de passar "error" no contexto do render. A2: a mensagem
+        # exibida e "senha inválida, por favor digite sua senha atual...".
+        erros = response.context["form"].errors.get("password", [])
+        self.assertTrue(
+            any("senha inválida" in e for e in erros),
+            f"erro esperado no campo 'password', obtido: {erros}",
+        )
 
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password(SENHA_FORTE))
@@ -1951,6 +2155,7 @@ class CsrfTests(TestCase):
                 self.assertEqual(resposta.status_code, 403)
 
     def test_post_com_csrf_valido_funciona(self):
+        """RESOLVIDO (30/09/2026) — CSRF valido + cadastro funcional = redirect p/ login."""
         cliente = Client(enforce_csrf_checks=True)
         resposta_get = cliente.get(reverse("authentication:signup"))
         token = resposta_get.cookies["csrftoken"].value
@@ -1972,6 +2177,7 @@ class SegurancaDeSenhaTests(TestCase):
         PASSWORD_HASHERS=["django.contrib.auth.hashers.PBKDF2PasswordHasher"]
     )
     def test_senha_do_cadastro_fica_hasheada(self):
+        """RESOLVIDO (30/09/2026) — com a conta criada, a senha sai em PBKDF2."""
         self.client.post(
             reverse("authentication:signup"), dados_signup(email="hash@unirotas.com")
         )
@@ -2013,6 +2219,7 @@ class EscalonamentoDeCargoTests(CacheLimpoTestCase):
     """Nenhum payload publico pode elevar cargo/flags do usuario criado."""
 
     def test_signup_publico_sempre_cria_estudante(self):
+        """RESOLVIDO (30/09/2026) — o signup cria a conta como STUDENT (trava)."""
         self.client.post(
             reverse("authentication:signup"),
             dados_signup(
@@ -2043,9 +2250,8 @@ class EscalonamentoDeCargoTests(CacheLimpoTestCase):
     def test_aluno_nao_consegue_gerar_convite_para_si_mesmo(self):
         aluno = criar_usuario(email="aluno@unirotas.com", role=UserRole.STUDENT)
 
-        link = service.generate_elevated_signup_link(
-            aluno.email, "copia@unirotas.com", UserRole.MANAGER
-        )
+        invite = convite_dto("copia@unirotas.com", UserRole.MANAGER, aluno.email)
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
 
@@ -2092,7 +2298,8 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
     existir o teste falha de propósito, para lembrar o time do que precisa ser
     corrigido antes de colocar o sistema em uso.
 
-    Situação na auditoria de 25/09/2026 (branch ``merged/auth/metrics``):
+    Situação na auditoria de 30/09/2026 (branch ``merged/auth/metrics``,
+    revisão do padrão DTO):
 
     * **A1 — VERMELHO**: convite para e-mail que já tem conta falha em
       silêncio (``signup_role.html`` não renderiza o erro do e-mail).
@@ -2154,30 +2361,23 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         )
 
     def test_convite_deve_mostrar_erro_quando_email_ja_tem_conta(self):
-        """A1 — convite para e-mail já cadastrado falha em silêncio (VERMELHO).
+        """A1 — convite para e-mail já cadastrado mostra página de erro dedicada.
 
-        Se o e-mail do convite já possui conta, `form_account.is_valid()` é
-        False e a view re-renderiza `signup_role.html`; o template só desenha
-        `full_name` e erros globais, então o erro do e-mail — o único possível
-        aqui, já que o e-mail vem assinado no token — não aparece. O convidado
-        (futuro gestor/motorista) fica travado sem saber o motivo. Corrigir
-        renderizando `form_account.email.errors` no template.
+        F13: o check ``.first() is not None`` agora barra antes do cadastro e a
+        view renderiza ``erro_convite.html`` com a mensagem — sem depender de
+        ``form_account`` no contexto.
         """
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
-        criar_usuario(email="ja.existe@unirotas.com")
+        # O convite é gerado ANTES de o e-mail ter conta: o service barra a
+        # geração para e-mails já cadastrados (decisão de projeto, 30/09).
         link, _ = convidar(admin, "ja.existe@unirotas.com", UserRole.MANAGER)
+        criar_usuario(email="ja.existe@unirotas.com")
 
         response = self.client.post(link, dados_convite())
 
-        visiveis = mensagens_de_erro_visiveis(
-            response, response.context["form_account"]
-        )
-        self.assertTrue(
-            visiveis,
-            "A1 (relatorio.md): a tela de convite não avisa que o e-mail já "
-            "possui conta (form_account.email.errors não é renderizado no "
-            "signup_role.html).",
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "erro_convite.html")
+        self.assertContains(response, "ja tem uma conta")
 
     # -- 3. validadores oficiais de senha ignorados --------------------------
     def test_troca_de_senha_deve_rodar_os_validadores_do_django(self):
@@ -2216,13 +2416,11 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         )
 
     def test_troca_de_senha_deve_avisar_quando_a_senha_atual_esta_errada(self):
-        """A2 — a mensagem de senha atual incorreta nunca aparece (VERMELHO).
+        """RESOLVIDO (30/09/2026) — a senha atual incorreta aparece na tela.
 
-        A view coloca `error` no contexto, mas `change_password.html` não
-        renderiza `{{ error }}`; o usuário vê apenas o aviso genérico anexado a
-        `new_password2` ("a senha tem que atender aos requisitos..."), que
-        culpa a senha nova em vez de dizer que a senha ATUAL está errada.
-        Corrigir renderizando a mensagem da view.
+        F14: a view agora anexa o erro ao campo "password" via add_error
+        (em vez de passar "error" no contexto); o template já renderiza o
+        erro do campo, então a mensagem fica visível para o usuário.
         """
         usuario = criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
         self.client.force_login(usuario)
@@ -2236,7 +2434,7 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
             },
         )
 
-        self.assertContains(response, "não foi possivel")
+        self.assertContains(response, "senha inválida")
 
     # -- 4. dados academicos/pessoais sem validacao ---------------------------
     def test_cadastro_deve_validar_periodo_entre_1_e_12(self):
@@ -2302,13 +2500,14 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
     (ex.: token do convite, limpeza do avatar antigo) que ficaram como trava.
     """
 
-    @expectedFailure
     def test_login_deve_respeitar_o_parametro_next(self):
-        """MEDIA - `signin` ignora `?next=` e sempre manda para /auth/settings/.
+        """RESOLVIDO (30/09/2026) — S3: o login respeita `?next=` com segurança.
 
-        Quem clica em um link protegido (ex.: /auth/my_information/) e obrigado a
-        fazer login e depois cai na tela de perfil, perdendo o destino original.
-        Hoje: `login_required` adiciona `?next=`, mas a view nao usa o valor.
+        Antes, quem clicava em um link protegido (ex.: /auth/my_information/)
+        era obrigado a logar e caia na tela de perfil, perdendo o destino.
+        Hoje `views.signin` lê `request.GET.get('next')` e só redireciona se
+        `url_has_allowed_host_and_scheme` aprovar — destino externo (open
+        redirect) é descartado e cai no default `/auth/settings/`.
         """
         criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
         destino = reverse("authentication:my_information")
@@ -2322,25 +2521,25 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         self.assertRedirects(response, destino)
 
     def test_recriar_convite_deve_gerar_token_novo(self):
-        """RESOLVIDO - o token do convite agora e unico por geracao.
+        """RESOLVIDO (30/09/2026) — `recreate` no padrao DTO gera token novo.
 
-        Corrigido com `TimestampSigner` no service: cada geracao produz um
-        token diferente, entao o reenvio (abort + generate) realmente
-        invalida qualquer link anterior. O decorator `expectedFailure`
-        foi removido quando a correcao entrou (registrado na revisao 3
-        do relatorio do app).
+        O token unico por geracao (TimestampSigner) e garantido pelo
+        `generate`; com o `recreate` migrado para receber ``InviteDTO`` o
+        reenvio (abort + generate) volta a invalidar o link anterior. O
+        decorator `expectedFailure` foi removido quando a correcao entrou.
         """
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
         _, token_antigo = convidar(admin, "convidado@unirotas.com", UserRole.MANAGER)
+        invite = convite_dto(
+            "convidado@unirotas.com", UserRole.MANAGER, admin.email
+        )
 
         # TimestampSigner tem resolucao de 1 segundo; se o reenvio acontecer
         # no mesmo segundo, os tokens seriam iguais. Avancamos o relogio
         # simulado para garantir que a recriacao produza um token diferente
         # (cenario real: reenvio acontece minutos/horas depois).
         with patch("django.core.signing.time.time", return_value=time.time() + 3600):
-            novo_link = service.recreate_elevated_signup_link(
-                admin.email, "convidado@unirotas.com", UserRole.MANAGER
-            )
+            novo_link = service.recreate_elevated_signup_link(invite)
 
         self.assertNotEqual(token_do_link(novo_link), token_antigo)
 
@@ -2389,19 +2588,29 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
     @expectedFailure
     def test_data_de_nascimento_no_futuro_deve_ser_recusada(self):
-        """BAIXA - `birth_date` aceita datas futuras.
+        """BAIXA - `birth_date` aceita datas futuras (validar no formulario).
 
         O ModelForm so confere se a data e valida; nao existe validacao de
         intervalo (nem idade minima). Isso polui a base com idades negativas.
+        O teste confere a regra direto no `UserRegistrationForm` de proposito:
+        pelo fluxo da view ele ficaria verde pelo motivo errado enquanto o bug
+        B1 (signup sem criar conta) existir.
         """
         amanha = date.today() + timedelta(days=1)
-
-        self.client.post(
-            reverse("authentication:signup"),
-            dados_signup(email="futuro@unirotas.com", birth_date=amanha.isoformat()),
+        form = UserRegistrationForm(
+            data={
+                "email": "futuro@unirotas.com",
+                "full_name": "Nascido no Futuro",
+                "birth_date": amanha.isoformat(),
+                "password": SENHA_FORTE,
+                "confirm_password": SENHA_FORTE,
+            }
         )
 
-        self.assertFalse(User.objects.filter(email="futuro@unirotas.com").exists())
+        self.assertFalse(
+            form.is_valid(),
+            "O formulario aceitou uma data de nascimento no futuro.",
+        )
 
     def test_avatar_antigo_deve_ser_removido_ao_trocar_a_foto(self):
         """RESOLVIDO — a foto antiga é apagada na troca (commit ``84564ae``).
@@ -2431,20 +2640,18 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
             caminho_antigo.exists(), "A foto antiga continua ocupando espaço em media/."
         )
 
-    @expectedFailure
     def test_servico_nao_deve_gerar_convite_para_email_que_ja_tem_conta(self):
-        """MEDIA - o service envia convite para e-mail que ja possui conta.
+        """Trava de regressão — o service barra convite p/ e-mail com conta.
 
-        Hoje o e-mail e enviado, o convite fica no cache e o convidado descobre o
-        problema so ao tentar concluir o cadastro (e sem mensagem de erro na
-        tela). O esperado e barrar antes do envio.
+        Desde o check ``User.objects.filter(email=...).first() is not None``
+        no ``generate`` (decisão de projeto, 30/09), o service retorna None
+        antes de enviar o e-mail quando o destino já possui conta.
         """
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
         criar_usuario(email="ja.existe@unirotas.com")
 
-        link = service.generate_elevated_signup_link(
-            admin.email, "ja.existe@unirotas.com", UserRole.MANAGER
-        )
+        invite = convite_dto("ja.existe@unirotas.com", UserRole.MANAGER, admin.email)
+        link = service.generate_elevated_signup_link(invite)
 
         self.assertIsNone(link)
         self.assertEqual(len(mail.outbox), 0)

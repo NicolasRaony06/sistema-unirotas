@@ -6,24 +6,21 @@ from .models import UserRole
 
 
 def role_required(
-    allowed_roles:UserRole | Iterable[UserRole],
-    on_denied:Callable[[HttpRequest], HttpResponse]=lambda request: HttpResponseForbidden(
+    allowed_roles: UserRole | Iterable[UserRole],
+    on_denied: Callable[[HttpRequest], HttpResponse] = lambda request, *args, **kwargs: HttpResponseForbidden(
         "Acesso negado."
     ),
 ):
-  def decorator(view_func):
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-      if request.user.is_authenticated and getattr(
-          request.user, "role", None
-      ) in (
-          allowed_roles
-          if isinstance(allowed_roles, (list, tuple))
-          else [allowed_roles]
-      ):
-        return view_func(request, *args, **kwargs)
+    roles = allowed_roles if isinstance(allowed_roles, Iterable) else [allowed_roles]
 
-      return on_denied(request, *args, **kwargs)
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if request.user.is_authenticated and getattr(request.user, "role", None) in roles:
+                return view_func(request, *args, **kwargs)
 
-    return _wrapped_view
-  return decorator
+            return on_denied(request)
+
+        return _wrapped_view
+
+    return decorator

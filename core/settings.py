@@ -140,6 +140,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
 DEFAULT_FROM_EMAIL = 'noreply@seusite.com'
+INVITE_TTL_SECONDS = 86400
 
 MAILERS = {
     'default': {
