@@ -94,13 +94,13 @@ class PersonelProfileForm(forms.ModelForm):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = ['city',
+        fields = [#'city',
                   'institution',
                   'birth_date',
                   'course',
                   'period']
         widgets = {
-            'institution': forms.Select(attrs={'class': 'form-select'}),
+            #'institution': forms.Select(attrs={'class': 'form-select'}),
             'city': forms.Select(attrs={'class': 'form-select'}),
             'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'course': forms.TextInput(attrs={'class': 'form-control',

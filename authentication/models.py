@@ -99,7 +99,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
-    institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
+    institution = models.ForeignKey('management.Institution', on_delete=models.PROTECT)
     birth_date = models.DateField(null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
