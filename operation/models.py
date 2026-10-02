@@ -1,8 +1,19 @@
 from django.db import models
 from django.utils import timezone
 
+class Linha(models.Model):
+    nome = models.CharField(max_length=50)
+    origem = models.CharField(max_length=50)
+    destino = models.CharField(max_length=50)
+    dias_funcionamento = models.CharField(max_length=50, default='Seg - Sex')
+    horario_inicio = models.TimeField()
+    horario_fim = models.TimeField()
+
+    def __str__(self):
+        return self.nome
+    
 class Viagem(models.Model):
-    linha = models.CharField(max_length=50)
+    linha = models.ForeignKey(Linha, on_delete=models.CASCADE)
     data = models.DateTimeField()
     status = models.CharField(max_length=20, choices=[
         ('aguardando', 'Aguardando'),

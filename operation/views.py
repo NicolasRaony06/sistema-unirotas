@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from operation.models import Viagem, UsuarioDaViagem
+from operation.models import Viagem, UsuarioDaViagem, Linha
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -76,3 +76,22 @@ def definir_moderador(request, usuario_viagem_id):
 
     return redirect('lista_moderadores', viagem.pk)
 
+def lista_linhas(request, indice = 0):
+    linhas = list(Linha.objects.all().order_by('id'))
+
+    if not linhas:
+        return render(request, 'lista_linhas.html', {'linha': None})
+
+    indice = indice % len(linhas)
+    linha_atual = linhas[indice]
+
+    request.session['linha_selecionada_id'] = linha_atual.id
+
+    proximo_indice = (indice + 1) % len(linhas)
+
+    return render(request, 'lista_linhas.html', {
+        'linha': linha_atual,
+        'proximo_indice': proximo_indice,
+        'total_linhas': len(linhas),
+        'indice_atual': indice + 1,
+    })

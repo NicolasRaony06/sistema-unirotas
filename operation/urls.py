@@ -1,4 +1,4 @@
-from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador
+from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador, lista_linhas
 from django.urls import path
 
 urlpatterns = [
@@ -7,5 +7,7 @@ urlpatterns = [
     path('viagens/comecar/<int:viagem_id>', comecar_viagem, name='comecar_viagem'),
     path('viagem/<int:viagem_id>/alunos/', lista_alunos, name='lista_alunos'),
     path('viagem/<int:viagem_id>/moderadores/', lista_moderadores, name='lista_moderadores'),
-    path('usuario-viagem/<int:usuario_viagem_id>/definir-moderador/', definir_moderador, name='definir_moderador')
+    path('usuario-viagem/<int:usuario_viagem_id>/definir-moderador/', definir_moderador, name='definir_moderador'),
+    path('linhas/', lista_linhas, name='lista_linhas'),
+    path('linhas/<int:indice>/', lista_linhas, name='lista_linhas_indice'),
 ]

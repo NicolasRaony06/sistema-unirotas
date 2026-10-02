@@ -24,14 +24,16 @@
 
         <!-- estático: origem/destino ainda não é um campo do model -->
         <div class="route-card__path">
-            <span class="dot"></span> São Miguel <span class="arrow">→</span> IFRN
+            <span class="dot"></span> {{ viagem.linha.origem }} <span class="arrow">→</span> {{ viagem.linha.destino }}
         </div>
 
         <div class="route-card__meta">
             <div>
                 <!-- estático: dias úteis fixos, ainda não vem do model -->
                 <span class="label">DIAS ÚTEIS</span>
-                <strong>Seg - Sex</strong>
+                <strong>{{ viagem.linha.dias_funcionamento }}</strong>
+                <strong>{{ viagem.linha}}</strong>
+                
                 
             </div>
             <div>
