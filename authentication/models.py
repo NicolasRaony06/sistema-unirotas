@@ -95,6 +95,9 @@ class PersonelProfile(models.Model):
     birth_date = models.DateField(null=True, blank=True) #depois voltar pra userBase somente para não quebrar o codigo
     city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.user.full_name} ({self.user.role} - {self.city})"
+
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

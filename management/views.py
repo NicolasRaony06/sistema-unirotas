@@ -8,7 +8,7 @@ from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm
+from .forms import BusForm, MunicipioForm, BusStopForm
 from .handlers import cadastrar_municipio
 from .handlers import *
 # Create your views here.
@@ -275,6 +275,27 @@ def activate_bus(request, id):
             bus.save()
             messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
+
+
+#TODO limitar cidades a serem escolhidas para a apenas as relacionadas a city do manager
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def register_bus_stop(request):
+    if request.method == 'POST':
+        form = BusStopForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
+            return redirect('management:home-manager')
+        messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
+    else:
+        form = BusStopForm()
+    return render(request, "register_bus_stop.html", {'form': form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_bus_stops(request):
+    pass
 
 @login_required
 def homologar_mun(request):

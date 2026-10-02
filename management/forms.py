@@ -1,5 +1,5 @@
 from django import forms
-from .models import Bus, Municipio
+from .models import Bus, Municipio, BusStop, Institution
 
 class BusForm(forms.ModelForm):
     class Meta:
@@ -23,4 +23,10 @@ class MunicipioForm(forms.ModelForm):
     class Meta:
         model = Municipio
         fields = ['nome', 'codigo_ibge'] #,'gestor'
+
+#TODO limitar cidades a serem escolhidas para a apenas as relacionadas a city do manager
+class BusStopForm(forms.ModelForm):
+    class Meta:
+        model = BusStop
+        fields = ['name', 'description', 'city']
 
