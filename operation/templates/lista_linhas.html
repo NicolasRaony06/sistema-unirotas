@@ -4,7 +4,14 @@
 {% block nav_rotas %}active{% endblock %}
 
 {% block header %}
-    <h1>Rotas</h1>
+    <div class="topbar-alunos">
+        <a href="{% url 'index_aluno' %}" class="topbar-back" aria-label="Voltar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </a>
+        <h1>Rotas</h1>
+    </div>
 {% endblock %}
 
 {% block content %}

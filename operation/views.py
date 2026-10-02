@@ -95,3 +95,15 @@ def lista_linhas(request, indice = 0):
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
     })
+    
+def index_aluno(request):
+    id_linha = request.session.get('linha_selecionada_id')
+    if id_linha:
+        linha_selecionada = Linha.objects.filter(pk=id_linha).first()
+    else:
+        linha_selecionada = Linha.objects.all().first()
+    context = {
+        'linha_selecionada': linha_selecionada
+    }
+    return render(request, 'index_aluno.html', context)
+    

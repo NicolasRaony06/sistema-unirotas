@@ -1,0 +1,162 @@
+{% extends 'base_aluno.html' %}
+
+{% block title %}Início{% endblock %}
+{% block nav_inicio %}active{% endblock %}
+
+{% block header %}
+    <div class="greeting">
+        <span class="greeting__avatar" aria-hidden="true">
+            {% if request.user.avatar_url %}
+                <img src="{{ request.user.avatar_url }}" alt="">
+            {% endif %}
+        </span>
+        <div>
+            <strong>Olá, {{ request.user.full_name }} 👋</strong>
+            <span>Pronto para mais uma viagem?</span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if linha_selecionada %}
+
+    <section class="eta-card">
+        <div class="eta-card__row">
+            <div class="eta-card__icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="eta-card__main">
+                <span class="eta-card__label">Próximo ônibus</span>
+                <!-- estático: tempo estimado ainda não é calculado -->
+                <strong class="eta-card__time">Chegada em 12 min</strong>
+                <span class="eta-card__sub">Saída do seu ponto às {{ linha_selecionada.horario_inicio|time:"H:i" }}</span>
+            </div>
+            <div class="eta-card__dest">
+                <span class="eta-card__label">Destino</span>
+                <strong>{{ linha_selecionada.destino }}</strong>
+                <!-- estático: complemento do destino ainda não é um campo do model -->
+                <span class="eta-card__sub">Portaria principal</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- estático: sem URL de detalhes da rota ainda -->
+    <a href="{% url 'lista_linhas' %}" class="btn-float">
+        Ver detalhes da rota
+        <span class="btn-float__icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 010 20M12 2a15 15 0 000 20M2 12h20"/></svg>
+        </span>
+    </a>
+
+    <section class="presence-card">
+        <h3>Vai viajar hoje?</h3>
+        <p>Confirme sua presença para esta rota.</p>
+
+        <form method="post" action="#">
+            {% csrf_token %}
+            <input type="hidden" name="id_linha" value="{{ linha_selecionada.id }}">
+
+            <div class="presence-card__fields">
+                <label class="presence-field">
+                    <span class="presence-field__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    </span>
+                    <span class="presence-field__text">
+                        <small>Horário de Saída</small>
+                        <span class="presence-field__select">
+                            <select name="horario_saida_aluno">
+                                <option value="07:20">07:20</option>
+                                <option value="07:30">07:30</option>
+                                <option value="07:40">07:40</option>
+                            </select>
+                            <svg class="presence-field__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </span>
+                </label>
+
+                <label class="presence-field">
+                    <span class="presence-field__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>
+                    </span>
+                    <span class="presence-field__text">
+                        <small>Direção</small>
+                        <span class="presence-field__select">
+                            <select name="direcao">
+                                <option value="ida e volta">Ida e volta</option>
+                                <option value="ida">Ida</option>
+                                <option value="volta">Volta</option>
+                            </select>
+                            <svg class="presence-field__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn--solid btn--full">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
+                Confirmar presença
+            </button>
+        </form>
+    </section>
+
+    <!-- estático: paradas da rota ainda não têm model próprio -->
+    <section class="route-mini">
+        <h3>Rota do ônibus</h3>
+        <div class="route-mini__track">
+            <div class="route-mini__stop">
+                <span class="route-mini__dot route-mini__dot--home" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+                </span>
+                <small class="route-mini__stop-label">(origem)<br>{{ linha_selecionada.origem }}</small>
+            </div>
+            <span class="route-mini__gap"><span class="route-mini__pill">10 min</span></span>
+            <div class="route-mini__stop">
+                <span class="route-mini__dot" aria-hidden="true"></span>
+                <small class="route-mini__stop-label">Parada<br>principal</small>
+            </div>
+            <span class="route-mini__gap"><span class="route-mini__pill">15 min</span></span>
+            <div class="route-mini__stop">
+                <span class="route-mini__dot" aria-hidden="true"></span>
+                <small class="route-mini__stop-label">Parada<br>principal 2</small>
+            </div>
+            <span class="route-mini__gap">
+                <span class="route-mini__pill route-mini__pill--bus">
+                    <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
+                    12 min
+                </span>
+            </span>
+            <div class="route-mini__stop">
+                <span class="route-mini__dot route-mini__dot--end" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>
+                </span>
+                <small class="route-mini__stop-label">(destino)<br>{{ linha_selecionada.destino }}</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- estático: sem URL de detalhamento de ponto ainda -->
+    <a href="#" class="btn btn--solid btn--full btn--block">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+        Detalhar ponto
+    </a>
+
+    <!-- estático: dados do ônibus ainda não vêm de um model de frota -->
+    <section class="bus-card">
+        <span class="bus-card__thumb" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/>
+            </svg>
+        </span>
+        <div class="bus-card__info">
+            <span class="bus-card__title">{{ linha_selecionada.nome }} <span class="badge badge--blue">Em operação</span></span>
+            <!-- estático: placa e cor ainda não vêm de um model de frota -->
+            <small><span class="bus-card__dot" aria-hidden="true"></span>Placa: ABC1D23 · Amarelo com faixa preta</small>
+        </div>
+    </section>
+
+    {% else %}
+    <p class="empty">Nenhuma linha disponível no momento. Visite a aba "Rotas" para escolher uma.</p>
+    {% endif %}
+{% endblock %}
