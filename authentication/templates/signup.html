@@ -46,13 +46,7 @@
                 {% if form_account.full_name.errors %}
                     <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.full_name.errors.0 }}</div>
                 {% endif %}
-                <div class="input-group input-with-icon">
-                    <i class="fa-regular fa-envelope" style="color: #0047ab;"></i>
-                    {{ form_account.email }}
-                </div>
-                {% if form_account.email.errors %}
-                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.email.errors.0 }}</div>
-                {% endif %}
+                
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
                     {{ form_account.birth_date }}

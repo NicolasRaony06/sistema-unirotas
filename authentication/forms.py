@@ -30,9 +30,10 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
     class Meta:
         model = User
-        fields = ["email", "full_name", "birth_date"]
+        fields = [
+            "full_name",
+            "birth_date"]
         widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'seu@email.com'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
             'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
@@ -92,13 +93,10 @@ class AvatarForm(forms.Form):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = [# 'city',
-                  # 'institution',
+        fields = [
                   'course',
                   'period']
         widgets = {
-            # 'institution': forms.Select(attrs={'class': 'form-select'}),
-            # 'city': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.TextInput(attrs={'class': 'form-control',
                                              'placeholder': 'Ex: Ciência da Computação'}
                                              ),

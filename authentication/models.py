@@ -41,8 +41,8 @@ class UserRole(models.TextChoices):
 
 class User(AbstractBaseUser, PermissionsMixin):
     allowed_invitation = {
-        UserRole.ADMIN: UserRole.MANAGER,
-        UserRole.MANAGER: UserRole.DRIVER
+        UserRole.ADMIN: (UserRole.MANAGER),
+        UserRole.MANAGER: (UserRole.DRIVER, UserRole.STUDENT)
     }
 
     email = models.EmailField(unique=True)
@@ -77,7 +77,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.is_active or not role:
             return False
 
-        return self.allowed_invitation.get(self.role) == role
+        roles = self.allowed_invitation.get(self.role)
+        if not roles:
+            return False
+
+        return role in self.allowed_invitation.get(self.role)
 
     def save(self, *args, **kwargs):
         if not self.email:
@@ -100,6 +104,9 @@ class StudentProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='student_profile')
     # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
+    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    institution_id = models.PositiveIntegerField(blank=True, null=True)
+    city_id = models.PositiveIntegerField(blank=True, null=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 

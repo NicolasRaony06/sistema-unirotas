@@ -13,6 +13,7 @@ def generate_elevated_signup_link(invite: InviteDTO, request=None):
     email = invite.email.lower().strip()
     role = invite.role
     city_id = invite.city_id
+    institution_id = invite.institution_id
     if User.objects.filter(email=email).first() is not None:
         return None # não irei dar raise agora, decisão de projeto
 
@@ -36,7 +37,7 @@ def generate_elevated_signup_link(invite: InviteDTO, request=None):
     if not sent:
         return None
 
-    cache.set(cache_key, {'email': email, 'role': role, "higher_role_email": higher_role_email, "city_id": city_id}, timeout=ttl_horas)
+    cache.set(cache_key, {'email': email, 'role': role, "higher_role_email": higher_role_email, "city_id": city_id, "institution_id": institution_id}, timeout=ttl_horas)
     cache.set(pointer_key, {"cache_key": cache_key}, timeout=ttl_horas)
     
     return absolute_url

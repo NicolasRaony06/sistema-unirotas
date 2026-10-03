@@ -11,29 +11,6 @@ from .handlers import *
 from django.utils.http import url_has_allowed_host_and_scheme
 # Create your views here.
 
-def signup(request):
-    if request.method == 'POST':
-        form_student = StudentProfileForm(request.POST)
-        form_account = UserRegistrationForm(request.POST)
-        if form_student.is_valid() and form_account.is_valid():
-            try:
-                with transaction.atomic():
-                    user = form_account.save()
-                    data = form_student.cleaned_data
-                    student = StudentProfile.objects.create(
-                        user=user,
-                        course=data.get("course"),
-                        period=data.get("period"),
-                    )
-                return redirect("authentication:login")
-            except Exception as e:
-                form_account.add_error(None, "Ocorreu um erro ao cadastrar a conta. Tente novamente.")
-                # pos mvp: enviar mensagem pro email caso o usuario ja esteja com email cadastrado e tentando cadastrar novamente
-    else:
-        form_student = StudentProfileForm()
-        form_account = UserRegistrationForm()
-    return render(request, 'signup.html', {'form_student': form_student, "form_account": form_account})
-
 def signin(request):
     if request.method == "POST":
         form_login = LoginForm(request.POST)
@@ -68,38 +45,20 @@ def signin(request):
 
 def signup_with_role(request, token):
     try:
-        email, invitation_data, cache_key = get_invitation_data(token)
-        if not email or not invitation_data:
+        cache_data = get_invitation_data(token)
+        if not cache_data.invitation_dict:
             raise ValueError("Este convite não possui os dados válidos para o cadastro.")
-        role, higher_role_email, city_id, higher_obj = validate_invitation_integrity(invitation_data)
+        if not cache_data.invitation_dict.get("email"):
+            raise ValueError("Este convite não possui os dados válidos para o cadastro.")
+        
+        invitation_data = validate_invitation_integrity(cache_data.invitation_dict)
     except ValueError as error:
         return render(request, 'erro_convite.html', {'mensagem': str(error)})
-    
-    if User.objects.filter(email=email).first() is not None:
+
+    if User.objects.filter(email__iexact=invitation_data.email).first() is not None:
         return render(request, 'erro_convite.html', {'mensagem': 'Este email ja tem uma conta associada, por favor contate ao responsavel pelo convite e tente novamente por um novo email'})
-    
-    pointer_key = f"invitation_pointer_{higher_role_email}_{email}"
 
-    if request.method == "POST":
-        post = request.POST.copy()
-        post["email"] = email
-        signup_form = UserRegistrationForm(post)
-
-        if signup_form.is_valid():
-            try:
-                with transaction.atomic():
-                    user = signup_form.save(commit=False)
-                    user.role = role
-                    user.save()
-                    PersonelProfile.objects.create(user=user, city_id=city_id)
-                    cache.delete(cache_key)
-                    cache.delete(pointer_key)
-                    return redirect("authentication:login")
-            except Exception:
-                return render(request, 'signup_role.html', {"form_account": signup_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'})
-    else:
-        signup_form = UserRegistrationForm()
-    return render(request, 'signup_role.html', {"form_account": signup_form})
+    return handle_singup_render_based_on_role(request, invitation_data, cache_data)    
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @require_POST
@@ -161,3 +120,19 @@ def change_password(request):
     else:
         form = ChangePassword(user=request.user)
     return render(request, "change_password.html", {"form": form}) 
+
+
+
+"""
+ignore função teste para validação manual do registro, antes do merge remove-la de url e da view
+"""
+from . import service
+from django.http import HttpResponse
+def test(request):
+    email = request.GET.get("email")
+    if not email:
+        return HttpResponse("coloque um email ?email=")
+    higher_role_email = "bezerra@gmail.com"
+    invite = InviteDTO(higher_role_email, UserRole.ADMIN, email, 1, 1)
+    print(service.generate_elevated_signup_link(invite, request))
+    return HttpResponse("veja o terminal")
