@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template view bustops teste</title>
+</head>
+<body>
+    {% if bus_stops %}
+        <table>
+            <tbody>
+                <tr>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th>Municipio</th>
+                </tr>
+                {% for bus_stop in bus_stops %}
+                    <tr>
+                        <td>{{bus_stop.name}}</td>
+                        <td>{{bus_stop.description|truncatechars:50}}</td>
+                        <td>{{bus_stop.city}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Não há paradas cadastradas.</p>
+    {% endif %}
+</body>
+</html>

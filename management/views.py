@@ -282,20 +282,21 @@ def activate_bus(request, id):
 @role_required(allowed_roles=UserRole.MANAGER)
 def register_bus_stop(request):
     if request.method == 'POST':
-        form = BusStopForm(request.POST)
+        form = BusStopForm(request.POST,city=request.user.personel_profile.city)
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
             return redirect('management:home-manager')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
-        form = BusStopForm()
+        form = BusStopForm(city=request.user.personel_profile.city)
     return render(request, "register_bus_stop.html", {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_bus_stops(request):
-    pass
+    bus_stops = BusStop.objects.filter(city=request.user.personel_profile.city)
+    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops})
 
 @login_required
 def homologar_mun(request):

@@ -1,5 +1,7 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 class BusForm(forms.ModelForm):
     class Meta:
@@ -30,3 +32,12 @@ class BusStopForm(forms.ModelForm):
         model = BusStop
         fields = ['name', 'description', 'city']
 
+    def __init__(self, *args, **kwargs):
+        city = kwargs.pop('city', None)
+        super().__init__(*args, **kwargs)
+
+        related_cities = city.municipios_relacionados.values_list('id', flat=True)
+
+        self.fields['city'].queryset = Municipio.objects.filter(
+            Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
+        
