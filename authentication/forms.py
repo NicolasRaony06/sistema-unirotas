@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, password_validation
 from .models import StudentProfile
 from django.core.exceptions import ValidationError
 import re
-
+from datetime import date
 
 User = get_user_model()
 
@@ -66,12 +66,9 @@ class UserRegistrationForm(forms.ModelForm, Validation):
             except ValidationError as e:
                 self.add_error('password', e.messages)
 
-        email = cleaned.get("email")
-        if email:
-            cleaned["email"] = email.lower().strip()
-
-            if User.objects.filter(email=email).exists():
-                        self.add_error('email', 'Não foi possível concluir o cadastro. Verifique se você já possui uma conta ou tente recuperar sua senha.')
+        data = cleaned.get("birth_date")
+        if data and data > date.today():
+            self.add_error("birth_date", "A data de nascimento não pode estar no futuro.")
 
         return cleaned
 

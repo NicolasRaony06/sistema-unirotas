@@ -44,7 +44,7 @@ def extend_validation(invitation_data:InviteDTO):
 def validate_student_informations(data:InviteDTO):
     institution_validation = False
     if data.institution_id:
-        institution_validation = all((data.institution_id, data.institution_id >= 1)) #depois checar existencia
+        institution_validation = data.institution_id >= 1 #depois checar existencia
     return institution_validation
 
 def handle_student_signup(request, invitation_data:InviteDTO):

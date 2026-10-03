@@ -34,8 +34,10 @@ commitado):
       ``erro_convite.html``). Os testes foram alinhados ao contrato real: a
       fonte de verdade do convite e o cache, nao o token, entao um token
       valido sem entrada no cache mostra "nao possui os dados validos".
-    * Os ``@expectedFailure`` que restam sao lacunas conhecidas aceitas no MVP
-      (itens S1-S3 e a validacao de data futura do ``relatorio.md``).
+    * Nao ha mais ``@expectedFailure`` na suite (revisao 2 do ``relatorio.md``,
+      03/10/2026): o limite de tentativas no login (G1), a validacao de data
+      futura (G5) e o marcador de confirmacao de e-mail (G9) foram
+      resolvidos/removidos, e os testes correspondentes viraram travas.
     * O ``InviteDTO`` (``data_type.py``) e o ``recreate_elevated_signup_link``
       no padrao DTO foram implementados em 30/09/2026: os testes de reenvio
       deixaram de ser ``expectedFailure`` e viraram travas de regressao.
@@ -49,9 +51,8 @@ As classes de revisao (nesta ordem):
       de 30/09/2026 os 2 vermelhos (A1: aviso de convite invisivel; A2:
       mensagem de senha atual incorreta nao renderizada) foram corrigidos e
       viraram travas de regressao.
-    * ``FalhasAceitaveisParaMVPTests`` -> testes marcados com ``expectedFailure``
-      (podem ser adiados, mas devem ser revisitados antes de producao) + os
-      casos ja RESOLVIDOS, sem decorator.
+    * ``FalhasAceitaveisParaMVPTests`` -> casos que eram aceitaveis no MVP e
+      hoje sao travas de regressao (nenhum ``expectedFailure`` restante).
 
 Como rodar:
 
@@ -64,7 +65,6 @@ import tempfile
 import time
 from datetime import date, timedelta
 from pathlib import Path
-from unittest import expectedFailure
 from unittest.mock import patch
 
 from django.conf import settings
@@ -75,11 +75,12 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.signing import Signer, TimestampSigner
+from django.core.signing import TimestampSigner
 from django.db import IntegrityError, transaction
 from django.db.migrations.loader import MigrationLoader
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
+from django.utils.functional import empty
 
 from . import service
 from .data_type import InviteDTO
@@ -293,8 +294,14 @@ class MediaRootIsoladoMixin:
         """FileSystemStorage guarda ``location`` em ``cached_property``.
 
         Sem limpar esse cache o override de ``MEDIA_ROOT`` nao teria efeito.
+        ``default_storage`` e um ``LazyObject``: antes do primeiro acesso,
+        ``_wrapped`` ainda e o sentinela ``empty`` (um objeto sem ``__dict__``),
+        o que derrubava o ``setUpClass`` quando a classe rodava sozinha
+        (``manage.py test authentication.tests.<Classe>`` -> "Ran 0 tests").
         """
-        storage = getattr(default_storage, "_wrapped", default_storage)
+        if getattr(default_storage, "_wrapped", None) is empty:
+            default_storage._setup()
+        storage = default_storage._wrapped
         for atributo in ("base_location", "location", "base_url", "url"):
             storage.__dict__.pop(atributo, None)
 
@@ -416,7 +423,11 @@ class UserModelTests(TestCase):
     def test_can_invite_nega_role_inexistente(self):
         admin = criar_usuario(email="admin@unirotas.com", role=UserRole.ADMIN)
 
-        for role in (None, "", "SUPERADMIN", "manager", 0):
+        # "AN"/"MAN"/"AGE"/"GER" sao substrings de "MANAGER": antes da correcao
+        # de 03/10/2026 o mapa `allowed_invitation` guardava a string "MANAGER"
+        # em vez da tupla (UserRole.MANAGER,), e `role in roles` aprovava todas.
+        # Trava de regressao do bug G2.
+        for role in (None, "", "SUPERADMIN", "manager", 0, "AN", "MAN", "AGE", "GER"):
             with self.subTest(role=role):
                 self.assertFalse(admin.can_invite(role))
 
@@ -2606,14 +2617,13 @@ class FalhasUrgentesTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 # 11. Falhas aceitaveis para um MVP (documentadas, podem esperar)
 # ---------------------------------------------------------------------------
 class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
-    """Lacunas conhecidas: `expectedFailure` + testes já RESOLVIDOS.
+    """Trava de regressão dos casos que eram aceitáveis no MVP.
 
-    Os marcados falham hoje de forma esperada (o runner mostra "expected
-    failures"), mas não devem ser esquecidos: ficam aqui para serem resolvidos
-    quando o fluxo principal do MVP estiver estável. Se algum deles passar a
-    passar, o runner acusa "unexpected success" e o decorator deve ser
-    removido. Os testes sem decorator nesta classe são casos já resolvidos
-    (ex.: token do convite, limpeza do avatar antigo) que ficaram como trava.
+    A classe nasceu com testes marcados com `expectedFailure` (lacunas
+    conhecidas). Na revisão 2 do relatório (03/10/2026) não sobrou nenhum: as
+    dívidas reais (login sem limite de tentativas, `birth_date` no futuro)
+    foram corrigidas e todos os testes daqui viraram travas de regressão —
+    nenhum `expectedFailure`, nenhum `NotImplementedError`.
     """
 
     def test_login_deve_respeitar_o_parametro_next(self):
@@ -2659,33 +2669,15 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
         self.assertNotEqual(token_do_link(novo_link), token_antigo)
 
-    @expectedFailure
-    def test_convite_deve_exigir_confirmacao_de_email(self):
-        """REMOVIDO da suite por decisao de produto (30/09/2026).
-
-        Este teste cobria o auto-cadastro publico (rota `/auth/signup/`,
-        removida na diretriz do orientador). Ele nao faz sentido no fluxo
-        por convite: **quem abre o link e o proprio convidado** — ele recebeu
-        o e-mail e possui o token, ou seja, a posse do e-mail **ja foi
-        provada** no momento em que ele chega ao formulario. Um e-mail extra
-        de confirmacao seria redundante.
-
-        Se a confirmacao de e-mail voltar a fazer sentido, ela deve ser
-        testada **na criacao do convite** (o `service` gravando/invalida
-        um registro do convite), e nao no cadastro.
-        """
-        raise NotImplementedError(
-            "Confirmacao de e-mail nao se aplica ao fluxo por convite: a posse "
-            "do e-mail e provada pela posse do link/token. Testar na criacao "
-            "do convite, se necessario."
-        )
-
-    @expectedFailure
     def test_login_deve_limitar_tentativas_repetidas(self):
-        """MEDIA/ALTA - login nao tem throttling nem bloqueio por tentativas.
+        """RESOLVIDO (03/10/2026) — trava do G1: o login bloqueia depois de N falhas.
 
-        Nada impede um ataque de forca bruta/dicionario contra a tela de login
-        (nao existe rate limit por IP, usuario ou cache de tentativas).
+        ``views.signin`` conta as falhas por ``(IP, e-mail)`` no cache e devolve
+        429 quando estoura ``LOGIN_THRESHOLD``; o contador zera no login
+        bem-sucedido (detalhes e residuais em ``melhorias.md``, item G1).
+        A trava cobre as duas metades: o bloqueio na decima falha e o reset no
+        sucesso (o `cache.delete` de ``views.signin``, achado pela avaliacao
+        final de 03/10/2026).
         """
         criar_usuario(email="aluno@unirotas.com", password=SENHA_FORTE)
         url = reverse("authentication:login")
@@ -2703,16 +2695,43 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
             "Depois de 10 tentativas erradas o login deveria bloquear temporariamente.",
         )
 
+        # Segunda metade da trava: o sucesso zera o contador — conta diferente
+        # para nao herdar o bloqueio acima. Sem o `cache.delete` do
+        # ``views.signin``, a falha apos o sucesso seria a decima e o proximo
+        # POST voltaria 429 (e nao 200): e este assert que detecta a regressao.
+        criar_usuario(email="outro@unirotas.com", password=SENHA_FORTE)
+        for _ in range(9):
+            self.client.post(url, {"email": "outro@unirotas.com", "password": "Xxx@123"})
 
-    @expectedFailure
+        sucesso = self.client.post(
+            url, {"email": "outro@unirotas.com", "password": SENHA_FORTE}
+        )
+        self.assertEqual(
+            sucesso.status_code,
+            302,
+            "9 falhas ainda nao podem bloquear a senha correta.",
+        )
+
+        self.client.post(url, {"email": "outro@unirotas.com", "password": "Xxx@123"})
+        apos_sucesso = self.client.post(
+            url, {"email": "outro@unirotas.com", "password": "Xxx@123"}
+        )
+        self.assertEqual(
+            apos_sucesso.status_code,
+            200,
+            "o login bem-sucedido deveria ter zerado o contador (sem o reset, este POST viria 429).",
+        )
+
+
     def test_data_de_nascimento_no_futuro_deve_ser_recusada(self):
-        """BAIXA - `birth_date` aceita datas futuras (validar no formulario).
+        """RESOLVIDO (03/10/2026) — trava do G5/G5b: data futura e recusada.
 
-        O ModelForm so confere se a data e valida; nao existe validacao de
-        intervalo (nem idade minima). Isso polui a base com idades negativas.
-        O teste confere a regra direto no `UserRegistrationForm` de proposito:
-        pelo fluxo da view ele ficaria verde pelo motivo errado enquanto o bug
-        B1 (signup sem criar conta) existir.
+        ``UserRegistrationForm.clean`` recusa `birth_date > date.today()` e
+        anexa a mensagem ao proprio campo (`add_error("birth_date", ...)`), que
+        e o que o `signup.html` renderiza (linhas 54-56). O teste confere a
+        regra direto no formulario de proposito: pelo fluxo da view ele ficaria
+        verde pelo motivo errado enquanto o bug B1 (signup sem criar conta)
+        existir.
         """
         amanha = date.today() + timedelta(days=1)
         form = UserRegistrationForm(
@@ -2728,6 +2747,12 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
         self.assertFalse(
             form.is_valid(),
             "O formulario aceitou uma data de nascimento no futuro.",
+        )
+        self.assertIn(
+            "birth_date",
+            form.errors,
+            "A mensagem precisa ficar no campo birth_date: o signup.html "
+            "renderiza form_account.birth_date.errors, nao non_field_errors.",
         )
 
     def test_avatar_antigo_deve_ser_removido_ao_trocar_a_foto(self):
@@ -2776,6 +2801,7 @@ class FalhasAceitaveisParaMVPTests(MediaRootIsoladoMixin, CacheLimpoTestCase):
 
 
 # Fim do arquivo de testes da app authentication.
-# Se algum teste das classes de falhas comecar a passar, atualize/remova o
-# decorator `expectedFailure` e tire o comentario da correcao no commit.
+# Nao ha mais nenhum `expectedFailure` na suite (revisao 2 do relatorio,
+# 03/10/2026). Teste de lacuna conhecida: entra com @expectedFailure e o
+# decorator sai no mesmo commit da correcao, virando trava de regressao.
 

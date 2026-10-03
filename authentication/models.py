@@ -41,7 +41,7 @@ class UserRole(models.TextChoices):
 
 class User(AbstractBaseUser, PermissionsMixin):
     allowed_invitation = {
-        UserRole.ADMIN: (UserRole.MANAGER),
+        UserRole.ADMIN: (UserRole.MANAGER, ),
         UserRole.MANAGER: (UserRole.DRIVER, UserRole.STUDENT)
     }
 
@@ -81,7 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not roles:
             return False
 
-        return role in self.allowed_invitation.get(self.role)
+        return role in roles
 
     def save(self, *args, **kwargs):
         if not self.email:

@@ -1,21 +1,35 @@
 from django.shortcuts import render, redirect
-from .forms import UserRegistrationForm, StudentProfileForm, LoginForm, ChangePassword, AvatarForm
-from .models import StudentProfile, User, PersonelProfile
+from .forms import LoginForm, ChangePassword, AvatarForm
+from .models import User
 from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.core.cache import cache
-from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from .handlers import *
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.http import HttpResponse
+
 # Create your views here.
+
+LOGIN_THRESHOLD = 10
+LOGIN_WINDOW = 300
+
+def _attempts_key(request, email):
+    ip = request.META.get("REMOTE_ADDR", "")
+    return f"login_attempts_{ip}_{(email or '').lower().strip()}"
+
 
 def signin(request):
     if request.method == "POST":
         form_login = LoginForm(request.POST)
         if form_login.is_valid():
             data = form_login.cleaned_data
+            chave = _attempts_key(request, data.get("email"))
+            attempts = cache.get(chave, 0)
+            if attempts >= LOGIN_THRESHOLD:
+                return HttpResponse("Muitas tentativas. Aguarde alguns minutos.", status=429)
+
             valid_user = authenticate(
                 request, 
                 username=data.get("email"), 
@@ -23,6 +37,7 @@ def signin(request):
             )
             
             if valid_user is not None:
+                cache.delete(chave)  # login bem-sucedido zera o contador de falhas
                 login(request, valid_user)
 
                 next_url = request.GET.get('next')
@@ -37,6 +52,7 @@ def signin(request):
 
                 return redirect(default_redirect)
             else:
+                cache.set(chave, attempts + 1, timeout=LOGIN_WINDOW)
                 form_login.add_error(None, "E-mail ou senha inválidos.")
     else:
         form_login = LoginForm()
@@ -127,7 +143,7 @@ def change_password(request):
 ignore função teste para validação manual do registro, antes do merge remove-la de url e da view
 """
 from . import service
-from django.http import HttpResponse
+
 def test(request):
     email = request.GET.get("email")
     if not email:
