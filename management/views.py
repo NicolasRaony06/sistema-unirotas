@@ -317,30 +317,50 @@ def edit_bus_stop(request, id):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def deactivate_bus_stop(request, id):
-    # if request.method == 'POST':
-    #     bus_stop = get_object_or_404()
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+        related_cities = city.municipios_relacionados.filter(
+            ofertado_pelo_sistema=False
+        ).values_list('id', flat=True)
 
-    #     if bus_stop.is_active:
-    #         bus_stop.is_active = False
-    #         bus_stop.save()
-    #         messages.success(request, f"Ônibus {bus_stop.name} desativado com sucesso.")
+        bus_stop = get_object_or_404(
+            BusStop,
+            id=id
+        )
+
+        if not (bus_stop.city.id in related_cities or bus_stop.city == city):
+            messages.error(request, f"Não é possível desativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_bus_stops')
+
+        if bus_stop.is_active:
+            bus_stop.is_active = False
+            bus_stop.save()
+            messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
     return redirect('management:view_bus_stops')
 
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def activate_bus_stop(request, id):
-    # if request.method == 'POST':
-    #     bus = get_object_or_404(
-    #         Bus,
-    #         id=id,
-    #         city=request.user.personel_profile.city
-    #     )
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+        related_cities = city.municipios_relacionados.filter(
+            ofertado_pelo_sistema=False
+        ).values_list('id', flat=True)
 
-    #     if not bus.is_active:
-    #         bus.is_active = True
-    #         bus.save()
-    #         messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
+        bus_stop = get_object_or_404(
+            BusStop,
+            id=id
+        )
+
+        if not (bus_stop.city.id in related_cities or bus_stop.city == city):
+            messages.error(request, f"Não é possível ativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_bus_stops')
+
+        if not bus_stop.is_active:
+            bus_stop.is_active = True
+            bus_stop.save()
+            messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
     return redirect('management:view_bus_stops')
 
 
