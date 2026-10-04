@@ -3,6 +3,9 @@ from operation.models import Viagem, UsuarioDaViagem, Linha
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from authentication.models import UserRole
+from django.db import IntegrityError
 #Viagem
 
 def lista_viagens(request):
@@ -106,4 +109,40 @@ def index_aluno(request):
         'linha_selecionada': linha_selecionada
     }
     return render(request, 'index_aluno.html', context)
+
+@login_required
+def alocar_aluno(request):
+    if request.user.role != UserRole.STUDENT:
+        messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
+        return redirect('index_aluno')
+    
+    if request.method == 'POST':
+        id_linha = request.POST.get('id_linha')
+        direcao = request.POST.get('direcao')
+        horario_saida_aluno = request.POST.get('horario_saida_aluno')
+        
+        linha = get_object_or_404(Linha, pk=id_linha)
+        viagem = Viagem.objects.filter(linha=linha, status='aguardando').order_by('data').first()
+        if not viagem:
+            messages.error(request, "Não há viagem disponível para esta linha.")
+            return redirect('index_aluno')
+        
+        if direcao != 'ida' and not horario_saida_aluno:
+            messages.error(request, "O horário de saída é obrigatório para a volta.")
+            return redirect('index_aluno')
+        
+        try:
+            UsuarioDaViagem.objects.create(
+                estudante=request.user,
+                viagem=viagem,
+                direcao=direcao,
+                horario_saida_aluno=horario_saida_aluno
+            )
+        except IntegrityError:
+            messages.error(request, "Você já está inscrito nesta viagem.")
+            return redirect('index_aluno')
+        
+        messages.success(request, "Presença confirmada com sucesso!")
+        return redirect('index_aluno')
+        
     

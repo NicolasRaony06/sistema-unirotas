@@ -54,7 +54,7 @@
         <h3>Vai viajar hoje?</h3>
         <p>Confirme sua presença para esta rota.</p>
 
-        <form method="post" action="#">
+        <form method="post" action="{% url 'alocar_aluno' %}">
             {% csrf_token %}
             <input type="hidden" name="id_linha" value="{{ linha_selecionada.id }}">
 
@@ -66,12 +66,7 @@
                     <span class="presence-field__text">
                         <small>Horário de Saída</small>
                         <span class="presence-field__select">
-                            <select name="horario_saida_aluno">
-                                <option value="07:20">07:20</option>
-                                <option value="07:30">07:30</option>
-                                <option value="07:40">07:40</option>
-                            </select>
-                            <svg class="presence-field__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            <input type="time" name="horario_saida_aluno" value="00:00">
                         </span>
                     </span>
                 </label>
@@ -83,7 +78,7 @@
                     <span class="presence-field__text">
                         <small>Direção</small>
                         <span class="presence-field__select">
-                            <select name="direcao">
+                            <select name="direcao" id="direcao">
                                 <option value="ida e volta">Ida e volta</option>
                                 <option value="ida">Ida</option>
                                 <option value="volta">Volta</option>

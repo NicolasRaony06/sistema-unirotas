@@ -44,7 +44,7 @@ def signin(request):
             if user is not None:
                 login(request, user)
                 if request.user.role == 'STUDENT':
-                    return redirect("lista_viagens_aluno")
+                    return redirect("index_aluno")
                 return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")

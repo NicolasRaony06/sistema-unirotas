@@ -445,8 +445,9 @@ body {
     display: flex;
     align-items: center;
     min-height: 20px;
+    width: 100%;
 }
-.presence-field__select select,
+
 .presence-field__select input {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -460,12 +461,12 @@ body {
     font-size: 13.5px;
     font-weight: 800;
     color: var(--navy-950);
-    padding: 0;
-    padding-right: 16px;
+    padding: 4px 50px 4px 0;
     margin: 0;
-    width: auto;
+    width: 100%;
     min-width: 60px;
     max-width: 100%;
+    cursor: pointer;
 }
 .presence-field__chevron {
     position: absolute;
