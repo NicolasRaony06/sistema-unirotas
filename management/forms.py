@@ -36,8 +36,9 @@ class BusStopForm(forms.ModelForm):
         city = kwargs.pop('city', None)
         super().__init__(*args, **kwargs)
 
-        related_cities = city.municipios_relacionados.values_list('id', flat=True)
+        if city:
+            related_cities = city.municipios_relacionados.values_list('id', flat=True)
 
-        self.fields['city'].queryset = Municipio.objects.filter(
-            Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
+            self.fields['city'].queryset = Municipio.objects.filter(
+                Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
         

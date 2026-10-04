@@ -36,3 +36,10 @@ def atualizar_gestor(codigo_ibge,email_gestor=None):
     municipio.save()
 
     return municipio
+
+def can_manage_bus_stop(manager_city, bus_stop):
+    related_cities = manager_city.municipios_relacionados.filter(
+        ofertado_pelo_sistema=False
+    ).values_list('id', flat=True)
+
+    return bus_stop.city.id in related_cities or bus_stop.city == manager_city
