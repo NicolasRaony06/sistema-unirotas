@@ -312,7 +312,30 @@ def view_bus_stops(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def edit_bus_stop(request, id):
-    return redirect('management:view_bus_stops')
+    city = request.user.personel_profile.city
+    related_cities = city.municipios_relacionados.filter(
+        ofertado_pelo_sistema=False
+    ).values_list('id', flat=True)   
+
+    bus_stop = get_object_or_404(
+        BusStop,
+        id=id
+    )
+
+    if not (bus_stop.city.id in related_cities or bus_stop.city == city):
+        messages.error(request, f"Não é possível alterar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+        return redirect('management:view_bus_stops')
+    
+    if request.method == 'POST':
+        form = BusStopForm(request.POST, instance=bus_stop, city=city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parada alterada com sucesso.")
+            return redirect("management:view_bus_stops")
+        messages.error(request, "Não foi possível alterar a parada")
+    else:
+        form = BusStopForm(instance=bus_stop, city=city)
+    return render(request, 'edit_bus_stop.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
