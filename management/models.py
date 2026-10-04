@@ -46,6 +46,7 @@ class BusStop(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     city = models.ForeignKey("Municipio", on_delete=models.CASCADE, related_name='bus_stops')
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Bus Stop"

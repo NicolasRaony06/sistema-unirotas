@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
 from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
@@ -277,7 +278,6 @@ def activate_bus(request, id):
     return redirect('management:view_buses')
 
 
-#TODO limitar cidades a serem escolhidas para a apenas as relacionadas a city do manager
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def register_bus_stop(request):
@@ -295,8 +295,55 @@ def register_bus_stop(request):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_bus_stops(request):
-    bus_stops = BusStop.objects.filter(city=request.user.personel_profile.city)
-    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops})
+    city = request.user.personel_profile.city
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+
+    bus_stops = BusStop.objects.filter(
+        Q(city=request.user.personel_profile.city) |
+        Q(city__in=related_cities)
+    )
+
+    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops, 'filter_ocult_related_cities': filter_ocult_related_cities})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def edit_bus_stop(request, id):
+    return redirect('management:view_bus_stops')
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def deactivate_bus_stop(request, id):
+    # if request.method == 'POST':
+    #     bus_stop = get_object_or_404()
+
+    #     if bus_stop.is_active:
+    #         bus_stop.is_active = False
+    #         bus_stop.save()
+    #         messages.success(request, f"Ônibus {bus_stop.name} desativado com sucesso.")
+    return redirect('management:view_bus_stops')
+
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_bus_stop(request, id):
+    # if request.method == 'POST':
+    #     bus = get_object_or_404(
+    #         Bus,
+    #         id=id,
+    #         city=request.user.personel_profile.city
+    #     )
+
+    #     if not bus.is_active:
+    #         bus.is_active = True
+    #         bus.save()
+    #         messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
+    return redirect('management:view_bus_stops')
+
+
 
 @login_required
 def homologar_mun(request):
