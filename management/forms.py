@@ -26,7 +26,6 @@ class MunicipioForm(forms.ModelForm):
         model = Municipio
         fields = ['nome', 'codigo_ibge'] #,'gestor'
 
-#TODO limitar cidades a serem escolhidas para a apenas as relacionadas a city do manager
 class BusStopForm(forms.ModelForm):
     class Meta:
         model = BusStop
@@ -42,3 +41,7 @@ class BusStopForm(forms.ModelForm):
             self.fields['city'].queryset = Municipio.objects.filter(
                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
         
+class InstitutionForm(forms.ModelForm):
+    class Meta:
+        model = Institution
+        fields = ['name', 'city']

@@ -9,7 +9,7 @@ from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm, BusStopForm
+from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
 from .handlers import cadastrar_municipio
 from .handlers import *
 # Create your views here.
@@ -373,6 +373,20 @@ def activate_bus_stop(request, id):
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
     return redirect('management:view_bus_stops')
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def register_institution(request):
+    if request.method == 'POST':
+        form = InstitutionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Instituição cadastrada com sucesso.")
+            return redirect("management:view_institutions")
+        messages.error(request, "Não foi possível cadastrar instituição.")
+    else:
+        form = InstitutionForm()
+    return render(request, 'register_institution.html', {'form': form})
 
 @login_required
 def homologar_mun(request):

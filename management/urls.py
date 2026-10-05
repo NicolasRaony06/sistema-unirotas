@@ -19,6 +19,7 @@ urlpatterns = [
     path('deactivate_bus_stop/<int:id>', deactivate_bus_stop, name="deactivate_bus_stop"),
     path('activate_bus_stop/<int:id>', activate_bus_stop, name="activate_bus_stop"),    
     path('edit_bus_stop/<int:id>', edit_bus_stop, name="edit_bus_stop"),
+    path('register_institution/', register_institution, name="register_institution"),
     path('home/',home, name='home-admin'),
     path('municipios/',municipios,name='municipios'),
     path('gestores/',gestores,name='gestores'),
