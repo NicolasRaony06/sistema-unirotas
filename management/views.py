@@ -296,18 +296,13 @@ def register_bus_stop(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_bus_stops(request):
     city = request.user.personel_profile.city
-
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
-
+    related_cities = city.municipios_relacionados.all()
     bus_stops = BusStop.objects.filter(
         Q(city=city) |
         Q(city__in=related_cities)
     ).select_related('city').distinct()
 
-    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops, 'filter_ocult_related_cities': filter_ocult_related_cities})
+    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -393,13 +388,7 @@ def register_institution(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_institutions(request):
     city = request.user.personel_profile.city
-
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
-        print(related_cities)
-    
+    related_cities = city.municipios_relacionados.all()
     institutions = Institution.objects.filter(
         Q(city=city) |
         Q(city__in=related_cities)

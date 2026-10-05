@@ -15,7 +15,7 @@
     {% endif %}
     <form action="{% url "management:view_bus_stops" %}" method="get">
         <label for="ocult_related_cities">Ocultar Cidades relacionadas</label>
-        <input type="checkbox" name="ocult_related_cities" id="ocult_related_cities" value="True" {% if filter_ocult_related_cities %} checked {% endif %}>
+        <input type="checkbox" name="ocult_related_cities" id="ocult_related_cities" value="True" {% if request.GET.ocult_related_cities %} checked {% endif %}>
         <button type="submit">Filtrar</button>
     </form>
     <br>
