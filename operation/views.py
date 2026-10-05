@@ -79,7 +79,11 @@ def definir_moderador(request, usuario_viagem_id):
 
     return redirect('lista_moderadores', viagem.pk)
 
+# @login_required
 def lista_linhas(request, indice = 0):
+    # if request.user.role != UserRole.STUDENT:
+    #     messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
+    #     return redirect('index_aluno')
     linhas = list(Linha.objects.all().order_by('id'))
 
     if not linhas:
@@ -98,8 +102,12 @@ def lista_linhas(request, indice = 0):
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
     })
-    
+
+# @login_required
 def index_aluno(request):
+    # if request.user.role != UserRole.STUDENT:
+    #     messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
+    #     return redirect('index_aluno')
     id_linha = request.session.get('linha_selecionada_id')
     if id_linha:
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
@@ -133,7 +141,7 @@ def alocar_aluno(request):
         
         try:
             UsuarioDaViagem.objects.create(
-                estudante=request.user,
+                estudante=request.user.student_profile,
                 viagem=viagem,
                 direcao=direcao,
                 horario_saida_aluno=horario_saida_aluno

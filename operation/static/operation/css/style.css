@@ -448,8 +448,32 @@ body {
     width: 100%;
 }
 
+#direcao{
+    border: none;
+    -webkit-appearance: none;
+
+    -moz-appearance: none;
+    appearance: none;
+    display: block;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--navy-950);
+    padding: 4px 50px 4px 0;
+    margin: 0;
+    width: 100%;
+    min-width: 60px;
+    max-width: 100%;
+    cursor: pointer;
+}
+
 .presence-field__select input {
     -webkit-appearance: none;
+
     -moz-appearance: none;
     appearance: none;
     display: block;
@@ -473,6 +497,9 @@ body {
     right: 0;
     color: var(--grey-500);
     pointer-events: none;
+}
+input[type='time']::-webkit-calendar-picker-indicator{
+    display: none;
 }
 
 /* ---- Rota do ônibus (mini timeline horizontal, aluno) ---- */
