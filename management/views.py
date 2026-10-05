@@ -388,6 +388,23 @@ def register_institution(request):
         form = InstitutionForm()
     return render(request, 'register_institution.html', {'form': form})
 
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_institutions(request):
+    city = request.user.personel_profile.city
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+        print(related_cities)
+    
+    institutions = Institution.objects.filter(
+        Q(city=city) |
+        Q(city__in=related_cities)
+    )
+    return render(request, 'view_institutions.html', {'institutions': institutions})
+
 @login_required
 def homologar_mun(request):
     if request.user.role == UserRole.ADMIN:

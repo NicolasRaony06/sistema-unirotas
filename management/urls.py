@@ -20,6 +20,7 @@ urlpatterns = [
     path('activate_bus_stop/<int:id>', activate_bus_stop, name="activate_bus_stop"),    
     path('edit_bus_stop/<int:id>', edit_bus_stop, name="edit_bus_stop"),
     path('register_institution/', register_institution, name="register_institution"),
+    path('view_institutions/', view_institutions, name="view_institutions"),
     path('home/',home, name='home-admin'),
     path('municipios/',municipios,name='municipios'),
     path('gestores/',gestores,name='gestores'),
