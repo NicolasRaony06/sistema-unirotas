@@ -45,3 +45,13 @@ class InstitutionForm(forms.ModelForm):
     class Meta:
         model = Institution
         fields = ['name', 'city']
+
+    def __init__(self, *args, **kwargs):
+        city = kwargs.pop('city', None)
+        super().__init__(*args, **kwargs)
+
+        if city:
+            related_cities = city.municipios_relacionados.values_list('id', flat=True)
+            
+            self.fields['city'].queryset = Municipio.objects.filter(
+                Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()

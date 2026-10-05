@@ -377,15 +377,16 @@ def activate_bus_stop(request, id):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def register_institution(request):
+    city = request.user.personel_profile.city
     if request.method == 'POST':
-        form = InstitutionForm(request.POST)
+        form = InstitutionForm(request.POST, city=city)
         if form.is_valid():
             form.save()
             messages.success(request, "Instituição cadastrada com sucesso.")
             return redirect("management:view_institutions")
         messages.error(request, "Não foi possível cadastrar instituição.")
     else:
-        form = InstitutionForm()
+        form = InstitutionForm(city=city)
     return render(request, 'register_institution.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
