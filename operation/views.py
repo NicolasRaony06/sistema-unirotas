@@ -108,13 +108,16 @@ def index_aluno(request):
     # if request.user.role != UserRole.STUDENT:
     #     messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
     #     return redirect('index_aluno')
+    estudante = request.user.student_profile
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
     id_linha = request.session.get('linha_selecionada_id')
     if id_linha:
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
         linha_selecionada = Linha.objects.all().first()
     context = {
-        'linha_selecionada': linha_selecionada
+        'linha_selecionada': linha_selecionada,
+        'inscricao': inscricao,
     }
     return render(request, 'index_aluno.html', context)
 
@@ -152,5 +155,24 @@ def alocar_aluno(request):
         
         messages.success(request, "Presença confirmada com sucesso!")
         return redirect('index_aluno')
-        
+    
+@login_required        
+def cancelar_inscricao_na_viagem(request):
+    if request.user.role != UserRole.STUDENT:
+        messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
+        return redirect('index_aluno')
+    estudante = request.user.student_profile
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
+    if not inscricao:
+        messages.error(request, "você não possui uma inscrição nessa viagem.")
+        return redirect('index_aluno')
+    
+    if inscricao.viagem.status != 'aguardando':
+        messages.error(request, "não é mais possível cancelar, a viagem já começou.")
+        return redirect('index_aluno')
+    
+    inscricao.delete()
+    messages.success(request, "Inscrição cancelada com sucesso.")
+    return redirect('index_aluno')
+    
     

@@ -22,78 +22,134 @@
 
     <section class="eta-card">
         <div class="eta-card__row">
+            <!-- Ícone Ônibus -->
             <div class="eta-card__icon" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/>
+                <svg width="22" height="22" viewBox="0 0 27 24" fill="currentColor">
+                    <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z"/>
                 </svg>
             </div>
+            
+            <!-- Coluna Esquerda: ETA -->
             <div class="eta-card__main">
                 <span class="eta-card__label">Próximo ônibus</span>
-                <!-- estático: tempo estimado ainda não é calculado -->
-                <strong class="eta-card__time">Chegada em 12 min</strong>
-                <span class="eta-card__sub">Saída do seu ponto às {{ linha_selecionada.horario_inicio|time:"H:i" }}</span>
+                <span class="eta-card__arrival-label">Chegada em</span>
+                <strong class="eta-card__time">12 min</strong>
+                <span class="eta-card__sub">Saída às {{ linha_selecionada.horario_inicio|time:"H:i" }}</span>
             </div>
+
+            <!-- ÚNICA LINHA BRANCA DIVISÓRIA -->
+            <div class="eta-card__divider"></div>
+
+            <!-- Coluna Direita: Destino -->
             <div class="eta-card__dest">
                 <span class="eta-card__label">Destino</span>
-                <strong>{{ linha_selecionada.destino }}</strong>
-                <!-- estático: complemento do destino ainda não é um campo do model -->
+                <strong class="eta-card__dest-name">{{ linha_selecionada.destino }}</strong>
                 <span class="eta-card__sub">Portaria principal</span>
             </div>
         </div>
-    </section>
 
-    <!-- estático: sem URL de detalhes da rota ainda -->
-    <a href="{% url 'lista_linhas' %}" class="btn-float">
-        Ver detalhes da rota
-        <span class="btn-float__icon" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 010 20M12 2a15 15 0 000 20M2 12h20"/></svg>
-        </span>
-    </a>
+        <!-- Botão Detalhes da Rota -->
+        <a href="{% url 'lista_linhas' %}" class="btn-eta-details">
+            <span>Ver detalhes da rota</span>
+            <span class="btn-eta-details__circle" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0046cd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/>
+                </svg>
+            </span>
+        </a>
+    </section>
 
     <section class="presence-card">
         <h3>Vai viajar hoje?</h3>
-        <p>Confirme sua presença para esta rota.</p>
 
-        <form method="post" action="{% url 'alocar_aluno' %}">
-            {% csrf_token %}
-            <input type="hidden" name="id_linha" value="{{ linha_selecionada.id }}">
+        {% if inscricao %}
+            <!-- CASO O ALUNO JÁ ESTEJA INSCRITO -->
+            <p>Você já confirmou presença nesta rota.</p>
 
-            <div class="presence-card__fields">
-                <label class="presence-field">
-                    <span class="presence-field__icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-                    </span>
-                    <span class="presence-field__text">
-                        <small>Horário de Saída</small>
-                        <span class="presence-field__select">
-                            <input type="time" name="horario_saida_aluno" value="00:00">
+            <form method="post" action="{% url 'cancelar_inscricao_na_viagem' %}">
+                {% csrf_token %}
+                <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
+
+                <div class="presence-card__fields">
+                    <label class="presence-field">
+                        <span class="presence-field__icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
                         </span>
-                    </span>
-                </label>
-
-                <label class="presence-field">
-                    <span class="presence-field__icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>
-                    </span>
-                    <span class="presence-field__text">
-                        <small>Direção</small>
-                        <span class="presence-field__select">
-                            <select name="direcao" id="direcao">
-                                <option value="ida e volta">Ida e volta</option>
-                                <option value="ida">Ida</option>
-                                <option value="volta">Volta</option>
-                            </select>
-                            <svg class="presence-field__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                        <span class="presence-field__text">
+                            <small>Horário Escolhido</small>
+                            <span class="presence-field__select">
+                                <strong>{{ inscricao.horario_saida_aluno|default:"--" }}</strong>
+                            </span>
                         </span>
-                    </span>
-                </label>
-            </div>
+                    </label>
 
-            <button type="submit" class="btn btn--solid btn--full">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
-                Confirmar presença
-            </button>
-        </form>
+                    <label class="presence-field">
+                        <span class="presence-field__icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>
+                        </span>
+                        <span class="presence-field__text">
+                            <small>Direção</small>
+                            <span class="presence-field__select">
+                                <strong>{{ inscricao.get_direcao_display|default:inscricao.direcao|title }}</strong>
+                            </span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Botão com cor diferente (por exemplo, variante perigo/cancelar) -->
+                <button type="submit" class="btn btn--danger btn--full" style="background-color: #dc3545; color: #fff;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    Cancelar inscrição
+                </button>
+            </form>
+
+        {% else %}
+            <!-- CASO O ALUNO AINDA NÃO ESTEJA INSCRITO -->
+            <p>Confirme sua presença para esta rota.</p>
+
+            <form method="post" action="{% url 'alocar_aluno' %}">
+                {% csrf_token %}
+                <input type="hidden" name="id_linha" value="{{ linha_selecionada.id }}">
+
+                <div class="presence-card__fields">
+                    <label class="presence-field">
+                        <span class="presence-field__icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        </span>
+                        <span class="presence-field__text">
+                            <small>Horário de Saída</small>
+                            <span class="presence-field__select">
+                                <input type="time" name="horario_saida_aluno" value="00:00">
+                            </span>
+                        </span>
+                    </label>
+
+                    <label class="presence-field">
+                        <span class="presence-field__icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>
+                        </span>
+                        <span class="presence-field__text">
+                            <small>Direção</small>
+                            <span class="presence-field__select">
+                                <select name="direcao" id="direcao">
+                                    <option value="ida e volta">Ida e volta</option>
+                                    <option value="ida">Ida</option>
+                                    <option value="volta">Volta</option>
+                                </select>
+                                <svg class="presence-field__chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                            </span>
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn--solid btn--full">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
+                    Confirmar presença
+                </button>
+            </form>
+        {% endif %}
     </section>
 
     <!-- estático: paradas da rota ainda não têm model próprio -->
