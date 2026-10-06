@@ -43,12 +43,12 @@
                         <td><a href="{% url "management:edit_bus_stop" bus_stop.id %}">Editar</a></td>
                         <td>
                             {% if bus_stop.is_active %}
-                                <form action="{% url "management:deactivate_bus_stop" bus_stop.id %}" method="post">
+                                <form action="{% url "management:deactivate_bus_stop" bus_stop.id %}?ocult_related_cities={{request.GET.ocult_related_cities}}" method="post">
                                     {% csrf_token %}
                                     <button type="submit">Desativar</button>
                                 </form>
                             {% else %}
-                                <form action="{% url "management:activate_bus_stop" bus_stop.id %}" method="post">
+                                <form action="{% url "management:activate_bus_stop" bus_stop.id %}?ocult_related_cities={{request.GET.ocult_related_cities}}" method="post">
                                     {% csrf_token %}
                                     <button type="submit">Ativar</button>
                                 </form>                                

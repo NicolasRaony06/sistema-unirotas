@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
@@ -295,7 +295,12 @@ def register_bus_stop(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_bus_stops(request):
     city = request.user.personel_profile.city
-    related_cities = city.municipios_relacionados.all()
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+
     bus_stops = BusStop.objects.filter(
         Q(city=city) |
         Q(city__in=related_cities)
@@ -345,8 +350,8 @@ def deactivate_bus_stop(request, id):
             bus_stop.is_active = False
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
-    return redirect('management:view_bus_stops')
-
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -366,7 +371,8 @@ def activate_bus_stop(request, id):
             bus_stop.is_active = True
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
-    return redirect('management:view_bus_stops')
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -387,7 +393,12 @@ def register_institution(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_institutions(request):
     city = request.user.personel_profile.city
-    related_cities = city.municipios_relacionados.all()
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+
     institutions = Institution.objects.filter(
         Q(city=city) |
         Q(city__in=related_cities)
@@ -413,8 +424,9 @@ def deactivate_institution(request, id):
             institution.is_active = False
             institution.save()
             messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
-        
-    return redirect('management:view_institutions')
+
+    base_url = reverse('management:view_institutions')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 
 @login_required(login_url=reverse_lazy('authentication:login'))
@@ -436,7 +448,8 @@ def activate_institution(request, id):
             institution.is_active = True
             institution.save()
             messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
-    return redirect('management:view_institutions')
+    base_url = reverse('management:view_institutions')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 def homologar_mun(request):

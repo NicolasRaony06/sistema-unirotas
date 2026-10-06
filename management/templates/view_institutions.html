@@ -40,12 +40,12 @@
                         <td>{{institution.city}}</td>
                         <td>
                             {% if institution.is_active %}
-                                <form action="{% url "management:deactivate_institution" institution.id %}" method="post">
+                                <form action="{% url "management:deactivate_institution" institution.id %}?ocult_related_cities={{request.GET.ocult_related_cities}}" method="post">
                                     {% csrf_token %}
                                     <button type="submit">Desativar</button>
                                 </form>
                             {% else %}
-                                <form action="{% url "management:activate_institution" institution.id %}" method="post">
+                                <form action="{% url "management:activate_institution" institution.id %}?ocult_related_cities={{request.GET.ocult_related_cities}}" method="post">
                                     {% csrf_token %}
                                     <button type="submit">Ativar</button>
                                 </form>
