@@ -23,13 +23,34 @@
         <table>
             <tbody>
                 <tr>
+                    <th>Status</th>
                     <th>Nome</th>
                     <th>Cidade</th>
                 </tr>
                 {% for institution in institutions %}
                     <tr>
+                        <td>
+                            {% if institution.is_active %}
+                                <span style="color: green">Ativa</span>
+                            {% else %}
+                                <span style="color: red">Inativa</span>
+                            {% endif %}
+                        </td>
                         <td>{{institution.name}}</td>
                         <td>{{institution.city}}</td>
+                        <td>
+                            {% if institution.is_active %}
+                                <form action="{% url "management:deactivate_institution" institution.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit">Desativar</button>
+                                </form>
+                            {% else %}
+                                <form action="{% url "management:activate_institution" institution.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit">Ativar</button>
+                                </form>
+                            {% endif %}                           
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

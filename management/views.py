@@ -10,7 +10,6 @@ from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
-from .handlers import cadastrar_municipio
 from .handlers import *
 # Create your views here.
 @login_required
@@ -313,7 +312,7 @@ def edit_bus_stop(request, id):
         id=id
     )
 
-    if not can_manage_bus_stop(city, bus_stop):
+    if not can_manage_model(city, bus_stop):
         messages.error(request, f"Não é possível alterar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
         return redirect('management:view_bus_stops')
     
@@ -338,7 +337,7 @@ def deactivate_bus_stop(request, id):
             id=id
         )
 
-        if not can_manage_bus_stop(city, bus_stop):
+        if not can_manage_model(city, bus_stop):
             messages.error(request, f"Não é possível desativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
             return redirect('management:view_bus_stops')
 
@@ -359,7 +358,7 @@ def activate_bus_stop(request, id):
             id=id
         )
 
-        if not can_manage_bus_stop(city, bus_stop):
+        if not can_manage_model(city, bus_stop):
             messages.error(request, f"Não é possível ativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
             return redirect('management:view_bus_stops')
 
@@ -394,6 +393,50 @@ def view_institutions(request):
         Q(city__in=related_cities)
     )
     return render(request, 'view_institutions.html', {'institutions': institutions})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def deactivate_institution(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+
+        institution = get_object_or_404(
+            Institution,
+            id=id
+        )
+
+        if not can_manage_model(city, institution):
+            messages.error(request, f"Não é possível desativar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_institutions')
+        
+        if institution.is_active:
+            institution.is_active = False
+            institution.save()
+            messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
+        
+    return redirect('management:view_institutions')
+
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_institution(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+
+        institution = get_object_or_404(
+            Institution,
+            id=id
+        )
+
+        if not can_manage_model(city, institution):
+            messages.error(request, f"Não é possível ativar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_institutions')
+
+        if not institution.is_active:
+            institution.is_active = True
+            institution.save()
+            messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
+    return redirect('management:view_institutions')
 
 @login_required
 def homologar_mun(request):
