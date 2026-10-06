@@ -175,4 +175,28 @@ def cancelar_inscricao_na_viagem(request):
     messages.success(request, "Inscrição cancelada com sucesso.")
     return redirect('index_aluno')
     
+@login_required        
+def alterar_presenca(request):
+    if request.user.role != UserRole.STUDENT:
+        messages.error(request, "Apenas estudantes podem confirmar presenca em uma viagem.")
+        return redirect('index_aluno')
     
+    estudante = request.user.student_profile
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
+    if not inscricao:
+        messages.error(request, "você não possui uma inscrição nessa viagem.")
+        return redirect('index_aluno')
+    
+    if request.method == 'POST':
+        if inscricao.presente:
+            inscricao.presente = False
+            inscricao.save()
+            messages.success(request, "Presença cancelada com sucesso.")
+            return redirect('index_aluno')
+        else:
+            inscricao.presente = True
+            inscricao.save()
+            messages.success(request, "Presença confirmada com sucesso.")
+            return redirect('index_aluno')
+    
+        

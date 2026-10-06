@@ -73,13 +73,21 @@
                     Direção: <strong>{{ inscricao.get_direcao_display|default:inscricao.direcao|title }}</strong>
                 </p>
 
-                <form method="post" action="#">
+                <form method="post" action="{% url 'alterar_presenca' %}">
                     {% csrf_token %}
                     <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
-                    <button type="submit" class="btn btn--solid btn--full btn--spaced">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
-                        Confirmar presença
-                    </button>
+                    {% if inscricao.presente %}
+                        <button type="submit" class="btn btn--danger btn--full">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            Cancelar presença
+                        </button>
+                        
+                    {% else %}
+                        <button type="submit" class="btn btn--solid btn--full btn--spaced">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
+                            Confirmar presença
+                        </button>
+                    {% endif %}
                 </form>
 
                 <form method="post" action="{% url 'cancelar_inscricao_na_viagem' %}">
