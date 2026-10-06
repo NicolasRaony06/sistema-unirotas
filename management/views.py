@@ -428,7 +428,6 @@ def deactivate_institution(request, id):
     base_url = reverse('management:view_institutions')
     return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
-
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def activate_institution(request, id):
@@ -450,6 +449,30 @@ def activate_institution(request, id):
             messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
     base_url = reverse('management:view_institutions')
     return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def edit_institution(request, id):
+    city = request.user.personel_profile.city
+    institution = get_object_or_404(
+        Institution,
+        id=id
+    )
+
+    if not can_manage_model(city, institution):
+        messages.error(request, f"Não é possível alterar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+        return redirect('management:view_institutions')
+
+    if request.method == 'POST':
+        form = InstitutionForm(request.POST, instance=institution, city=city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Instituição alterada com sucesso.")
+            return redirect('management:view_institutions')
+        messages.error(request, "Não foi possível alterar a instituição.")
+    else:
+        form = InstitutionForm(instance=institution, city=city)
+    return render(request, 'edit_institution.html', {'form': form})
 
 @login_required
 def homologar_mun(request):

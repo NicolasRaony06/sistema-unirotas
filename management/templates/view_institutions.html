@@ -38,6 +38,7 @@
                         </td>
                         <td>{{institution.name}}</td>
                         <td>{{institution.city}}</td>
+                        <td><a href="{% url "management:edit_institution" institution.id %}">Editar</a></td>
                         <td>
                             {% if institution.is_active %}
                                 <form action="{% url "management:deactivate_institution" institution.id %}?ocult_related_cities={{request.GET.ocult_related_cities}}" method="post">
