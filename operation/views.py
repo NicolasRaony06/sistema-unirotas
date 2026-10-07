@@ -40,10 +40,10 @@ def comecar_viagem(request, viagem_id):
 def lista_alunos(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).order_by('id')
-    total_alunos = UsuarioDaViagem.objects.count()
-    total_moderadores = UsuarioDaViagem.objects.filter(moderador=True).count()
-    total_alunos_presentes = UsuarioDaViagem.objects.filter(presente=True).count()
-    total_alunos_pendentes = UsuarioDaViagem.objects.filter(presente=False).count()
+    total_alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).count()
+    total_moderadores = UsuarioDaViagem.objects.filter(moderador=True, viagem=obj_viagem).count()
+    total_alunos_presentes = UsuarioDaViagem.objects.filter(presente=True, viagem=obj_viagem).count()
+    total_alunos_pendentes = UsuarioDaViagem.objects.filter(presente=False, viagem=obj_viagem).count()
     return render(request, 'lista_alunos.html', {
         'alunos': alunos, 
         'viagens': obj_viagem, 
@@ -52,6 +52,23 @@ def lista_alunos(request, viagem_id):
         'pendentes': total_alunos_pendentes,
         'total_moderadores': total_moderadores,
         })
+    
+def lista_alunos_moderador(request, viagem_id):
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).order_by('id')
+    total_alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).count()
+    total_moderadores = UsuarioDaViagem.objects.filter(moderador=True, viagem=obj_viagem).count()
+    total_alunos_presentes = UsuarioDaViagem.objects.filter(presente=True, viagem=obj_viagem).count()
+    total_alunos_pendentes = UsuarioDaViagem.objects.filter(presente=False, viagem=obj_viagem).count()
+    return render(request, 'lista_alunos_moderador.html', {
+        'alunos': alunos, 
+        'viagens': obj_viagem, 
+        'total': total_alunos,
+        'presentes': total_alunos_presentes,
+        'pendentes': total_alunos_pendentes,
+        'total_moderadores': total_moderadores,
+        })
+
 
 #Moderadores
     
@@ -79,11 +96,8 @@ def definir_moderador(request, usuario_viagem_id):
 
     return redirect('lista_moderadores', viagem.pk)
 
-# @login_required
-def lista_linhas(request, indice = 0):
-    # if request.user.role != UserRole.STUDENT:
-    #     messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
-    #     return redirect('index_aluno')
+
+def lista_linhas(request, indice=0):
     linhas = list(Linha.objects.all().order_by('id'))
 
     if not linhas:
@@ -96,11 +110,17 @@ def lista_linhas(request, indice = 0):
 
     proximo_indice = (indice + 1) % len(linhas)
 
+    moderacao = UsuarioDaViagem.objects.filter(
+        estudante=request.user.student_profile,
+        moderador=True
+    ).first()
+
     return render(request, 'lista_linhas.html', {
         'linha': linha_atual,
         'proximo_indice': proximo_indice,
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
+        'moderacao': moderacao,
     })
 
 # @login_required

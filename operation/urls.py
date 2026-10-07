@@ -1,4 +1,4 @@
-from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador, lista_linhas, index_aluno, alocar_aluno, cancelar_inscricao_na_viagem, alterar_presenca
+from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador, lista_linhas, index_aluno, alocar_aluno, cancelar_inscricao_na_viagem, alterar_presenca,lista_alunos_moderador
 from django.urls import path
 
 urlpatterns = [
@@ -14,5 +14,6 @@ urlpatterns = [
     path('aluno/home/alocar', alocar_aluno, name='alocar_aluno'),
     path('aluno/home/cancelar', cancelar_inscricao_na_viagem, name='cancelar_inscricao_na_viagem'),
     path('aluno/home/alterar', alterar_presenca, name='alterar_presenca'),
+    path('aluno/home/<int:viagem_id>/alunos/', lista_alunos_moderador, name='lista_alunos_moderador'),
     
 ]

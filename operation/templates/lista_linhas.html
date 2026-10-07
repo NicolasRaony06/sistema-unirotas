@@ -48,6 +48,11 @@
                 <span class="label">HORÁRIO</span>
                 <strong>{{ linha.horario_inicio|time:"H:i" }} - {{ linha.horario_fim|time:"H:i" }}</strong>
             </div>
+            {% if moderacao %}
+                <div>
+                    <a class="btn btn--solid" id="moderador" href="{% url 'lista_alunos_moderador' moderacao.viagem.pk %}">Lista de alunos</a>
+                </div>
+            {% endif %}
         </div>
     </section>
 
