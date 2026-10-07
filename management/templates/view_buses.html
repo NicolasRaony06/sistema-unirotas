@@ -1,66 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Template Onibus teste</title>
-</head>
-<body>
-    {% if buses %}
-    <table>
-        <tbody>
-            <thead>
-                <tr>
-                    <th>Estado</th>
-                    <th>Placa</th>
-                    <th>Nome</th>
-                    <th>Capacidade</th>
-                    <th>Cor</th>
-                </tr>
-            </thead>
-            {% for bus in buses %}
-                <tr>
-                    <td>
-                        {% if bus.is_active %}
-                            <span style="color: green;">Ativo</span>
-                        {% else %}
-                            <span style="color: red;">Inativo</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{bus.license_plate}}
-                    </td>
-                    <td>
-                        {{bus.name}}
-                    </td>
-                    <td>
-                        {{bus.capacity}}
-                    </td>
-                    <td>
-                        {{bus.color}}
-                    </td>
-                    <td>
-                        <a href="{% url "management:edit_bus" bus.id %}">Editar</a>
-                    </td>
-                    <td>
-                        {% if bus.is_active %}
-                            <form id="deactivate_bus" action="{% url "management:deactivate_bus" bus.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit">Desativar</button>
-                            </form>
-                        {% else %}
-                            <form id="activate_bus" action="{% url "management:activate_bus" bus.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit">Ativar</button>
-                            </form>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <h2>Não há ônibus nesse município</h2>
-    {% endif %}
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Frota Escolar | Gestor{% endblock %}
+
+{% block side_bar%}
+{% include 'partials/side_bar_manager.html' %}
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Frota Escolar</h1>
+    <p>Gerencie os veiculos municipais de {{municipio.nome}}</p>
+</header>
+
+<div class="dashboard municipios-page localizacoes-page">
+
+    <div class="content-grid">
+        {% include 'partials/buses_list.html' %}
+
+
+    </div>
+
+</div>
+{% endblock %}
+

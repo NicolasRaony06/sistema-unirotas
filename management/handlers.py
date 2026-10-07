@@ -36,3 +36,9 @@ def atualizar_gestor(codigo_ibge,email_gestor=None):
     municipio.save()
 
     return municipio
+
+def add_municipio_rede(municipio,codigo_ibge):
+    municipio_relacionado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
+    municipio.municipios_relacionados.add(municipio_relacionado)
+    municipio_relacionado.save()
+    return municipio

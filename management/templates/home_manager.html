@@ -19,5 +19,13 @@
         <h2>Olá, {{ full_name }}!</h2>
         <p> 4 rotas · 2 ônibus · 2 motoristas</p>
     </section>
+        {% include 'partials/metrics_manager.html' %}
+    
+    <div class="content-grid">
+
+        {% include 'partials/panel_routes.html'%}
+        {% include 'partials/notifications.html'%}
+
+    </div>
 </div>
 {% endblock %}

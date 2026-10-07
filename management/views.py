@@ -24,18 +24,6 @@ def home(request):
         'role': request.user.role,
         'profile_picture': request.user.profile_picture
     })
-@login_required
-def home_manager(request):
-    municipios = Municipio.objects.count()
-    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
-    return render(request,'home_manager.html',{
-        'estudantes':estudantes,
-        'municipios': municipios,
-        'full_name' : request.user.full_name,
-        'data': datetime.now(),
-        'role': request.user.role,
-        'profile_picture': request.user.profile_picture
-    })
 
 @login_required
 def gestores(request):
@@ -51,13 +39,18 @@ def gestores(request):
         'profile_picture': request.user.profile_picture
     })
 
-
 @login_required
 def municipios(request):
+        total_onibus = Bus.objects.all().count()
+        municipios_ofertados = Municipio.objects.filter(ofertado_pelo_sistema = True)
         municipios = Municipio.objects.all()
         tot_municipios = Municipio.objects.all().count()
         gestores = User.objects.filter(role=UserRole.MANAGER)
+        gestores_ativos = User.objects.filter(role=UserRole.MANAGER, is_active=True)
         return render(request,'municipios.html',{
+        'gestores_ativos': gestores_ativos,
+        'total_onibus': total_onibus,
+        'municipios_ofertados': municipios_ofertados,
         'tot_municipios': tot_municipios,
         'municipios': municipios,
         'gestores':gestores,
@@ -65,23 +58,18 @@ def municipios(request):
         'role': request.user.role,
         'profile_picture': request.user.profile_picture
     })
-
-
-
 @login_required
 def criar_municipio(request):
     if request.method == 'POST':
         form = MunicipioForm(request.POST)
 
         if form.is_valid():
-            nome = form.cleaned_data['nome']
-            cod_ibge =form.cleaned_data['codigo_ibge']
-            #gestor =form.cleaned_data['gestor']
-
+            municipio = form.save(commit=False)
+            
             if request.user.role == UserRole.ADMIN:
-                e_ofertado = True
-                #form.save()
-                cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)#''',gestor=gestor'''
+                municipio.ofertado_pelo_sistema = True
+                municipio.save()
+                #cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado,gestor=gestor)#''',gestor=gestor'''
                 return redirect('management:municipios')
 
             '''def home_manager(request):
@@ -114,7 +102,7 @@ def associar_gestor(request):
         if request.method == 'POST':
             codigo_ibge = request.POST.get('codigo_ibge')
             email_gestor = request.POST.get('email_gestor')
-
+            
             municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
             email_buscado = User.objects.filter(role=UserRole.MANAGER,email=email_gestor).first()
 
@@ -124,6 +112,86 @@ def associar_gestor(request):
             return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
         
     return render(request,'test.html')
+
+@login_required
+def homologar_mun(request,id):
+    if request.method == 'POST':
+        if request.user.role == UserRole.ADMIN:
+            #codigo_ibge = request.GET.get('codigo_ibge')
+            municipio_buscado = Municipio.objects.filter(id=id).first()
+            if municipio_buscado is None:
+                return HttpResponse("Municipio não encontrado")
+            municipio_buscado.ofertado_pelo_sistema = True
+            municipio_buscado.save()
+        return redirect('management:municipios')
+
+@login_required
+def desabilitar_mun(request,id):
+    if request.method == 'POST':
+        if request.user.role == UserRole.ADMIN:
+            #codigo_ibge = request.GET.get('codigo_ibge')
+            municipio_buscado = Municipio.objects.filter(id=id).first()
+            if municipio_buscado is None:
+                return HttpResponse("Municipio não encontrado")
+            municipio_buscado.ofertado_pelo_sistema = False
+            municipio_buscado.save()
+            #mun = desabilitar_municipio(codigo_ibge=codigo_ibge)
+            # return HttpResponse(f"Municipio {municipio_buscado} desabilitado")
+        return redirect('management:municipios')
+
+@login_required
+def home_manager(request):
+    municipios = Municipio.objects.count()
+    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
+    return render(request,'home_manager.html',{
+        'estudantes':estudantes,
+        'municipios': municipios,
+        'full_name' : request.user.full_name,
+        'data': datetime.now(),
+        'role': request.user.role,
+        'profile_picture': request.user.profile_picture
+    })
+
+@login_required
+def localizacoes(request):
+   
+    municipio_base = Municipio.objects.filter(gestor = request.user).first()
+    
+    if not municipio_base: 
+        return render(request, 'localizacoes.html', {
+            'total_municipios': 0,
+            'full_name': request.user.full_name,
+            'role': request.user.role,
+            'profile_picture': request.user.profile_picture
+        })
+    else:
+        tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
+        municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk)
+        return render(request, 'localizacoes.html', {
+                    'municipio': municipio_base,
+                    'total_municipios': tot_municipios,
+                    'municipios': municipios,
+                    'full_name': request.user.full_name,
+                    'role': request.user.role,
+                    'profile_picture': request.user.profile_picture
+                })
+
+
+@login_required
+def deactive_manager(request,id):
+    if request.method == 'POST':
+        manager = User.objects.filter(role=UserRole.MANAGER ,id=id).first()
+        manager.is_active = False
+        manager.save()
+    return redirect('management:gestores')
+
+@login_required
+def activate_manager(request,id):
+    if request.method == 'POST':
+        manager = User.objects.filter(role=UserRole.MANAGER, id=id).first()
+        manager.is_active = True
+        manager.save()
+    return redirect('management:gestores')
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -158,7 +226,19 @@ def view_drivers(request):
         user__role=UserRole.DRIVER, 
         city=request.user.personel_profile.city
     )
-    return render(request, 'view_drivers.html', {'drivers': drivers})
+    tot_drivers = PersonelProfile.objects.filter(
+        user__role=UserRole.DRIVER, 
+        city=request.user.personel_profile.city
+    ).count()
+    municipio = Municipio.objects.filter(gestor=request.user).first()
+
+
+    return render(request, 'view_drivers.html', {'drivers': drivers,
+            'tot_drivers': tot_drivers,
+            'full_name' : request.user.full_name,
+            'role': request.user.role,
+            'profile_picture': request.user.profile_picture,
+            'municipio':municipio })
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -210,9 +290,13 @@ def register_bus(request):
         form = BusForm(request.POST, request.FILES)
         if form.is_valid():
             bus = form.save(commit=False)
-            bus.city = request.user.personel_profile.city
+           # bus.city = request.user.personel_profile.city
+           # bus.save()
+            city =  request.user.personel_profile.city
+            bus.city = city
             bus.save()
-            return redirect('management:home-manager')
+
+            return redirect('management:view_buses')
 
         messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
     else:
@@ -223,7 +307,10 @@ def register_bus(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_buses(request):
     buses = Bus.objects.filter(city=request.user.personel_profile.city)
-    return render(request, "view_buses.html", {'buses': buses})
+    tot_buses = Bus.objects.filter(city=request.user.personel_profile.city).count()
+    municipio = Municipio.objects.filter(gestor=request.user).first()
+
+    return render(request, "view_buses.html", {'buses': buses,  'full_name': request.user.full_name,'role': request.user.role,'profile_picture': request.user.profile_picture,'tot_buses': tot_buses,'municipio':municipio})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -276,32 +363,26 @@ def activate_bus(request, id):
             messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
 
-@login_required
-def homologar_mun(request):
-    if request.user.role == UserRole.ADMIN:
-        codigo_ibge = request.GET.get('codigo_ibge')
-        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
-        if municipio_buscado is None:
-            return HttpResponse("Municipio não encontrado")
-        mun = homologar_municipio(codigo_ibge=codigo_ibge)
-        return HttpResponse(f"Municipio {mun} homologado")
-    return HttpResponse("Sem permissão para realizar essa terefa")
 
 @login_required
-def desabilitar_mun(request):
-    if request.user.role == UserRole.ADMIN:
-        codigo_ibge = request.GET.get('codigo_ibge')
-        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
-        if municipio_buscado is None:
-            return HttpResponse("Municipio não encontrado")
-        mun = desabilitar_municipio(codigo_ibge=codigo_ibge)
-        return HttpResponse(f"Municipio {mun} desabilitado")
-    return HttpResponse("Sem permissão para realizar essa terefa")
+def retirar_municipio(request,id):
+    if request.method == 'POST':
+        municipio_pai = Municipio.objects.filter(gestor= request.user).first()
+        municipio_listado = Municipio.objects.filter(id=id).first()
+        municipio_pai.municipios_relacionados.remove(municipio_listado)
+    return redirect('management:localizacoes')
 
-@login_required
-def listar_municipios(request):
-    if request.user.role != UserRole.ADMIN:
-        return HttpResponse("Sem permissão para realizar essa tarefa", status=403)
+# @login_required
+# def adicionar_municipio(request):
+#     if request.method == 'POST':
+#         form = MunicipioForm(request.POST)
 
-    municipios = list(Municipio.objects.values('nome', 'codigo_ibge', 'ofertado_pelo_sistema', 'gestor__email'))
-    return JsonResponse(municipios, safe=False, json_dumps_params={'ensure_ascii': False})
+#         if form.is_valid():
+#             municipio = form.save(commit=False)
+                
+#             if request.user.role == UserRole.MANAGER:
+#                 municipio.ofertado_pelo_sistema = False
+#                 municipio_pai = Municipio.objects.filter(gestor=request.user).first()
+#                 municipio_pai.municipios_relacionados.add(municipio)
+#                 municipio.save()
+#     return redirect('management:view_buses')

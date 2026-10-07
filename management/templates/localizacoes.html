@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Localizações | Gestor{% endblock %}
+
+{% block side_bar%} 
+{% include 'partials/side_bar_manager.html' %} 
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Localizações</h1>
+    <p>Gerencie as localizações ofertadas por {{municipio.nome}}</p>
+</header>
+
+<div class="dashboard municipios-page localizacoes-page">
+    
+    {% include 'partials/metrics_manager.html' %}
+    
+    <div class="content-grid">
+    {% include 'partials/localizacoes_list.html' %}
+
+
+    </div>
+
+</div>
+{% endblock %}

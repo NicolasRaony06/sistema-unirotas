@@ -34,7 +34,7 @@
 
         <div class="municipios-list">
             <!-- Item 1 -->
-             {% for municipio in municipios %}
+            {% for municipio in municipios %}
             <article class="municipio-card">
                 <div class="municipio-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
@@ -48,10 +48,12 @@
                 <div class="municipio-info">
                     <div class="code-status">
                         <span class="code">{{municipio.codigo_ibge}}</span>
-                        <span class="status-badge {% if municipio.ofertado_pelo_sistema %} active {% else %} inactive {% endif %}"> {% if municipio.ofertado_pelo_sistema %}Ativo{% else %}Inativo{% endif %}</span>
+                        <span
+                            class="status-badge {% if municipio.ofertado_pelo_sistema %} active {% else %} inactive {% endif %}">
+                            {% if municipio.ofertado_pelo_sistema %}Ativo{% else %}Inativo{% endif %}</span>
                     </div>
                     <h4 class="name">{{municipio.nome}}</h4>
-                    <p class="details">4 Motoristas · 3 ônibus · 2 Rotas</p>
+                    <p class="details">4 Motoristas · {{municipio.bus}} ônibus · 2 Rotas</p>
                 </div>
                 <div class="municipio-actions">
                     <button type="button" class="btn-action">
@@ -59,18 +61,39 @@
                             <path d="M12 20h9" />
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                         </svg>
-                        Editar
                     </button>
-                    <button type="button" class="btn-icon-only" aria-label="Pausar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="6" y="4" width="4" height="16" />
-                            <rect x="14" y="4" width="4" height="16" />
-                        </svg>
-                    </button>
+                    {% if municipio.ofertado_pelo_sistema %}
+                    <form action="{% url 'management:desabilitar-municipio' municipio.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon-only" aria-label="Pausar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16" />
+                                <rect x="14" y="4" width="4" height="16" />
+                            </svg>
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{% url 'management:homologar-municipio' municipio.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon-only" aria-label="Pausar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                                <path d="M0 0h24v24H0z" fill="none" />
+                                <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2"
+                                    d="M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0">
+                                    <animate fill="freeze" attributeName="d" dur="0.6s" keyTimes="0;0.33;1"
+                                        values="M9 18l-2 0l0 -12l2 0l0 12M15 6l2 0l0 12l-2 0l0 -12;M13 15l-5 3l0 -12l5 3l0 6M13 9l5 3l0 0l-5 3l0 -6;M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0" />
+                                </path>
+                            </svg>
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </article>
-           {% endfor %}
-        
+            {% empty %}
+            <p class="empty-message">Não há nenhum município no momento.</p>
+            {% endfor %}
+
 
         </div>
 
@@ -78,9 +101,10 @@
 
     <!-- Seção Gestores -->
     <section class="gestores-section">
-    <h3>Gestores</h3>
-    <div class="gestores-grid">
-        {% for gestor in gestores %}
+        <h3>Gestores</h3>
+
+        <div class="gestores-grid">
+            {% for gestor in gestores %}
             <div class="gestor-card">
                 <div class="gestor-info">
                     <strong>{{ gestor.full_name }}</strong>
@@ -89,39 +113,52 @@
                 </div>
                 <span class="status-dot {% if gestor.is_active == True %}online{% else %}offline{% endif %}"></span>
             </div>
-        
-        {% endfor %}
-    </div>
-</section>
+
+
+            {% empty %}
+            <p class="empty-message">Sem gestores</p>
+
+            {% endfor %}
+        </div>
+    </section>
 
 </div>
 
 <!-- Coluna  (Direita) com os dois cards -->
 <div class="side-column">
 
-     <form method="POST" action="{% url 'management:associar-gestor' %}">
-            {% csrf_token %}   <!-- 1. Associar gestor + município -->
-    <section class="panel action-card">
-        <h3>Associar gestor + município</h3>
-    
-        <div class="form-group">
-            <label>E-mail do gestor</label>
-            <input type="text" name="email_gestor" placeholder="gestor@example.com" required>
-        </div>
+    <form method="POST" action="{% url 'management:associar-gestor' %}">
+        {% csrf_token %} <!-- 1. Associar gestor + município -->
+        <section class="panel action-card">
+            <h3>Associar gestor + município</h3>
 
-        <div class="form-group">
-            <label for="codigo_ibge">Código IBGE</label>
-            <input type="text" name="codigo_ibge" placeholder="Ex: 3738281" required>
-        </div>
+            <div class="form-group">
+                <label for="email_gestor">Gestor</label>
+                <!-- <input type="text" name="email_gestor" placeholder="gestor@example.com" required> -->
+                 <select name="email_gestor" id="email_gestor">
+                    <option value=""disabled selected>Selecionar Gestor</option>
+                    {% for gestor in gestores_ativos %}
+                    <option value="{{gestor.email}}">{{ gestor.full_name }}</option>
+                    {% endfor %}
+                 </select>
+            </div>
 
-        <button type="submit" class="btn-submit">Vincular à gestor</button>
+            <div class="form-group">
+                <label for="codigo_ibge">Município</label>
+                <select id="codigo_ibge" name="codigo_ibge" required>
+                    <option value="" disabled selected>Selecionar Município</option>
+                    {% for municipio in municipios_ofertados %}
+                    <option value="{{ municipio.codigo_ibge }}">{{ municipio.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-    </section>
-                {% if erro%}
-            <p style="color: red; font-weight: bold;text-align: center;">{{ erro }}</p>
-            {% endif %}
-</form>
-    <!-- 2. Novo Card: Gestão / Homologação / Retirar Gestor -->
+            <button type="submit" class="btn-submit">Vincular à gestor</button>
+
+        </section>
+
+    </form>
+    {% comment %} <!-- 2. Novo Card: Gestão / Homologação / Retirar Gestor -->
     <section class="panel action-card">
         <h3>Gestão do Município</h3>
 
@@ -142,6 +179,6 @@
         </div>
 
         <button type="submit" class="btn-submit btn-secondary-action">Aplicar ação</button>
-    </section>
+    </section> {% endcomment %}
 
 </div>

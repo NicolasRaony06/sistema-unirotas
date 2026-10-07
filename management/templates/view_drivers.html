@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -50,3 +51,30 @@
     {% endif %}
 </body>
 </html>
+-->
+<!-- Conteúdo centralizado na main -->
+
+
+{% block title %}Motoristas | Gestor{% endblock %}
+
+{% block side_bar%}
+{% include 'partials/side_bar_manager.html' %}
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Motoristas</h1>
+    <p>Gerencie os motoristas municipais de {{municipio.nome}}</p>
+</header>
+
+<div class="dashboard municipios-page localizacoes-page">
+    {% include 'partials/metrics_manager.html' %}
+
+    <div class="content-grid">
+        {% include 'partials/drivers_list.html' %}
+        <!-- Conteúdo centralizado na main -->
+     
+
+</div>
+{% endblock %}

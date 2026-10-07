@@ -14,13 +14,19 @@ urlpatterns = [
     path('edit_bus/<int:id>', edit_bus, name="edit_bus"),
     path('deactivate_bus/<int:id>', deactivate_bus, name="deactivate_bus"),
     path('activate_bus/<int:id>', activate_bus, name="activate_bus"),
+    
     path('home/',home, name='home-admin'),
-    path('municipios/',municipios,name='municipios'),
     path('gestores/',gestores,name='gestores'),
+    path('municipios/',municipios,name='municipios'),
+    #path('convidar-gestor/',convidar_gestor,name='convidar-gestor')
     path('criar-municipio/',criar_municipio,name='criar-municipio'),
     path('associar-gestor/',associar_gestor, name='associar-gestor'),
-    path('homologar-municipio/',homologar_mun,name='homologar-municipio'),
-    path('desabilitar-municipio/',desabilitar_mun,name='desabilitar-municipio'),
-    path('listagem/',listar_municipios),
+    path('homologar-municipio/<int:id>',homologar_mun,name='homologar-municipio'),
+    path('desabilitar-municipio/<int:id>',desabilitar_mun,name='desabilitar-municipio'),
     path('home-manager/',home_manager, name='home-manager'),
+    path('localizacoes/',localizacoes,name='localizacoes'),
+    path('deactive-manager/<int:id>',deactive_manager,name='deactive-manager'),
+    path('active-manager/<int:id>',activate_manager,name='active-manager'),
+    path('retirar-municipio/<int:id>',retirar_municipio,name='retirar-municipio'),
+    # path('adicionar-municipio',adicionar_municipio,name='adicionar-municipio'),
 ]

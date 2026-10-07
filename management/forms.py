@@ -5,13 +5,13 @@ class BusForm(forms.ModelForm):
     class Meta:
         model = Bus
         fields = ['license_plate', 'name', 'capacity', 'color', 'identification_photo']
-        widgets = {
+        ''' widgets = {
             'license_plate': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite a placa do ônibus'}),
             'name': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite o nome identificador do ônibus'}),
             'capacity': forms.NumberInput(attrs={'class': '', 'placeholder': 'Digite a capacidade do ônibus'}),
             'color': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite cor predominante do ônibus'}),
             'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
-        }
+        }'''
 
     def clean_license_plate(self):
         data = self.cleaned_data['license_plate']
@@ -22,5 +22,5 @@ class BusForm(forms.ModelForm):
 class MunicipioForm(forms.ModelForm):
     class Meta:
         model = Municipio
-        fields = ['nome', 'codigo_ibge'] #,'gestor'
+        fields = ['nome', 'codigo_ibge','gestor']
 
