@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.functions import Lower
 from django.core.validators import MinValueValidator, RegexValidator
 from authentication.models import User , UserRole
 import re
@@ -40,3 +41,42 @@ class Bus(models.Model):
 
     def __str__(self):
         return f"{self.name} {self.license_plate}" 
+
+class BusStop(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    city = models.ForeignKey("Municipio", on_delete=models.CASCADE, related_name='bus_stops')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Bus Stop"
+        verbose_name_plural = "Bus Stops"
+        constraints = [
+            models.UniqueConstraint(
+                Lower('name'),
+                'city',
+                name="unique_bus_stop_per_city"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.city})"
+
+class Institution(models.Model):
+    name = models.CharField(max_length=150)
+    city = models.ForeignKey("Municipio", on_delete=models.CASCADE, related_name='institutions')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Institution"
+        verbose_name_plural = "Institutions"
+        constraints = [
+            models.UniqueConstraint(
+                Lower('name'),
+                'city',
+                name="unique_institution_per_city"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.city})"

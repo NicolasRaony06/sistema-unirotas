@@ -14,7 +14,17 @@ urlpatterns = [
     path('edit_bus/<int:id>', edit_bus, name="edit_bus"),
     path('deactivate_bus/<int:id>', deactivate_bus, name="deactivate_bus"),
     path('activate_bus/<int:id>', activate_bus, name="activate_bus"),
-    
+
+    path('register_bus_stop/', register_bus_stop, name="register_bus_stop"),
+    path('view_bus_stops/', view_bus_stops, name="view_bus_stops"),
+    path('deactivate_bus_stop/<int:id>', deactivate_bus_stop, name="deactivate_bus_stop"),
+    path('activate_bus_stop/<int:id>', activate_bus_stop, name="activate_bus_stop"),    
+    path('edit_bus_stop/<int:id>', edit_bus_stop, name="edit_bus_stop"),
+    path('register_institution/', register_institution, name="register_institution"),
+    path('view_institutions/', view_institutions, name="view_institutions"),
+    path('deactivate_institution/<int:id>', deactivate_institution, name="deactivate_institution"),
+    path('activate_institution/<int:id>', activate_institution, name="activate_institution"), 
+    path('edit_institution/<int:id>', edit_institution, name="edit_institution"),
     path('home/',home, name='home-admin'),
     path('gestores/',gestores,name='gestores'),
     path('municipios/',municipios,name='municipios'),

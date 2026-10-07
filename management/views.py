@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
 from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm
-from .handlers import cadastrar_municipio
+from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
 from .handlers import *
 # Create your views here.
 @login_required
@@ -363,6 +363,215 @@ def activate_bus(request, id):
             messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
 
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def register_bus_stop(request):
+    if request.method == 'POST':
+        form = BusStopForm(request.POST,city=request.user.personel_profile.city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
+            return redirect('management:home-manager')
+        messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
+    else:
+        form = BusStopForm(city=request.user.personel_profile.city)
+    return render(request, "register_bus_stop.html", {'form': form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_bus_stops(request):
+    city = request.user.personel_profile.city
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+
+    bus_stops = BusStop.objects.filter(
+        Q(city=city) |
+        Q(city__in=related_cities)
+    ).select_related('city').distinct()
+
+    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def edit_bus_stop(request, id):
+    city = request.user.personel_profile.city
+    bus_stop = get_object_or_404(
+        BusStop,
+        id=id
+    )
+
+    if not can_manage_model(city, bus_stop):
+        messages.error(request, f"Não é possível alterar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+        return redirect('management:view_bus_stops')
+    
+    if request.method == 'POST':
+        form = BusStopForm(request.POST, instance=bus_stop, city=city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parada alterada com sucesso.")
+            return redirect("management:view_bus_stops")
+        messages.error(request, "Não foi possível alterar a parada")
+    else:
+        form = BusStopForm(instance=bus_stop, city=city)
+    return render(request, 'edit_bus_stop.html', {'form': form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def deactivate_bus_stop(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+        bus_stop = get_object_or_404(
+            BusStop,
+            id=id
+        )
+
+        if not can_manage_model(city, bus_stop):
+            messages.error(request, f"Não é possível desativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_bus_stops')
+
+        if bus_stop.is_active:
+            bus_stop.is_active = False
+            bus_stop.save()
+            messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_bus_stop(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+        bus_stop = get_object_or_404(
+            BusStop,
+            id=id
+        )
+
+        if not can_manage_model(city, bus_stop):
+            messages.error(request, f"Não é possível ativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_bus_stops')
+
+        if not bus_stop.is_active:
+            bus_stop.is_active = True
+            bus_stop.save()
+            messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def register_institution(request):
+    city = request.user.personel_profile.city
+    if request.method == 'POST':
+        form = InstitutionForm(request.POST, city=city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Instituição cadastrada com sucesso.")
+            return redirect("management:view_institutions")
+        messages.error(request, "Não foi possível cadastrar instituição.")
+    else:
+        form = InstitutionForm(city=city)
+    return render(request, 'register_institution.html', {'form': form})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_institutions(request):
+    city = request.user.personel_profile.city
+
+    related_cities = []
+    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    if not filter_ocult_related_cities: 
+        related_cities = city.municipios_relacionados.all()
+
+    institutions = Institution.objects.filter(
+        Q(city=city) |
+        Q(city__in=related_cities)
+    ).select_related('city').distinct()
+    
+    return render(request, 'view_institutions.html', {'institutions': institutions})
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def deactivate_institution(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+
+        institution = get_object_or_404(
+            Institution,
+            id=id
+        )
+
+        if not can_manage_model(city, institution):
+            messages.error(request, f"Não é possível desativar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_institutions')
+        
+        if institution.is_active:
+            institution.is_active = False
+            institution.save()
+            messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
+
+    base_url = reverse('management:view_institutions')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def activate_institution(request, id):
+    if request.method == 'POST':
+        city = request.user.personel_profile.city
+
+        institution = get_object_or_404(
+            Institution,
+            id=id
+        )
+
+        if not can_manage_model(city, institution):
+            messages.error(request, f"Não é possível ativar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+            return redirect('management:view_institutions')
+
+        if not institution.is_active:
+            institution.is_active = True
+            institution.save()
+            messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
+    base_url = reverse('management:view_institutions')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+@login_required(login_url=reverse_lazy('authentication:login'))
+@role_required(allowed_roles=UserRole.MANAGER)
+def edit_institution(request, id):
+    city = request.user.personel_profile.city
+    institution = get_object_or_404(
+        Institution,
+        id=id
+    )
+
+    if not can_manage_model(city, institution):
+        messages.error(request, f"Não é possível alterar a instituição {institution.name}, pois ela pertence a um outro município ofertado pelo sistema.")
+        return redirect('management:view_institutions')
+
+    if request.method == 'POST':
+        form = InstitutionForm(request.POST, instance=institution, city=city)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Instituição alterada com sucesso.")
+            return redirect('management:view_institutions')
+        messages.error(request, "Não foi possível alterar a instituição.")
+    else:
+        form = InstitutionForm(instance=institution, city=city)
+    return render(request, 'edit_institution.html', {'form': form})
+
+@login_required
+def homologar_mun(request):
+    if request.user.role == UserRole.ADMIN:
+        codigo_ibge = request.GET.get('codigo_ibge')
+        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
+        if municipio_buscado is None:
+            return HttpResponse("Municipio não encontrado")
+        mun = homologar_municipio(codigo_ibge=codigo_ibge)
+        return HttpResponse(f"Municipio {mun} homologado")
+    return HttpResponse("Sem permissão para realizar essa terefa")
 
 @login_required
 def retirar_municipio(request,id):
