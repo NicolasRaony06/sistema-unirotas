@@ -402,7 +402,8 @@ def view_institutions(request):
     institutions = Institution.objects.filter(
         Q(city=city) |
         Q(city__in=related_cities)
-    )
+    ).select_related('city').distinct()
+    
     return render(request, 'view_institutions.html', {'institutions': institutions})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
