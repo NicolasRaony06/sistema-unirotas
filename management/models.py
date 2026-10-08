@@ -31,9 +31,17 @@ class Bus(models.Model):
         flags=re.IGNORECASE
     )
 
-    license_plate = models.CharField(max_length=8, unique=True, validators=[license_plate_validator])
+    license_plate = models.CharField(
+        max_length=8, 
+        unique=True, 
+        validators=[license_plate_validator], 
+        verbose_name="Placa", 
+        error_messages={
+            'unique': "Já existe um ônibus registrado com esta placa."
+        }
+    )
     name = models.CharField(max_length=50)
-    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1, message="A capacidade do ônibus deve ser maior ou igual a 1.")])
     color = models.CharField(max_length=15, null=True, blank=True)
     identification_photo = models.ImageField(upload_to='bus/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
