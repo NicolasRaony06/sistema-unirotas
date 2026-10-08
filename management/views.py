@@ -233,20 +233,9 @@ def view_drivers(request):
     drivers = PersonelProfile.objects.filter(
         user__role=UserRole.DRIVER, 
         city=request.user.personel_profile.city
-    )
-    tot_drivers = PersonelProfile.objects.filter(
-        user__role=UserRole.DRIVER, 
-        city=request.user.personel_profile.city
-    ).count()
-    municipio = Municipio.objects.filter(gestor=request.user).first()
-
-
-    return render(request, 'manager/view_drivers.html', {'drivers': drivers,
-            'tot_drivers': tot_drivers,
-            'full_name' : request.user.full_name,
-            'role': request.user.role,
-            'profile_picture': request.user.profile_picture,
-            'municipio':municipio })
+    ).select_related('city').distinct()
+    
+    return render(request, 'manager/view_drivers.html', {'drivers': drivers})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
