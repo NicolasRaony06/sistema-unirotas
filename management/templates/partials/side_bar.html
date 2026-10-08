@@ -31,7 +31,7 @@
     <nav class="nav" aria-label="Menu principal">
         <small>MENU</small>
         {% if request.user.role == 'ADMIN' %}
-            <a class="{% if request.resolver_match.url_name == 'home-admin' %}active{% endif %}" href="{% url 'management:home-admin' %}">
+            <a class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'management:home' %}">
                 <span class="icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -88,7 +88,7 @@
                 Configurações
             </a>
         {% elif request.user.role == 'MANAGER' %}
-            <a class="{% if request.resolver_match.url_name == 'home-manager' %}active{% endif %}" href="{% url 'management:home-manager' %}">
+            <a class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'management:home' %}">
             <span class="icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round">

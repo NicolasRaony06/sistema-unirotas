@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from datetime import datetime
@@ -13,18 +14,25 @@ from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
 from .handlers import *
 
 @login_required
-@role_required(allowed_roles=UserRole.ADMIN)
+@role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def home(request):
-    municipios = Municipio.objects.count()
-    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
-    return render(request,'admin/home.html',{
-        'estudantes':estudantes,
-        'municipios': municipios,
+    user_role = request.user.role
+    if user_role == UserRole.ADMIN:
+        template_name = "admin/home.html"
+        
+    elif user_role == UserRole.MANAGER:
+        template_name = "manager/home.html"
+
+    context = {
+        'estudantes':User.objects.filter(role=UserRole.STUDENT).count(),
+        'municipios': Municipio.objects.count(),
         'full_name' : request.user.full_name,
-        'data': datetime.now(),
+        'data': timezone.now(),
         'role': request.user.role,
         'profile_picture': request.user.profile_picture
-    })
+    }
+
+    return render(request, template_name, context)
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
@@ -142,20 +150,6 @@ def desabilitar_mun(request,id):
         #mun = desabilitar_municipio(codigo_ibge=codigo_ibge)
         # return HttpResponse(f"Municipio {municipio_buscado} desabilitado")
         return redirect('management:municipios')
-
-@login_required
-@role_required(allowed_roles=UserRole.MANAGER)
-def home_manager(request):
-    municipios = Municipio.objects.count()
-    estudantes = User.objects.filter(role=UserRole.STUDENT).count()
-    return render(request,'manager/home.html',{
-        'estudantes':estudantes,
-        'municipios': municipios,
-        'full_name' : request.user.full_name,
-        'data': datetime.now(),
-        'role': request.user.role,
-        'profile_picture': request.user.profile_picture
-    })
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -281,7 +275,7 @@ def activate_driver(request, id):
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
-        return redirect('management:home-manager')
+        return redirect('management:home')
 
     if request.method == 'POST':
         form = BusForm(request.POST, request.FILES)
@@ -365,7 +359,7 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:home-manager')
+            return redirect('management:home')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
