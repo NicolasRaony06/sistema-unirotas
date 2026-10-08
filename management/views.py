@@ -16,7 +16,7 @@ from .handlers import *
 def home(request):
     municipios = Municipio.objects.count()
     estudantes = User.objects.filter(role=UserRole.STUDENT).count()
-    return render(request,'home.html',{
+    return render(request,'admin/home.html',{
         'estudantes':estudantes,
         'municipios': municipios,
         'full_name' : request.user.full_name,
@@ -30,7 +30,7 @@ def gestores(request):
     gestores = User.objects.filter(role=UserRole.MANAGER)
     gestores_inativos = User.objects.filter(role = UserRole.MANAGER,is_active=False).count()
     total_gestores = User.objects.filter(role=UserRole.MANAGER).count() 
-    return render(request,'gestores.html',{
+    return render(request,'admin/gestores.html',{
         'gestores': gestores,
         'gestores_inativos': gestores_inativos,
         'total_gestores': total_gestores,
@@ -47,7 +47,7 @@ def municipios(request):
         tot_municipios = Municipio.objects.all().count()
         gestores = User.objects.filter(role=UserRole.MANAGER)
         gestores_ativos = User.objects.filter(role=UserRole.MANAGER, is_active=True)
-        return render(request,'municipios.html',{
+        return render(request,'admin/municipios.html',{
         'gestores_ativos': gestores_ativos,
         'total_onibus': total_onibus,
         'municipios_ofertados': municipios_ofertados,
@@ -91,10 +91,10 @@ def criar_municipio(request):
                     municipio_base.municipios_relacionados.add(municipio_criado)
                     return redirect('management:home-manager')'''
         else:
-            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            return render(request, 'admin/cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
-    return render(request, 'cadastro_municipio.html', {'form': form})
+    return render(request, 'admin/cadastro_municipio.html', {'form': form})
 
 @login_required
 def associar_gestor(request):
@@ -143,7 +143,7 @@ def desabilitar_mun(request,id):
 def home_manager(request):
     municipios = Municipio.objects.count()
     estudantes = User.objects.filter(role=UserRole.STUDENT).count()
-    return render(request,'home_manager.html',{
+    return render(request,'manager/home.html',{
         'estudantes':estudantes,
         'municipios': municipios,
         'full_name' : request.user.full_name,
@@ -158,7 +158,7 @@ def localizacoes(request):
     municipio_base = Municipio.objects.filter(gestor = request.user).first()
     
     if not municipio_base: 
-        return render(request, 'localizacoes.html', {
+        return render(request, 'manager/localizacoes.html', {
             'total_municipios': 0,
             'full_name': request.user.full_name,
             'role': request.user.role,
@@ -167,7 +167,7 @@ def localizacoes(request):
     else:
         tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
         municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk)
-        return render(request, 'localizacoes.html', {
+        return render(request, 'manager/localizacoes.html', {
                     'municipio': municipio_base,
                     'total_municipios': tot_municipios,
                     'municipios': municipios,
@@ -202,7 +202,7 @@ def invite_driver(request):
 
         if not email == confirm_email:
             messages.error(request, "Os emails informados não são iguais.")
-            return render(request, "invite_driver.html")
+            return render(request, "manager/invite_driver.html")
 
         link = generate_elevated_signup_link(
             higher_role_email=request.user.email,
@@ -213,11 +213,11 @@ def invite_driver(request):
 
         if link:
             messages.success(request, f'Convite enviado com sucesso para {email}.')
-            return render(request, "invite_driver.html")
+            return render(request, "manager/invite_driver.html")
         else:
             messages.error(request, f"Não foi possível enviar o convite para {email}.")
 
-    return render(request, "invite_driver.html")
+    return render(request, "manager/invite_driver.html")
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -233,7 +233,7 @@ def view_drivers(request):
     municipio = Municipio.objects.filter(gestor=request.user).first()
 
 
-    return render(request, 'view_drivers.html', {'drivers': drivers,
+    return render(request, 'manager/view_drivers.html', {'drivers': drivers,
             'tot_drivers': tot_drivers,
             'full_name' : request.user.full_name,
             'role': request.user.role,
@@ -301,7 +301,7 @@ def register_bus(request):
         messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
     else:
         form = BusForm()
-    return render(request, "register_bus.html", {'form': form})
+    return render(request, "manager/register_bus.html", {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -310,7 +310,7 @@ def view_buses(request):
     tot_buses = Bus.objects.filter(city=request.user.personel_profile.city).count()
     municipio = Municipio.objects.filter(gestor=request.user).first()
 
-    return render(request, "view_buses.html", {'buses': buses,  'full_name': request.user.full_name,'role': request.user.role,'profile_picture': request.user.profile_picture,'tot_buses': tot_buses,'municipio':municipio})
+    return render(request, "manager/view_buses.html", {'buses': buses,  'full_name': request.user.full_name,'role': request.user.role,'profile_picture': request.user.profile_picture,'tot_buses': tot_buses,'municipio':municipio})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -329,7 +329,7 @@ def edit_bus(request, id):
         messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
     else:
         form = BusForm(instance=bus)
-    return render(request, 'edit_bus.html', {'form': form})
+    return render(request, 'manager/edit_bus.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -376,7 +376,7 @@ def register_bus_stop(request):
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
-    return render(request, "register_bus_stop.html", {'form': form})
+    return render(request, "manager/register_bus_stop.html", {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -393,7 +393,7 @@ def view_bus_stops(request):
         Q(city__in=related_cities)
     ).select_related('city').distinct()
 
-    return render(request, 'view_bus_stops.html', {'bus_stops': bus_stops})
+    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -417,7 +417,7 @@ def edit_bus_stop(request, id):
         messages.error(request, "Não foi possível alterar a parada")
     else:
         form = BusStopForm(instance=bus_stop, city=city)
-    return render(request, 'edit_bus_stop.html', {'form': form})
+    return render(request, 'manager/edit_bus_stop.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -474,7 +474,7 @@ def register_institution(request):
         messages.error(request, "Não foi possível cadastrar instituição.")
     else:
         form = InstitutionForm(city=city)
-    return render(request, 'register_institution.html', {'form': form})
+    return render(request, 'manager/register_institution.html', {'form': form})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -491,7 +491,7 @@ def view_institutions(request):
         Q(city__in=related_cities)
     ).select_related('city').distinct()
     
-    return render(request, 'view_institutions.html', {'institutions': institutions})
+    return render(request, 'manager/view_institutions.html', {'institutions': institutions})
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -560,7 +560,7 @@ def edit_institution(request, id):
         messages.error(request, "Não foi possível alterar a instituição.")
     else:
         form = InstitutionForm(instance=institution, city=city)
-    return render(request, 'edit_institution.html', {'form': form})
+    return render(request, 'manager/edit_institution.html', {'form': form})
 
 @login_required
 def homologar_mun(request):
