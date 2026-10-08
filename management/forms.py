@@ -7,13 +7,13 @@ class BusForm(forms.ModelForm):
     class Meta:
         model = Bus
         fields = ['license_plate', 'name', 'capacity', 'color', 'identification_photo']
-        ''' widgets = {
-            'license_plate': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite a placa do ônibus'}),
-            'name': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite o nome identificador do ônibus'}),
-            'capacity': forms.NumberInput(attrs={'class': '', 'placeholder': 'Digite a capacidade do ônibus'}),
-            'color': forms.TextInput(attrs={'class': '', 'placeholder': 'Digite cor predominante do ônibus'}),
-            'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
-        }'''
+        widgets = {
+            'license_plate': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: ABC-1234'}),
+            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Ônibus 001'}),
+            'capacity': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'Ex: 50'}),
+            'color': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Amarelo'}),
+            #'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
+        }
 
     def clean_license_plate(self):
         data = self.cleaned_data['license_plate']
