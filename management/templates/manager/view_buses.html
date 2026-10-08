@@ -78,16 +78,15 @@
                             <p class="details">Capacidade total: {{bus.capacity}} assentos</p>
                         </div>
                         <div class="municipio-actions">
-                            <form action="{% url 'management:edit_bus' bus.id %}" method='Post'>
-                                {% csrf_token %}
-                                <button type="submit" class="btn-action">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M12 20h9" />
-                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                                    </svg>
-                                    Editar
-                                </button>
-                            </form>
+                            
+                            <a href="{% url "management:edit_bus" bus.id %}" class="btn-action">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                </svg>
+                                Editar
+                            </a>
+                            
                             {% if bus.is_active == False %}
                             <form action="{% url 'management:activate_bus' bus.id %}" method="post">
                                 {% csrf_token %}
