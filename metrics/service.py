@@ -3,21 +3,23 @@ import math
 from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 from decimal import Decimal
 from datetime import timedelta
+from .data_type import LastStopDTO, RoutePredictionDTO, StopDTO, RouteDTO, TimeLineDTO
+from .route_objects import RouteMaterialization
+from authentication.models import User
 
-def register_student(user, route):
+def register_student_on_route(user: User, route) -> StudentsUsingBus:
     return StudentsUsingBus.objects.get_or_create(
         user=user, 
-        route=route, 
+        route_id=route, 
         day=timezone.localdate()
     )
 
-def destruct_student(user, route):
+def destruct_student_from_route(user:User, route) -> bool:
     student = StudentsUsingBus.objects.filter(
         user=user, 
-        route=route, 
+        route_id=route, 
         day=timezone.localdate()
     ).first()
     if not student:
@@ -25,8 +27,8 @@ def destruct_student(user, route):
     student.delete()
     return True
 
-def set_route_as_done(line, route):
-    route_day = LastRouteDay.objects.filter(line=line, route=route, date=timezone.localdate()).first()
+def set_route_as_done(line, route) -> bool:
+    route_day = LastRouteDay.objects.filter(line_id=line, route_id=route, date=timezone.localdate()).first()
     if not route_day:
         return False
 
@@ -35,93 +37,91 @@ def set_route_as_done(line, route):
         route_day.save(update_fields=['is_concluded'])
     return True
 
-def calculate_delta_time(start, end):
+def calculate_delta_time(start: timezone.datetime, end: timezone.datetime) -> float:
     return (end - start).total_seconds()
 
-def convert_km_to_m(distance):
-    return distance * 1000
+def convert_km_to_m(distance: float) -> float:
+    try:
+        if distance:
+            return distance * 1000
+        else:
+            return 0
+    except:
+        return 0
 
-def calculate_meters_per_second(delta_time, distance):
+def calculate_meters_per_second(delta_time: timezone.datetime, distance:float) -> Decimal:
     if delta_time <= 0:
-        return 0.0
+        return Decimal("0")
 
     meters = convert_km_to_m(distance)
     velocity = Decimal(str(meters)) / Decimal(str(delta_time))
     return velocity
 
-
-def calculate_next_stop_time(meters_per_second, next_stop_distance):
-    if meters_per_second <= 0:
-        return 0
-
-    next_stop_meters = convert_km_to_m(next_stop_distance)
-    time_remaining_seconds = math.ceil(next_stop_meters / meters_per_second)
-    return time_remaining_seconds
-
-def get_last_stop_metrics(line, route, current_order: int):
+def get_last_stop_metrics(line, route, current_order: int) -> StopMetrics:
     if current_order <= 1:
         return None
-    last_route = LastRouteDay.objects.filter(route = route, line = line, date=timezone.localdate()).first()
+    last_route = LastRouteDay.objects.filter(route_id = route, line_id = line, date=timezone.localdate()).first()
+    if last_route is None:
+        return None
     last_order = current_order - 1
     last_stop = StopMetrics.objects.filter(last_route_day=last_route, order=last_order).first()
     return last_stop
 
-def set_last_stop_metrics(line, route, current_stop, current_order: int, distance):
-    now = timezone.now()  # Datetime completo com timezone em UTC
+def set_last_stop_metrics(last_stop_data: LastStopDTO) -> StopMetrics:
+    now = timezone.now()
     today = timezone.localdate()
     with transaction.atomic():
         route_day, _ = LastRouteDay.objects.get_or_create(
-            line=line, route=route, date=today
+            line_id=last_stop_data.line_id, route_id=last_stop_data.route_id, date=today
         )
 
-        if current_order == 1:
-            cache_key = f"trip_start-{line}-{route}-{today}".replace(" ", "").strip()
+        if last_stop_data.current_order == 1:
+            cache_key = f"trip_start-{last_stop_data.line_id}-{last_stop_data.route_id}-{today}".replace(" ", "").strip()
             start_data = cache.get(cache_key)
+            start_stop = last_stop_data.current_stop_id
             if start_data:
-                start_stop = start_data["start_stop"]
                 start_time = start_data["start_time"]
                 cache.delete(cache_key)
             else:
-                start_stop = current_stop
                 start_time = now
         else:
-            last_stop = get_last_stop_metrics(line, route, current_order)
+            last_stop = get_last_stop_metrics(last_stop_data.line_id, last_stop_data.route_id, last_stop_data.current_order)
             if not last_stop:
-                start_stop = current_stop
+                start_stop = last_stop_data.current_stop_id
                 start_time = now
             else:
-                start_stop = last_stop.end_stop
+                start_stop = last_stop.end_stop_id
                 start_time = last_stop.end_time
 
         if start_time > now:
             raise ValueError("O horário inicial não pode ser posterior ao horário final.")
 
         new_stop, _ = StopMetrics.objects.get_or_create(
-            last_route_day=route_day,
-            order=current_order,
+            last_route_day= route_day,
+            order= last_stop_data.current_order,
             defaults={
-                'start_stop': start_stop,
-                'end_stop': current_stop,
+                'start_stop_id': start_stop,
+                'end_stop_id': last_stop_data.current_stop_id,
                 'start_time': start_time,
                 'end_time': now,
-                'distance': distance,
+                'distance': last_stop_data.distance_km,
             }
         )
         return new_stop
 
-def get_time_prediction(line, route, order, distance):
-    last_stop = get_last_stop_metrics(line, route, order)
+def get_time_prediction(stop_data: StopDTO) -> int:
+    last_stop = get_last_stop_metrics(stop_data.line_id, stop_data.route_id, stop_data.order)
     if not last_stop:
         return 0
     delta_time = calculate_delta_time(last_stop.start_time, last_stop.end_time)
     velocity = calculate_meters_per_second(delta_time, last_stop.distance)
-    current_distance = convert_km_to_m(distance) #preciso pegar a distancia da ordem atual da tabela RotaParadas
+    current_distance = convert_km_to_m(stop_data.distance_km)
     if not current_distance or not velocity:
         return 0
     time = Decimal(str(current_distance))/Decimal(str(velocity))
     return math.ceil(time)
 
-def start_trip_metric(line, route, start_stop, ttl=28800):
+def start_trip_metric(line, route, ttl=28800) -> None:
     now = timezone.now()
     today = timezone.localdate()
 
@@ -130,54 +130,55 @@ def start_trip_metric(line, route, start_stop, ttl=28800):
     cache.set(
         cache_key,
         {
-            "start_stop": start_stop,
             "start_time": now,
         },
         timeout=ttl,
     )
 
 
-#não da para testar ainda
-def build_route_timeline_prediction(line, route, current_order: int = 1, base_time=None):
+def build_route_timeline_prediction(route_data: RouteDTO, base_time:timezone.datetime = None) -> RoutePredictionDTO:
     if base_time is None:
         base_time = timezone.now()
 
-    #route_stops = RouteStop.objects.filter(route=route).select_related('start_stop', 'end_stop').order_by('order')
-    route_stops = []
+    route = RouteMaterialization(route_data)
+    route.get_route_stops()
+    route_stops = route.route_stops
     timeline = []
     accumulated_seconds = 0
 
     for rs in route_stops:
-        if rs.order <= current_order:
-            status = "concluida" if rs.order < current_order else "atual"
+        if rs.order <= route_data.current_order:
+            status = "concluida" if rs.order < route_data.current_order else "atual"
             step_seconds = 0
             eta = None
         else:
             status = "pendente"
             step_seconds = get_time_prediction(
-                line=line,
-                route=route,
+                StopDTO(
+                line_id=route_data.line_id,
+                route_id=route_data.route_id,
                 order=rs.order,
-                distance=rs.distance
+                distance_km=rs.distance_km
+                )
             )
             accumulated_seconds += step_seconds
 
             eta = base_time + timedelta(seconds=accumulated_seconds)
 
-        timeline.append({
-            'order': rs.order,
-            'start_stop': rs.start_stop.name,
-            'end_stop': rs.end_stop.name,
-            'status': status,
-            'distance_km': rs.distance,
-            'step_seconds': step_seconds,
-            'accumulated_seconds': accumulated_seconds,
-            'eta': eta,  # Objeto datetime nativo
-        })
+        timeline.append(TimeLineDTO(
+            order= rs.order,
+            start_stop_id= rs.start_stop_id,
+            end_stop_id= rs.end_stop_id,
+            status= status,
+            distance_km= rs.distance_km,
+            step_seconds= step_seconds,
+            accumulated_seconds= accumulated_seconds,
+            eta= eta
+        ))
 
-    return {
-        'current_order': current_order,
-        'base_time': base_time,
-        'total_remaining_seconds': accumulated_seconds,
-        'timeline': timeline
-    }
+    return RoutePredictionDTO(
+        current_order= route_data.current_order,
+        base_time= base_time,
+        total_remaining_seconds= accumulated_seconds,
+        timeline= timeline
+    )

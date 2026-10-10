@@ -41,15 +41,7 @@ def extend_validation(invitation_data:InviteDTO):
     if invitation_data.institution_id is None:
         raise ValueError("este convite não é valido pois para o cadastro do estudante é necessario informar uma instituição valida")
 
-def validate_student_informations(data:InviteDTO):
-    institution_validation = False
-    if data.institution_id:
-        institution_validation = data.institution_id >= 1 #depois checar existencia
-    return institution_validation
-
 def handle_student_signup(request, invitation_data:InviteDTO):
-    if not validate_student_informations(invitation_data):
-        raise ValueError("campos de isntituição invalidos, ao criar um convite para estudante deve ser inserido os campos instituicionais do aluno.")
     if request.method == 'POST':
         form_student = StudentProfileForm(request.POST)
         form_account = UserRegistrationForm(request.POST)
