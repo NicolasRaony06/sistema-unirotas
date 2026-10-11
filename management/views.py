@@ -28,8 +28,6 @@ def home(request):
         'municipios': Municipio.objects.count(),
         'full_name' : request.user.full_name,
         'data': timezone.now(),
-        'role': request.user.role,
-        'profile_picture': request.user.profile_picture
     }
 
     return render(request, template_name, context)
@@ -44,9 +42,6 @@ def gestores(request):
         'gestores': gestores,
         'gestores_inativos': gestores_inativos,
         'total_gestores': total_gestores,
-        'full_name' : request.user.full_name,
-        'role': request.user.role,
-        'profile_picture': request.user.profile_picture
     })
 
 @login_required
@@ -65,9 +60,6 @@ def municipios(request):
         'tot_municipios': tot_municipios,
         'municipios': municipios,
         'gestores':gestores,
-        'full_name' : request.user.full_name,
-        'role': request.user.role,
-        'profile_picture': request.user.profile_picture
     })
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
@@ -88,8 +80,6 @@ def criar_municipio(request):
                 return render(request,'home_manager.html',{
                     'full_name' : request.user.full_name,
                     'data': datetime.now(),
-                    'role': request.user.role,
-                    'profile_picture': request.user.profile_picture
                 })
             '''
             '''elif request.user.role == UserRole.MANAGER:
@@ -160,9 +150,6 @@ def localizacoes(request):
     if not municipio_base: 
         return render(request, 'manager/localizacoes.html', {
             'total_municipios': 0,
-            'full_name': request.user.full_name,
-            'role': request.user.role,
-            'profile_picture': request.user.profile_picture
         })
     else:
         tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
@@ -171,9 +158,6 @@ def localizacoes(request):
                     'municipio': municipio_base,
                     'total_municipios': tot_municipios,
                     'municipios': municipios,
-                    'full_name': request.user.full_name,
-                    'role': request.user.role,
-                    'profile_picture': request.user.profile_picture
                 })
 
 

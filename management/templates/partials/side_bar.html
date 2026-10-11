@@ -8,16 +8,16 @@
 
     <div class="profile">
         <div class="avatar">
-            {% if profile_picture %} <!--Validação simples, se ouver ou não foto do usuario-->
-            <img src="{{ profile_picture.url }}" alt="Imagem Usuario">
+            {% if request.user.profile_picture %} <!--Validação simples, se ouver ou não foto do usuario-->
+            <img src="{{ request.user.profile_picture.url }}" alt="Imagem Usuario">
             {% else %}
             <img src="" alt="Imagem Usuario">
             {% endif %}
         </div>
 
         <div>
-            <strong>{{full_name}}</strong>
-            <span>{{role}}</span>
+            <strong>{{request.user.full_name}}</strong>
+            <span>{{request.user.role}}</span>
         </div>
 
         <span class="icon">
