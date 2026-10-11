@@ -234,7 +234,7 @@ def deactivate_driver(request, id):
         if driver_user.is_active:
             driver_user.is_active = False
             driver_user.save()
-            messages.success(request, f"Motorista {driver_user.full_name} desativado com sucesso.")
+            #messages.success(request, f"Motorista {driver_user.full_name} desativado com sucesso.")
     return redirect('management:view_drivers')
 
 @login_required
@@ -251,7 +251,7 @@ def activate_driver(request, id):
         if not driver_user.is_active:
             driver_user.is_active = True
             driver_user.save()
-            messages.success(request, f"Motorista {driver_user.full_name} ativado com sucesso.")
+            #messages.success(request, f"Motorista {driver_user.full_name} ativado com sucesso.")
     return redirect('management:view_drivers')
 
 @login_required
@@ -273,7 +273,7 @@ def register_bus(request):
 
             return redirect('management:view_buses')
 
-        messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
+        #messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
     else:
         form = BusForm()
     return render(request, "manager/register_bus.html", {'form': form})
@@ -298,7 +298,7 @@ def edit_bus(request, id):
             form.save()
             messages.success(request, f"Ônibus {bus.name} alterado com sucesso.")
             return redirect("management:view_buses")
-        messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
+        #messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
     else:
         form = BusForm(instance=bus)
     return render(request, 'manager/edit_bus.html', {'form': form})
@@ -316,7 +316,7 @@ def deactivate_bus(request, id):
         if bus.is_active:
             bus.is_active = False
             bus.save()
-            messages.success(request, f"Ônibus {bus.name} desativado com sucesso.")
+            #messages.success(request, f"Ônibus {bus.name} desativado com sucesso.")
     return redirect('management:view_buses')
 
 @login_required
@@ -332,7 +332,7 @@ def activate_bus(request, id):
         if not bus.is_active:
             bus.is_active = True
             bus.save()
-            messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
+            #messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
 
 @login_required
@@ -343,8 +343,8 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:home')
-        messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
+            return redirect('management:view_bus_stops')
+        #messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
     return render(request, "manager/register_bus_stop.html", {'form': form})
@@ -387,7 +387,7 @@ def edit_bus_stop(request, id):
             form.save()
             messages.success(request, "Parada alterada com sucesso.")
             return redirect("management:view_bus_stops")
-        messages.error(request, "Não foi possível alterar a parada")
+        #messages.error(request, "Não foi possível alterar a parada")
     else:
         form = BusStopForm(instance=bus_stop, city=city)
     return render(request, 'manager/edit_bus_stop.html', {'form': form})
@@ -409,7 +409,7 @@ def deactivate_bus_stop(request, id):
         if bus_stop.is_active:
             bus_stop.is_active = False
             bus_stop.save()
-            messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
+            #messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
     # base_url = reverse('management:view_bus_stops')
     # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
     return redirect('management:view_bus_stops')
@@ -432,7 +432,7 @@ def activate_bus_stop(request, id):
             print('shgfhjsajkf')
             bus_stop.is_active = True
             bus_stop.save()
-            messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
+            #messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
     # base_url = reverse('management:view_bus_stops')
     # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
     return redirect('management:view_bus_stops')
@@ -447,7 +447,7 @@ def register_institution(request):
             form.save()
             messages.success(request, "Instituição cadastrada com sucesso.")
             return redirect("management:view_institutions")
-        messages.error(request, "Não foi possível cadastrar instituição.")
+        #messages.error(request, "Não foi possível cadastrar instituição.")
     else:
         form = InstitutionForm(city=city)
     return render(request, 'manager/register_institution.html', {'form': form})
@@ -489,7 +489,7 @@ def deactivate_institution(request, id):
         if institution.is_active:
             institution.is_active = False
             institution.save()
-            messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
+            #messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
 
     # base_url = reverse('management:view_institutions')
     # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
@@ -514,7 +514,7 @@ def activate_institution(request, id):
         if not institution.is_active:
             institution.is_active = True
             institution.save()
-            messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
+            #messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
     # base_url = reverse('management:view_institutions')
     # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
     return redirect('management:view_institutions')
@@ -538,7 +538,7 @@ def edit_institution(request, id):
             form.save()
             messages.success(request, "Instituição alterada com sucesso.")
             return redirect('management:view_institutions')
-        messages.error(request, "Não foi possível alterar a instituição.")
+        #messages.error(request, "Não foi possível alterar a instituição.")
     else:
         form = InstitutionForm(instance=institution, city=city)
     return render(request, 'manager/edit_institution.html', {'form': form})

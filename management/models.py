@@ -67,7 +67,8 @@ class BusStop(models.Model):
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_bus_stop_per_city"
+                name="unique_bus_stop_per_city",
+                violation_error_message="Já existe um ponto de ônibus com este nome nesta cidade."
             )
         ]
 

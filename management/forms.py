@@ -12,7 +12,6 @@ class BusForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Ônibus 001'}),
             'capacity': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'Ex: 50'}),
             'color': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Amarelo'}),
-            #'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
         }
 
     def clean_license_plate(self):
@@ -30,6 +29,15 @@ class BusStopForm(forms.ModelForm):
     class Meta:
         model = BusStop
         fields = ['name', 'description', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Atacarejo'}),
+            'description': forms.Textarea(attrs={
+                "class": "input-field",
+                "placeholder": "Descreva a parada",
+                "rows": 4,
+            }),
+            'city': forms.Select(attrs={"class": "select-field"})
+        }
 
     def __init__(self, *args, **kwargs):
         city = kwargs.pop('city', None)
