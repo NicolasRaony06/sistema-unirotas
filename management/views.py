@@ -534,18 +534,6 @@ def edit_institution(request, id):
     return render(request, 'manager/edit_institution.html', {'form': form})
 
 @login_required
-@role_required(allowed_roles=UserRole.ADMIN)
-def homologar_mun(request):
-
-    codigo_ibge = request.GET.get('codigo_ibge')
-    municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
-    if municipio_buscado is None:
-        return HttpResponse("Municipio não encontrado")
-    mun = homologar_municipio(codigo_ibge=codigo_ibge)
-    return HttpResponse(f"Municipio {mun} homologado")
-    #return HttpResponse("Sem permissão para realizar essa terefa")
-
-@login_required
 @role_required(allowed_roles=UserRole.MANAGER)
 def retirar_municipio(request,id):
     if request.method == 'POST':
