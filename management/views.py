@@ -546,7 +546,7 @@ def homologar_mun(request):
     #return HttpResponse("Sem permissão para realizar essa terefa")
 
 @login_required
-@role_required(allowed_roles=UserRole.ADMIN)
+@role_required(allowed_roles=UserRole.MANAGER)
 def retirar_municipio(request,id):
     if request.method == 'POST':
         municipio_pai = Municipio.objects.filter(gestor= request.user).first()
