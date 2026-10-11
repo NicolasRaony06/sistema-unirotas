@@ -43,7 +43,7 @@ urlpatterns = [
     path('my_informations/', my_information, name="my_information"),
     path('change_avatar/', change_avatar, name="change_avatar"),
     path('change_password/', change_password, name="change_password"),
-    #path('test/', test, name="test"),
+    path('test/', test, name="test"),
 
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='registration/password_reset_form.html',

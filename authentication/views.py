@@ -149,6 +149,6 @@ def test(request):
     if not email:
         return HttpResponse("coloque um email ?email=")
     higher_role_email = "bezerra@gmail.com"
-    invite = InviteDTO(higher_role_email, UserRole.ADMIN, email, 1, 1)
+    invite = InviteDTO(higher_role_email, UserRole.MANAGER, email, 1, 1)
     print(service.generate_elevated_signup_link(invite, request))
     return HttpResponse("veja o terminal")
