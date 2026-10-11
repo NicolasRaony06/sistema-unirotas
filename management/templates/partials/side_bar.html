@@ -11,7 +11,7 @@
             {% if request.user.profile_picture %} <!--Validação simples, se ouver ou não foto do usuario-->
             <img src="{{ request.user.profile_picture.url }}" alt="Imagem Usuario">
             {% else %}
-            <img src="" alt="Imagem Usuario">
+            <img src="{{ request.user.avatar_url }}" alt="Imagem Usuario">
             {% endif %}
         </div>
 
