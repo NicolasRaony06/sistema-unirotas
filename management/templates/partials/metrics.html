@@ -1,5 +1,5 @@
 <section class="metrics" aria-label="Resumo">
-    {% if request.resolver_match.url_name == 'home-admin' %} <!--Metrics ira mudar a depender do tipo de usuario -->
+    {% if request.user.role == 'ADMIN' %} <!--Metrics ira mudar a depender do tipo de usuario -->
 
     <article class="metric">
         <span>
