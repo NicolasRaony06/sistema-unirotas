@@ -423,12 +423,13 @@ def activate_bus_stop(request, id):
             BusStop,
             id=id
         )
-
+        
         if not can_manage_model(city, bus_stop):
             messages.error(request, f"Não é possível ativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
             return redirect('management:view_bus_stops')
 
         if not bus_stop.is_active:
+            print('shgfhjsajkf')
             bus_stop.is_active = True
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
