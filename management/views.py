@@ -354,10 +354,12 @@ def register_bus_stop(request):
 def view_bus_stops(request):
     city = request.user.personel_profile.city
 
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
+    # related_cities = []
+    # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    # if not filter_ocult_related_cities: 
+    #     
+
+    related_cities = city.municipios_relacionados.all()
 
     bus_stops = BusStop.objects.filter(
         Q(city=city) |
@@ -408,8 +410,9 @@ def deactivate_bus_stop(request, id):
             bus_stop.is_active = False
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
-    base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    # base_url = reverse('management:view_bus_stops')
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_bus_stops')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -429,8 +432,9 @@ def activate_bus_stop(request, id):
             bus_stop.is_active = True
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
-    base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    # base_url = reverse('management:view_bus_stops')
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_bus_stops')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -452,10 +456,12 @@ def register_institution(request):
 def view_institutions(request):
     city = request.user.personel_profile.city
 
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
+    # related_cities = []
+    # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    # if not filter_ocult_related_cities: 
+    #     related_cities = city.municipios_relacionados.all()
+
+    related_cities = city.municipios_relacionados.all()
 
     institutions = Institution.objects.filter(
         Q(city=city) |
@@ -484,8 +490,10 @@ def deactivate_institution(request, id):
             institution.save()
             messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
 
-    base_url = reverse('management:view_institutions')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    # base_url = reverse('management:view_institutions')
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+
+    return redirect('management:view_institutions')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -506,8 +514,9 @@ def activate_institution(request, id):
             institution.is_active = True
             institution.save()
             messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
-    base_url = reverse('management:view_institutions')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    # base_url = reverse('management:view_institutions')
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_institutions')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
