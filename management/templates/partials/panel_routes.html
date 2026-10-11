@@ -1,5 +1,5 @@
 <section class="panel routes-panel">
-    {% if request.resolver_match.url_name == 'home-admin' %}
+    {% if request.user.role == 'ADMIN' %}
     <div class="panel-head">
         <h3>Rotas Recentes</h3>
         <a href="#rotas">Ver todas →</a>
@@ -54,7 +54,7 @@
             </tbody>
         </table>
     </div>
-    {% elif request.resolver_match.url_name == 'home-manager' %}
+    {% elif request.user.role == 'MANAGER' %}
     <div class="panel-head">
         <h3>Rotas Do Municipio</h3>
         <a href="#rotas">Ver todas →</a>

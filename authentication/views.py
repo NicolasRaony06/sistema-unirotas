@@ -57,9 +57,9 @@ def signin(request):
             if user is not None:
                 login(request, user)
                 if request.user.role == 'ADMIN':
-                    return redirect("management:home-admin")
+                    return redirect("management:home")
                 elif request.user.role == 'MANAGER':
-                    return redirect("management:home-manager")
+                    return redirect("management:home")
                 return redirect("authentication:settings") #temp ate fazer as outras partes
             else:
                 form_login.add_error(None, "E-mail ou senha inválidos.")

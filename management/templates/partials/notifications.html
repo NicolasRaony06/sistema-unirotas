@@ -1,5 +1,5 @@
 <section class="panel notifications" id="notificacoes">
-    {% if request.resolver_match.url_name == 'home-admin' %}
+    {% if request.user.role == 'ADMIN' %}
         <div class="panel-head">
             <h3>Notificações <em>2</em></h3>
             <a href="#lidas">Marcar lidas</a>
@@ -73,7 +73,7 @@
         </div>
         <a class="all-notifications" href="#todas">Ver todas as notificações</a>
 
-    {% elif request.resolver_match.url_name == 'home-manager' %}
+    {% elif request.user.role == 'MANAGER' %}
         <div class="panel-head">
             <h3>Notificações <em>2</em></h3>
             <a href="#lidas">Marcar lidas</a>

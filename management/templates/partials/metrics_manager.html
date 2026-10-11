@@ -1,5 +1,5 @@
 <section class="metrics" aria-label="Resumo">
-    {% if request.resolver_match.url_name == 'home-manager' %}
+    {% if request.user.role == 'ADMIN' %}
 
 
     <article class="metric">
