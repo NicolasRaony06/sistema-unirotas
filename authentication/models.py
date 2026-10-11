@@ -70,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def avatar_url(self):
         if self.profile_picture and hasattr(self.profile_picture, 'url'):
             return self.profile_picture.url
-        return '/static/images/default-avatar.png'
+        return '/static/images/settings/base_profile.png'
 
     def can_invite(self, role):
         if not self.is_active or not role:
