@@ -7,7 +7,7 @@ from .models import UserRole
 
 def role_required(
     allowed_roles:UserRole | Iterable[UserRole],
-    on_denied:Callable[[HttpRequest], HttpResponse]=lambda request: HttpResponseForbidden(
+    on_denied:Callable[[HttpRequest], HttpResponse]=lambda request, *args, **kwargs: HttpResponseForbidden(
         "Acesso negado."
     ),
 ):
