@@ -1,5 +1,6 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution
+from authentication.models import UserRole
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -67,3 +68,29 @@ class InstitutionForm(forms.ModelForm):
             
             self.fields['city'].queryset = Municipio.objects.filter(
                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
+
+class InviteUserForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'input-field',
+        'placeholder': 'motorista@example.com'
+    }))
+    confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'input-field',
+        'placeholder': 'motorista@example.com'
+    }))
+    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select(attrs={
+        'class': 'select-field'
+    }))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        confirm_email = cleaned_data.get('confirm_email')
+
+        if email and confirm_email:
+            if email != confirm_email:
+                self.add_error(
+                    'confirm_email', 'A confirmação de email não corresponde ao email digitado.'
+                )
+
+        return cleaned_data

@@ -4,7 +4,7 @@ from django.urls import path
 app_name = 'management'
 
 urlpatterns = [
-    path('invite_driver/', invite_driver, name="invite_driver"),
+    path('invite_user/', invite_user, name="invite_user"),
     path('view_drivers/', view_drivers, name="view_drivers"),
     path('edit_driver/<int:id>', edit_driver, name="edit_driver"),
     path('deactivate_driver/<int:id>', deactivate_driver, name="deactivate_driver"),

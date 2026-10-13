@@ -10,7 +10,7 @@ from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
+from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm, InviteUserForm
 from .handlers import *
 
 @login_required
@@ -181,29 +181,28 @@ def activate_manager(request,id):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
-def invite_driver(request):
+def invite_user(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        confirm_email = request.POST.get('confirm_email', '').strip()
+        form = InviteUserForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            link = generate_elevated_signup_link(
+                higher_role_email=request.user.email,
+                email=email,
+                role=form.cleaned_data.get('role'),
+                request=request
+            )
 
-        if not email == confirm_email:
-            messages.error(request, "Os emails informados não são iguais.")
-            return render(request, "manager/invite_driver.html")
+            print(link)
 
-        link = generate_elevated_signup_link(
-            higher_role_email=request.user.email,
-            email=email,
-            role=UserRole.DRIVER,
-            request=request
-        )
-
-        if link:
-            messages.success(request, f'Convite enviado com sucesso para {email}.')
-            return render(request, "manager/invite_driver.html")
-        else:
-            messages.error(request, f"Não foi possível enviar o convite para {email}.")
-
-    return render(request, "manager/invite_driver.html")
+            if link:
+                messages.success(request, f'Convite enviado com sucesso para {email}.')
+                return redirect("management:home")
+            else:
+                messages.error(request, f"Não foi possível enviar o convite para {email}.")
+    else:
+        form = InviteUserForm()
+    return render(request, "manager/invite_user.html", {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
