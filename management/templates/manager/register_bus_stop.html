@@ -56,6 +56,11 @@
         <div class="card-header">
             <h2>Cadastrar Parada</h2>
             <p>Preencha os dados da nova parada</p>
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <p style="color: red">{{error}}</p>
+                {% endfor %}
+            {% endif %}
             {% for field in form %}
                 {% for error in field.errors %}
                     <p style="color: red">{{error}}</p>
@@ -147,7 +152,7 @@
                     </a>
 
                     <button type="submit" class="btn btn-primary">
-                        Adicionar ônibus
+                        Adicionar parada
                     </button>
 
                 </div>
