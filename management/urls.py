@@ -37,4 +37,5 @@ urlpatterns = [
     path('active-manager/<int:id>',activate_manager,name='active-manager'),
     path('retirar-municipio/<int:id>',retirar_municipio,name='retirar-municipio'),
     # path('adicionar-municipio',adicionar_municipio,name='adicionar-municipio'),
+
 ]
