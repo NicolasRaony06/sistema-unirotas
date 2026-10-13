@@ -53,6 +53,10 @@ class InstitutionForm(forms.ModelForm):
     class Meta:
         model = Institution
         fields = ['name', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: IFRN'}),
+            'city': forms.Select(attrs={"class": "select-field"})
+        }
 
     def __init__(self, *args, **kwargs):
         city = kwargs.pop('city', None)

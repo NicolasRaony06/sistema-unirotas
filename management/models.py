@@ -87,7 +87,9 @@ class Institution(models.Model):
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_institution_per_city"
+                name="unique_institution_per_city",
+                violation_error_message="Já existe uma instituição com este nome nesta cidade."
+
             )
         ]
 
