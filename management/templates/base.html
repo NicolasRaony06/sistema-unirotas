@@ -1,21 +1,16 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <title>{% block title %}UniRota{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href={% static 'images/home/Logo.png' %}>
-    <link rel="stylesheet" href="{% static 'styles/home.css' %}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static "styles/base.css" %}">
+    {% block extra_css %}{% endblock extra_css %}
 </head>
 <body>
-    <main class="app-shell">
-            {% block side_bar %}
-            {% endblock %}
-
-
-        <section class="workspace">
-            {% block content %}
-            {% endblock %}
-        </section>
-    </main>
+    {% block content %}{% endblock content %}
+    {% block extra_js %}{% endblock extra_js %}
 </body>
 </html>

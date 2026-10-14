@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Início | Admin{% endblock %}
+
+{% block side_bar%} 
+{% include 'partials/side_bar.html' %} 
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Início</h1>
+    <p>Bem-vindo ao painel administrativo UniRota</p>
+</header>
+
+<div class="dashboard">
+    <section class="greeting">
+        <small>{{ data|date:"D, d M Y H:i" }}</small>
+        <h2>Olá, {{ full_name }}!</h2>
+        <p>Você tem 2 notificações não lidas e 1 chamado pendente.</p>
+    </section>
+
+    {% include 'partials/metrics.html' %}
+    
+    <div class="content-grid">
+
+        {% include 'partials/panel_routes.html'%}
+        {% include 'partials/notifications.html'%}
+
+    </div>
+
+</div>
+{% endblock %}

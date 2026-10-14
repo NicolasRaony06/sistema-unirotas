@@ -1,0 +1,28 @@
+:root {
+    --primary-color: #3b82f6;
+    --secondary-color: #1e293b;
+    --background-color: #f8fafc;
+    --text-color: #0f172a;
+    --muted-text: #64748b;
+    --border-color: #e2e8f0;
+
+    --font-main: Arial, sans-serif;
+    --font-code: 'Fira Code', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--var-background-color, #f8fafc);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.5; 
+  -webkit-font-smoothing: antialiased; 
+  min-height: 100vh;
+}
+
