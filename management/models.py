@@ -132,7 +132,7 @@ class Linha(models.Model):
 
 class Rota(models.Model):
     nome = models.CharField(max_length=100)
-    linha = models.ForeignKey(Linha, on_delete=models.CASCADE)
+    linha = models.ForeignKey(Linha, on_delete=models.CASCADE, related_name='linha_rota')
 
     class Direcao(models.TextChoices):
         IDA = 'IDA', 'Ida'

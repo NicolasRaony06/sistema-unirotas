@@ -5,5 +5,5 @@ from operation.models import Viagem, UsuarioDaViagem, Linha
 
 admin.site.register(Viagem)
 admin.site.register(UsuarioDaViagem)
-admin.site.register(Linha)
+
 

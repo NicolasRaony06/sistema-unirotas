@@ -409,7 +409,8 @@ def deactivate_bus_stop(request, id):
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
     base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect(base_url)
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -430,7 +431,8 @@ def activate_bus_stop(request, id):
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
     base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect(base_url)
+    #return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
