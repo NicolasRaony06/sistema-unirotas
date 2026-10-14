@@ -51,11 +51,12 @@ from . import service
 from .forms import (
     ChangePassword,
     LoginForm,
+    PersonelProfileForm,
     StudentProfileForm,
     UserRegistrationForm,
     Validation,
 )
-from .models import StudentProfile, UserRole
+from .models import PersonelProfile, StudentProfile, UserRole
 
 User = get_user_model()
 
@@ -231,7 +232,8 @@ class UserManagerTests(TestCase):
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
-        self.assertIsNone(user.birth_date)
+        # birth_date nao e mais campo do User: hoje mora nos perfis
+        # (StudentProfile/PersonelProfile) ate o modulo City ser liberado.
         self.assertFalse(user.profile_picture)
         self.assertIsNotNone(user.date_joined)
 
@@ -412,7 +414,6 @@ class UserRegistrationFormTests(TestCase):
         dados = {
             "email": "novo@unirotas.com",
             "full_name": "Novo Usuario",
-            "birth_date": "2000-05-10",
             "password": SENHA_FORTE,
             "confirm_password": SENHA_FORTE,
         }
@@ -427,7 +428,6 @@ class UserRegistrationFormTests(TestCase):
 
         self.assertEqual(user.email, "novo@unirotas.com")
         self.assertEqual(user.full_name, "Novo Usuario")
-        self.assertEqual(user.birth_date, date(2000, 5, 10))
         self.assertTrue(user.check_password(SENHA_FORTE))
         self.assertEqual(user.role, UserRole.STUDENT)
 
@@ -469,17 +469,17 @@ class UserRegistrationFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("full_name", form.errors)
 
-    def test_data_de_nascimento_e_opcional(self):
-        form = UserRegistrationForm(data=self.payload(birth_date=""))
+    def test_data_de_nascimento_e_ignorado_pelo_form_da_conta(self):
+        """`birth_date` saiu do User: o form da conta nao deve ter o campo.
+
+        Enquanto o modulo `management.City` nao for liberado, a data mora
+        nos perfis (StudentProfile / PersonelProfile).
+        """
+        form = UserRegistrationForm(data=self.payload(birth_date="2000-05-10"))
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertIsNone(form.cleaned_data["birth_date"])
-
-    def test_data_de_nascimento_aceita_formato_brasileiro(self):
-        form = UserRegistrationForm(data=self.payload(birth_date="10/05/2000"))
-
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["birth_date"], date(2000, 5, 10))
+        self.assertNotIn("birth_date", form.fields)
+        self.assertFalse(hasattr(form.save(), "birth_date"))
 
     def test_form_nao_aceita_role_enviada_pelo_cliente(self):
         """role nao esta em Meta.fields, entao o POST nao deve influenciar o cargo."""
@@ -521,6 +521,52 @@ class StudentProfileFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("period", form.errors)
+
+    def test_data_de_nascimento_e_opcional(self):
+        form = StudentProfileForm(
+            data={"course": "Engenharia", "period": 5, "birth_date": ""}
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["birth_date"])
+
+    def test_data_de_nascimento_aceita_formato_brasileiro(self):
+        form = StudentProfileForm(
+            data={"course": "Engenharia", "period": 5, "birth_date": "10/05/2000"}
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["birth_date"], date(2000, 5, 10))
+
+
+class PersonelProfileFormTests(TestCase):
+    """Formulario do perfil de quem entra por convite (gestor/motorista).
+
+    Enquanto `management.City` nao for liberado, `birth_date` e um
+    placeholder que mora no `PersonelProfile`.
+    """
+
+    def test_data_de_nascimento_e_opcional(self):
+        form = PersonelProfileForm(data={"birth_date": ""})
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["birth_date"])
+
+    def test_data_de_nascimento_aceita_formato_brasileiro(self):
+        form = PersonelProfileForm(data={"birth_date": "10/05/2000"})
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["birth_date"], date(2000, 5, 10))
+
+    def test_salva_o_perfil_com_a_data(self):
+        user = criar_usuario(email="gestor@unirotas.com", role=UserRole.MANAGER)
+        form = PersonelProfileForm(data={"birth_date": "1999-03-15"})
+
+        self.assertTrue(form.is_valid(), form.errors)
+        form.instance.user = user
+        form.save()
+
+        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
 
 
 class LoginFormTests(TestCase):
@@ -616,13 +662,14 @@ class SignupViewTests(CacheLimpoTestCase):
         user = User.objects.get(email="aluno.novo@unirotas.com")
         self.assertEqual(user.full_name, "Aluno de Teste")
         self.assertEqual(user.role, UserRole.STUDENT)
-        self.assertEqual(user.birth_date, date(2000, 5, 10))
         self.assertTrue(user.check_password(SENHA_FORTE))
         self.assertNotEqual(user.password, SENHA_FORTE)
 
         perfil = user.student_profile
         self.assertEqual(perfil.course, "Ciencia da Computacao")
         self.assertEqual(perfil.period, 4)
+        # birth_date hoje e placeholder do perfil (depois volta para o User)
+        self.assertEqual(perfil.birth_date, date(2000, 5, 10))
 
     def test_post_valido_nao_autentica_o_usuario(self):
         self.client.post(self.url, dados_signup())
@@ -648,7 +695,7 @@ class SignupViewTests(CacheLimpoTestCase):
         self.client.post(self.url, dados_signup(birth_date=""))
 
         user = User.objects.get(email="aluno@unirotas.com")
-        self.assertIsNone(user.birth_date)
+        self.assertIsNone(user.student_profile.birth_date)
 
     def test_post_com_email_ja_cadastrado_nao_cria_nada(self):
         criar_usuario(email="aluno@unirotas.com")
@@ -1052,7 +1099,7 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
         user = User.objects.get(email="novo.gestor@unirotas.com")
         self.assertEqual(user.role, UserRole.MANAGER)
         self.assertEqual(user.full_name, "Novo Gestor")
-        self.assertEqual(user.birth_date, date(1999, 3, 15))
+        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
         self.assertTrue(user.check_password(SENHA_FORTE))
         self.assertFalse(StudentProfile.objects.filter(user=user).exists())
 
@@ -1088,6 +1135,33 @@ class ConviteFluxoIntegracaoTests(CacheLimpoTestCase):
             {"email": self.email_convidado, "password": SENHA_FORTE},
         )
         self.assertRedirects(resposta_login, reverse("authentication:settings"))
+
+    def test_get_renderiza_o_formulario_de_conta_e_o_do_perfil(self):
+        link, _ = convidar(self.admin, "novo.gestor@unirotas.com", UserRole.MANAGER)
+
+        resposta = self.abrir(link)
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsInstance(
+            resposta.context["personel_account"], PersonelProfileForm
+        )
+
+    def test_data_de_nascimento_e_salva_no_personel_profile(self):
+        """O birth_date do convite vai para o PersonelProfile (placeholder)."""
+        link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+
+        self.consumir(link, birth_date="1999-03-15")
+
+        user = User.objects.get(email=self.email_convidado)
+        self.assertEqual(user.personel_profile.birth_date, date(1999, 3, 15))
+
+    def test_data_de_nascimento_em_branco_ainda_cria_o_personel_profile(self):
+        link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
+
+        self.consumir(link, birth_date="")
+
+        user = User.objects.get(email=self.email_convidado)
+        self.assertIsNone(user.personel_profile.birth_date)
 
     def test_post_repetido_no_mesmo_link_nao_cria_duas_contas(self):
         link, _ = convidar(self.admin, self.email_convidado, UserRole.MANAGER)
@@ -1350,7 +1424,12 @@ class MyInformationViewTests(TestCase):
         self.user = criar_usuario(
             email="aluno@unirotas.com",
             full_name="Aluno Teste",
+        )
+        StudentProfile.objects.create(
+            user=self.user,
             birth_date=date(2000, 5, 10),
+            course="Ciencia da Computacao",
+            period=4,
         )
         self.client.force_login(self.user)
         self.url = reverse("authentication:my_information")
@@ -1366,11 +1445,33 @@ class MyInformationViewTests(TestCase):
         self.assertContains(response, "10/05/2000")
 
     def test_mostra_texto_padrao_sem_data_de_nascimento(self):
-        self.user.birth_date = None
-        self.user.save()
+        perfil = self.user.student_profile
+        perfil.birth_date = None
+        perfil.save()
 
         response = self.client.get(self.url)
 
+        self.assertContains(response, "Não informada")
+
+    def test_le_a_data_do_personel_profile_para_cargos_convocados(self):
+        """Gestor/motorista nao tem StudentProfile; a view le o outro perfil."""
+        gestor = criar_usuario(email="gestor@unirotas.com", role=UserRole.MANAGER)
+        PersonelProfile.objects.create(user=gestor, birth_date=date(1999, 3, 15))
+        self.client.force_login(gestor)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["birth_date"], date(1999, 3, 15))
+        self.assertContains(response, "15/03/1999")
+
+    def test_sem_perfil_nao_quebra_a_tela(self):
+        """Usuario sem nenhum perfil (nao tem birth_date em lugar nenhum)."""
+        self.client.force_login(criar_usuario(email="sem.perfil@unirotas.com"))
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["birth_date"])
         self.assertContains(response, "Não informada")
 
 import base64

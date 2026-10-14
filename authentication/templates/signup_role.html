@@ -49,10 +49,10 @@
 
                 <div class="input-group input-with-icon">
                     <i class="fa-regular fa-calendar" style="color: #0047ab;"></i>
-                    {{ form_account.birth_date }}
+                    {{ personel_account.birth_date }}
                 </div>
-                {% if form_account.birth_date.errors %}
-                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form_account.birth_date.errors.0 }}</div>
+                {% if personel_account.birth_date.errors %}
+                    <div class="field-error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ personel_account.birth_date.errors.0 }}</div>
                 {% endif %}
 
                 <!-- Erros globais da etapa 1 se houver -->

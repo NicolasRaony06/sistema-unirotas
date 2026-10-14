@@ -4,4 +4,27 @@ from .models import *
 @admin.register(Municipio)
 class MunicipioAdmin(admin.ModelAdmin):
     ...
+
+@admin.register(Bus)
+class BusAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(BusStop)
+class BusStopAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(Institution)
+class InstitutionAdmin(admin.ModelAdmin):
+    ...
 # Register your models here.
+@admin.register(Linha)
+class LinhaAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(Rota)
+class RotaAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(TrechoViagem)
+class TrechoViagemAdmin(admin.ModelAdmin):
+    ...
