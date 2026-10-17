@@ -1,0 +1,79 @@
+<aside class="sidebar">
+    <header class="sidebar-header">
+        <img src="" alt="Logo UniRota">
+        <hr>
+    </header>
+    <div class="user-profile">
+        <img src="{{request.user.avatar_url}}" alt="Foto do Usuário">
+        <div>
+            <h2>{{request.user}}</h2>
+            {% if request.user.role == 'MANAGER' %}
+                <p>Gestor - {{request.user.personel_profile.city}}</p>
+            {% else %}
+                <p>Administrador</p>
+            {% endif %}
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <h2>Menu</h2>
+        <ul>
+            <li>
+                <a href="#" class="nav-link">
+                    <img src="" alt="" aria-hidden="true">
+                    <span>Início</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link">
+                    <img src="" alt="" aria-hidden="true">
+                    <span>Notificações</span>
+                </a>
+            </li>
+            {% if request.user.role == 'ADMIN' %}
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Gestores</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Municípios</span>
+                    </a>
+                </li>
+            {% elif request.user.role == 'MANAGER' %}
+                 <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Localizações</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Frota Escolar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Motoristas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Paradas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <img src="" alt="" aria-hidden="true">
+                        <span>Rotas</span>
+                    </a>
+                </li>                  
+            {% endif %}
+        </ul>
+    </nav>
+</aside>
