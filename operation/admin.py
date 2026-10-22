@@ -1,5 +1,5 @@
 from django.contrib import admin
-from operation.models import Viagem, UsuarioDaViagem, Linha
+from operation.models import Viagem, UsuarioDaViagem
 
 # Register your models here.
 

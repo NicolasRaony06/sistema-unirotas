@@ -13,33 +13,34 @@ from management.models import *
 #         return self.nome
     
 class Viagem(models.Model):
-    linha = models.ForeignKey(Rota, on_delete=models.CASCADE)
+    rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
     data = models.DateTimeField()
     status = models.CharField(max_length=20, choices=[
         ('aguardando', 'Aguardando'),
-        ('em_anamento', 'Em andamento'),
+        ('em_andamento', 'Em andamento'),
         ('concluida', 'Concluida'),
     ])
     momento_iniciado = models.DateTimeField(null=True, blank=True)
     momento_finalizado = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.linha} ({self.data})'
+        return f'{self.rota.linha} - {self.rota.direcao} ({self.data})'
 
     def comecar(self):
         self.status = 'em_andamento'
         self.momento_iniciado = timezone.now()
         self.save()
 
-    def concluir(self):
+    def concluir(self, motorista):
         self.status = 'concluida'
         self.momento_finalizado = timezone.now()
         self.save()
 
         proxima = Viagem.objects.filter(
-            linha=self.linha,
+            rota=self.rota,
             status='aguardando',
-            data__gte=self.data
+            data__gte=self.data,
+            rota__linha__motorista = motorista
         ).exclude(pk=self.pk).order_by('data').first()
 
         if proxima:

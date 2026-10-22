@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from operation.models import Viagem, UsuarioDaViagem, Linha
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -9,11 +10,11 @@ from django.db import IntegrityError
 #Viagem
 
 def lista_viagens(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento').order_by('data').first()
+    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista = request.user).order_by('rota__linha__horario_inicio').first()
     
 
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando').order_by('data').first()
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista = request.user).order_by('data').first()
         
     moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
 
@@ -21,7 +22,7 @@ def lista_viagens(request):
 
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    proxima = obj_viagem.concluir()
+    proxima = obj_viagem.concluir(request.user)
 
     if proxima:
         messages.success(request, f"Viagem concluída! Próxima viagem: ID {proxima.pk} ({proxima.data})")
@@ -98,7 +99,9 @@ def definir_moderador(request, usuario_viagem_id):
 
 
 def lista_linhas(request, indice=0):
-    linhas = list(Linha.objects.all().order_by('id'))
+    dia = Linha.dias_da_semana[timezone.now().weekday()]
+    linhas = list(Linha.objects.filter(instituicoes_ofertadas=request.user.student_profile.institution,
+        dias_ofertados__contains=dia[0], horario_fim__gte = timezone.now()).order_by('id'))
 
     if not linhas:
         return render(request, 'lista_linhas.html', {'linha': None})
@@ -129,7 +132,7 @@ def index_aluno(request):
     #     messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
     #     return redirect('index_aluno')
     estudante = request.user.student_profile
-    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=["aguardando", "em_andamento"]).first()
     id_linha = request.session.get('linha_selecionada_id')
     if id_linha:
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
@@ -140,6 +143,36 @@ def index_aluno(request):
         'inscricao': inscricao,
     }
     return render(request, 'index_aluno.html', context)
+
+def validate_line_available(linha, direcao):
+    now = timezone.now()
+    date = now.date()
+    week_day = now.weekday()
+
+    if Linha.dias_da_semana[week_day] not in linha.dias_da_semana:
+        return False, "a viagem não é realizada neste dia"
+
+    print(now.date(), Viagem.objects.all())
+
+    qs = Viagem.objects.filter(
+        rota__linha=linha,
+        status__in=['em_andamento', 'concluida'],
+        data__date = date
+    )
+    status_ida, err_ida = not qs.filter(rota__direcao__icontains="IDA").exists(), "a viagem realizada para ida ja foi efetuado ou esta em andamento"
+    status_volta, err_volta = not qs.filter(rota__direcao__icontains="VOLTA").exists(),  "a viagem realizada para volta ja foi efetuado ou esta em andamento"
+    print(qs.filter(rota__direcao__icontains="IDA").all())
+    if direcao.lower() == "ida":
+        return status_ida, err_ida
+    elif direcao.lower() == "volta":
+        return status_volta, err_volta
+    else:
+        if not status_ida and not status_volta:
+            status_ida_volta, err_ida_volta = False, "a viagem não esta disponivel no momento, os trechos de ida e volta ja foram realizadas ou estão em andamento"
+        else:
+            status_ida_volta = status_ida if not status_ida else status_volta
+            err_ida_volta = err_ida if not status_ida else err_volta
+        return status_ida_volta, err_ida_volta
 
 @login_required
 def alocar_aluno(request):
@@ -153,22 +186,58 @@ def alocar_aluno(request):
         horario_saida_aluno = request.POST.get('horario_saida_aluno')
         
         linha = get_object_or_404(Linha, pk=id_linha)
-        viagem = Viagem.objects.filter(linha=linha, status='aguardando').order_by('data').first()
-        if not viagem:
-            messages.error(request, "Não há viagem disponível para esta linha.")
+        available, err = validate_line_available(linha, direcao)
+        if not available:
+            messages.error(request, err)
             return redirect('index_aluno')
-        
+
         if direcao != 'ida' and not horario_saida_aluno:
             messages.error(request, "O horário de saída é obrigatório para a volta.")
             return redirect('index_aluno')
+
+        now = timezone.now()
+        viagens = []
+        if direcao == "ida e volta":
+            rota_ida = linha.linha_rota.filter(direcao__icontains="IDA").first()
+            rota_volta = linha.linha_rota.filter(direcao__icontains="VOLTA").first()
+            
+            if not rota_ida or not rota_volta:
+                messages.error(request, "Rotas de ida e/ou volta não encontradas para esta linha.")
+                return redirect('index_aluno')
+                
+            viagem_ida, _ = Viagem.objects.get_or_create(rota=rota_ida, status='aguardando', data__date=now.date(), defaults={
+                "data": now
+            })
+            viagem_volta, _ = Viagem.objects.get_or_create(rota=rota_volta, status='aguardando', data__date=now.date(), defaults={
+                "data": now
+            })
+            
+            viagens_a_criar = [
+                (viagem_ida, 'ida'),
+                (viagem_volta, 'volta')
+            ]
+
+        else:
+            rota_dir = linha.linha_rota.filter(direcao__icontains=direcao).first()
+            if not rota_dir:
+                messages.error(request, f"Rota de {direcao} não encontrada para esta linha.")
+                return redirect('index_aluno')
+                
+            viagem_dir, _ = Viagem.objects.get_or_create(rota=rota_dir, status='aguardando', data__date=now.date(), defaults={
+                "data": now
+            })
+            viagens_a_criar = [
+                (viagem_dir, direcao)
+            ]
         
         try:
-            UsuarioDaViagem.objects.create(
-                estudante=request.user.student_profile,
-                viagem=viagem,
-                direcao=direcao,
-                horario_saida_aluno=horario_saida_aluno
-            )
+            for viagem, direcao_percurso in viagens_a_criar:
+                UsuarioDaViagem.objects.create(
+                    estudante=request.user.student_profile,
+                    viagem=viagem,
+                    direcao=direcao_percurso,
+                    horario_saida_aluno=horario_saida_aluno
+                )
         except IntegrityError:
             messages.error(request, "Você já está inscrito nesta viagem.")
             return redirect('index_aluno')
@@ -181,20 +250,24 @@ def cancelar_inscricao_na_viagem(request):
     if request.user.role != UserRole.STUDENT:
         messages.error(request, "Apenas estudantes podem se inscrever em uma viagem.")
         return redirect('index_aluno')
+        
     estudante = request.user.student_profile
-    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
-    if not inscricao:
-        messages.error(request, "você não possui uma inscrição nessa viagem.")
-        return redirect('index_aluno')
     
-    if inscricao.viagem.status != 'aguardando':
-        messages.error(request, "não é mais possível cancelar, a viagem já começou.")
-        return redirect('index_aluno')
+    inscricoes = UsuarioDaViagem.objects.filter(
+        estudante=estudante,
+        viagem__status='aguardando',
+        viagem__rota__linha = request.POST.get('id_linha')
+    )
     
-    inscricao.delete()
-    messages.success(request, "Inscrição cancelada com sucesso.")
+    if not inscricoes.exists():
+        messages.error(request, "Você não possui inscrições ativas em viagens pendentes.")
+        return redirect('index_aluno')
+
+    inscricoes.delete()
+    
+    messages.success(request, "Inscrições canceladas com sucesso.")
     return redirect('index_aluno')
-    
+
 @login_required        
 def alterar_presenca(request):
     if request.user.role != UserRole.STUDENT:
@@ -202,7 +275,10 @@ def alterar_presenca(request):
         return redirect('index_aluno')
     
     estudante = request.user.student_profile
-    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante).first()
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=['aguardando', "em_andamento"],
+            viagem=request.POST.get("id_viagem")
+            ).first()
+
     if not inscricao:
         messages.error(request, "você não possui uma inscrição nessa viagem.")
         return redirect('index_aluno')
