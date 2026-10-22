@@ -47,6 +47,10 @@ class Bus(models.Model):
     is_active = models.BooleanField(default=True)
     city = models.ForeignKey("Municipio", on_delete=models.CASCADE, related_name='buses')
 
+    class Meta:
+        verbose_name = "Ônibus"
+        verbose_name_plural = "Ônibus"
+    
     def __str__(self):
         return f"{self.name} {self.license_plate}" 
 
@@ -57,13 +61,14 @@ class BusStop(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        verbose_name = "Bus Stop"
-        verbose_name_plural = "Bus Stops"
+        verbose_name = "Parada de ônibus"
+        verbose_name_plural = "Paradas de ônibus"
         constraints = [
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_bus_stop_per_city"
+                name="unique_bus_stop_per_city",
+                violation_error_message="Já existe um ponto de ônibus com este nome nesta cidade."
             )
         ]
 
@@ -76,13 +81,15 @@ class Institution(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        verbose_name = "Institution"
-        verbose_name_plural = "Institutions"
+        verbose_name = "Instituição"
+        verbose_name_plural = "Instituições"
         constraints = [
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_institution_per_city"
+                name="unique_institution_per_city",
+                violation_error_message="Já existe uma instituição com este nome nesta cidade."
+
             )
         ]
 
