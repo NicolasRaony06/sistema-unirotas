@@ -6,13 +6,12 @@
 {% endblock extra_css %}
 
 {% block content %}
-    <header class="topbar">
-        {% block header %}{% endblock header %}
-    </header>
-
     {% include "partials/_sidebar.html" %}
     
     <div class="page-content">
-        {% block 'page-content' %}{% endblock 'page-content' %}
+        <header class="topbar">
+            {% block header %}{% endblock header %}
+        </header>
+        {% block 'main-content' %}{% endblock 'main-content' %}
     </div>
 {% endblock content %}

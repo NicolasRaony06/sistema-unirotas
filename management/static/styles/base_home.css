@@ -1,0 +1,13 @@
+body{
+    display: flex;
+    flex-direction: row;
+}
+
+.sidebar{
+    width: 25%;
+}
+
+.page-content{
+    width: 75%;
+    display: flex;
+}
