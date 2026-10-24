@@ -257,7 +257,8 @@ def cancelar_inscricao_na_viagem(request):
     inscricoes = UsuarioDaViagem.objects.filter(
         estudante=estudante,
         viagem__status__in=['aguardando', "em_andamento"],
-        viagem = request.POST.get("id_viagem")
+        #viagem = request.POST.get("id_viagem")
+        viagem__rota__linha = request.POST.get("id_linha")
     )
 
     if not inscricoes.exists():
