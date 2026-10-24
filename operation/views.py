@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from operation.models import Viagem, UsuarioDaViagem, Linha
@@ -198,6 +200,12 @@ def alocar_aluno(request):
             return redirect('index_aluno')
 
         now = timezone.now()
+        data = now.date()
+        inicio = timezone.localtime(now).replace(
+        hour=0, minute=0, second=0, microsecond=0
+)
+        fim = inicio + timedelta(days=1)
+
         if direcao == "ida e volta":
             rota_ida = linha.linha_rota.filter(direcao__icontains="IDA").first()
             rota_volta = linha.linha_rota.filter(direcao__icontains="VOLTA").first()
@@ -206,12 +214,18 @@ def alocar_aluno(request):
                 messages.error(request, "Rotas de ida e/ou volta não encontradas para esta linha.")
                 return redirect('index_aluno')
                 
-            viagem_ida, _ = Viagem.objects.get_or_create(rota=rota_ida, status='aguardando', data__date=now.date(), defaults={
-                "data": now
-            })
-            viagem_volta, _ = Viagem.objects.get_or_create(rota=rota_volta, status='aguardando', data__date=now.date(), defaults={
-                "data": now
-            })
+            viagem_ida = Viagem.objects.filter(rota=rota_ida,
+                                               status='aguardando',
+                                               data__lte=fim,
+                                               data__gte=inicio
+                                                ).first()
+            viagem_volta = Viagem.objects.filter(rota=rota_volta,
+                                                 status='aguardando',
+                                                 data__lte=fim,
+                                                 data__gte=inicio).first()
+            print(viagem_ida, data)
+            viagem_ida = viagem_ida if viagem_ida is not None else Viagem.objects.create(rota=rota_ida, status='aguardando', data=now)
+            viagem_volta = viagem_volta if viagem_volta is not None else Viagem.objects.create(rota=rota_volta, status='aguardando', data=now)
             
             viagens_a_criar = [
                 (viagem_ida, 'ida'),
@@ -224,9 +238,12 @@ def alocar_aluno(request):
                 messages.error(request, f"Rota de {direcao} não encontrada para esta linha.")
                 return redirect('index_aluno')
                 
-            viagem_dir, _ = Viagem.objects.get_or_create(rota=rota_dir, status='aguardando', data__date=now.date(), defaults={
-                "data": now
-            })
+            viagem_dir = Viagem.objects.filter(rota=rota_dir,
+                                               status='aguardando',
+                                               data__lte=fim,
+                                               data__gte=inicio).first()
+            viagem_dir = viagem_dir if viagem_dir is not None else Viagem.objects.create(rota=rota_dir, status='aguardando', data__date=now)
+
             viagens_a_criar = [
                 (viagem_dir, direcao)
             ]
@@ -268,6 +285,11 @@ def cancelar_inscricao_na_viagem(request):
     inscricoes.delete()
     
     messages.success(request, "Inscrições canceladas com sucesso.")
+
+    usuarios = UsuarioDaViagem.objects.filter(viagem__rota__linha = request.POST.get("id_linha"))
+    if not usuarios.exists():
+        Viagem.objects.filter(rota__linha= request.POST.get("id_linha")).delete()
+
     return redirect('index_aluno')
 
 @login_required        
