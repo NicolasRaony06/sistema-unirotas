@@ -102,7 +102,7 @@ def definir_moderador(request, usuario_viagem_id):
 def lista_linhas(request, indice=0):
     dia = Linha.dias_da_semana[timezone.localtime().weekday()]
     linhas = list(Linha.objects.filter(instituicoes_ofertadas=request.user.student_profile.institution,
-        dias_ofertados__contains=dia[0], horario_fim__gte = timezone.localtime()).order_by('id'))
+        dias_ofertados__contains=dia[0], horario_fim__gte = timezone.localtime()).order_by('horario_inicio'))
 
     if not linhas:
         return render(request, 'lista_linhas.html', {'linha': None})
@@ -200,9 +200,9 @@ def alocar_aluno(request):
 
         now = timezone.localtime()
         data = now.date()
-        inicio = timezone.localtime(now).replace(
+        inicio = now.replace(
         hour=0, minute=0, second=0, microsecond=0
-)
+        )
         fim = inicio + timedelta(days=1)
 
         if direcao == "ida e volta":
