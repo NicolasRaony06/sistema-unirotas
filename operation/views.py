@@ -101,9 +101,9 @@ def definir_moderador(request, usuario_viagem_id):
 
 
 def lista_linhas(request, indice=0):
-    dia = Linha.dias_da_semana[timezone.now().weekday()]
+    dia = Linha.dias_da_semana[timezone.localtime().weekday()]
     linhas = list(Linha.objects.filter(instituicoes_ofertadas=request.user.student_profile.institution,
-        dias_ofertados__contains=dia[0], horario_fim__gte = timezone.now()).order_by('id'))
+        dias_ofertados__contains=dia[0], horario_fim__gte = timezone.localtime()).order_by('id'))
 
     if not linhas:
         return render(request, 'lista_linhas.html', {'linha': None})
@@ -149,7 +149,7 @@ def index_aluno(request):
     return render(request, 'index_aluno.html', context)
 
 def validate_line_available(linha, direcao):
-    now = timezone.now()
+    now = timezone.localtime()
     date = now.date()
     week_day = now.weekday()
 
@@ -199,7 +199,7 @@ def alocar_aluno(request):
             messages.error(request, "O horário de saída é obrigatório para a volta.")
             return redirect('index_aluno')
 
-        now = timezone.now()
+        now = timezone.localtime()
         data = now.date()
         inicio = timezone.localtime(now).replace(
         hour=0, minute=0, second=0, microsecond=0
