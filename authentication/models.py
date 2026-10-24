@@ -41,8 +41,8 @@ class UserRole(models.TextChoices):
 
 class User(AbstractBaseUser, PermissionsMixin):
     allowed_invitation = {
-        UserRole.ADMIN: UserRole.MANAGER,
-        UserRole.MANAGER: UserRole.DRIVER
+        UserRole.ADMIN: (UserRole.MANAGER, ),
+        UserRole.MANAGER: (UserRole.DRIVER, UserRole.STUDENT)
     }
 
     email = models.EmailField(unique=True)
@@ -53,6 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=UserRole.choices,
         default=UserRole.STUDENT
     )
+    birth_date = models.DateField(null=True, blank=True)
 
     notifications = models.BooleanField(default=True)
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
@@ -76,7 +77,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.is_active or not role:
             return False
 
-        return self.allowed_invitation.get(self.role) == role
+        roles = self.allowed_invitation.get(self.role)
+        if not roles:
+            return False
+
+        return role in roles
 
     def save(self, *args, **kwargs):
         if not self.email:
@@ -92,21 +97,21 @@ class PersonelProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='personel_profile')
-    birth_date = models.DateField(null=True, blank=True) #depois voltar pra userBase somente para não quebrar o codigo
-    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.full_name} ({self.user.role} - {self.city})"
+    
+
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
     institution = models.ForeignKey('management.Institution', on_delete=models.PROTECT)
-    birth_date = models.DateField(null=True, blank=True)
+    city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
-        #return f"Estudante: {self.user.full_name}"
         return self.user.full_name
