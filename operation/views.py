@@ -117,13 +117,14 @@ def lista_linhas(request, indice=0):
         estudante=request.user.student_profile,
         moderador=True
     ).first()
-
+    
     return render(request, 'lista_linhas.html', {
         'linha': linha_atual,
         'proximo_indice': proximo_indice,
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
         'moderacao': moderacao,
+        'instituicao': request.user.student_profile.institution
     })
 
 # @login_required
@@ -141,6 +142,7 @@ def index_aluno(request):
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
+        'instituicao': request.user.student_profile.institution
     }
     return render(request, 'index_aluno.html', context)
 
@@ -254,10 +256,10 @@ def cancelar_inscricao_na_viagem(request):
     
     inscricoes = UsuarioDaViagem.objects.filter(
         estudante=estudante,
-        viagem__status='aguardando',
-        viagem__rota__linha = request.POST.get('id_linha')
+        viagem__status__in=['aguardando', "em_andamento"],
+        viagem = request.POST.get("id_viagem")
     )
-    
+
     if not inscricoes.exists():
         messages.error(request, "Você não possui inscrições ativas em viagens pendentes.")
         return redirect('index_aluno')
