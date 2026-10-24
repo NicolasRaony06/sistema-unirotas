@@ -92,24 +92,44 @@ def toggle_notification(request):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 def settings(request):
+    if request.user.role == "STUDENT":
+        city = request.user.student_profile.city
+        instituition = request.user.student_profile.institution.name
+        campus = request.user.student_profile.institution.city
+    elif request.user.role in ["MANAGER", "DRIVER"]:
+        city = request.user.personel_profile.city
+        instituition = None
+    else:
+        city = None
+        instituition = None
     return render(request, "settings.html", {
         'notifications': request.user.notifications,
         'full_name': request.user.full_name,
         'email': request.user.email,
         'profile_picture': request.user.profile_picture,
-        'city': request.user.student_profile.city,
-        'institution': request.user.student_profile.institution
+        'city': city,
+        'institution': instituition
         })
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 def my_information(request):
+    if request.user.role == "STUDENT":
+        city = request.user.student_profile.city
+        instituition = request.user.student_profile.institution.name
+        campus = request.user.student_profile.institution.city
+    elif request.user.role in ["MANAGER", "DRIVER"]:
+        city = request.user.personel_profile.city
+        instituition = None
+        campus = None
+    else:
+        city, instituition, campus = None, None, None
     return render(request, "my_information.html", {
         "full_name": request.user.full_name,
         "email": request.user.email,
-        "city": request.user.student_profile.city,
+        "city": city,
         "birth_date": request.user.birth_date,
-        "institution": request.user.student_profile.institution.name,
-        "campus": request.user.student_profile.institution.city,
+        "institution": instituition,
+        "campus": campus,
         'change_avatar_form': AvatarForm()
     })
 
