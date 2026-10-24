@@ -196,7 +196,6 @@ def alocar_aluno(request):
             return redirect('index_aluno')
 
         now = timezone.now()
-        viagens = []
         if direcao == "ida e volta":
             rota_ida = linha.linha_rota.filter(direcao__icontains="IDA").first()
             rota_volta = linha.linha_rota.filter(direcao__icontains="VOLTA").first()
