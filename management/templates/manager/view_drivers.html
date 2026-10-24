@@ -43,7 +43,7 @@
                             </span>
                             Filtrar
                         </button>
-                        <form action="{% url 'management:invite_driver' %}">
+                        <form action="{% url 'management:invite_user' %}">
                             {% csrf_token %}
                             <button type="submit" class="btn-primary">+ Novo Motorista</button>
                         </form>

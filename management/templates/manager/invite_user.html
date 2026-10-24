@@ -36,7 +36,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convidar motorista</title>
+    <title>Convidar usuário</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -48,18 +48,31 @@
 <body>
 
     <div class="card">
+        
         <div class="card-header">
-            <h2>Convidar motorista</h2>
-            <p>Insira o email do motorista</p>
+            {% if messages %}
+                {% for message in messages %}
+                    <span style="color: red">
+                        {{message}}
+                    </span>
+                {% endfor %} 
+            {% endif %}
+            <h2>Convidar Usuário</h2>
+            <p>Insira o email do usuário</p>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <p style="color: red">{{error}}</p>
+                {% endfor %}
+            {% endfor %}            
         </div>
-        <form action="{% url 'management:invite_driver' %}" method="post">
+        <form action="{% url 'management:invite_user' %}" method="post">
 
 
             {% csrf_token %}
             <div class="card-body">
                 <!-- Nome do Município -->
                 <div class="form-group">
-                    <label class="form-label">
+                    <label class="form-label" for="{{ form.email.id_for_label }}">
                         Email <span class="required">*</span>
                     </label>
                     <div class="input-wrapper">
@@ -73,14 +86,14 @@
                                 <path fill="none" d="M0 0h36v36H0z" />
                             </svg>
                         </div>
-
-                        <input type="email" class="input-field" placeholder="motorista@example.com" name="email" />
+                        {{form.email}}
+                        {% comment %} <input type="email" class="input-field" placeholder="motorista@example.com" name="email" /> {% endcomment %}
                     </div>
                 </div>
 
                 <!-- Código IBGE -->
                 <div class="form-group">
-                    <label class="form-label">
+                    <label class="form-label" for="{{ form.confirm_email.id_for_label }}">
                         Confirmar Email<span class="required">*</span>
                     </label>
                     <div class="input-wrapper">
@@ -93,12 +106,38 @@
                                 <path fill="none" d="M0 0h36v36H0z" />
                             </svg>
                         </div>
-                        <input type="email" class="input-field" placeholder="motorista@example.com"
-                            name="confirm_email" />
+                        {{form.confirm_email}}
+                        {% comment %} <input type="email" class="input-field" placeholder="motorista@example.com"
+                            name="confirm_email" /> {% endcomment %}
                     </div>
                 </div>
+                <div class="form-group">
+
+                    <label class="form-label" for="{{ form.role.id_for_label }}">
+                        Tipo de Usuário <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004de6"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
+                                <path d="M19 8v6" />
+                                <path d="M16 11h6" />
+
+                            </svg>
+                        </div>
+                        
+                        {{form.role}}
+
+                    </div>
+
+                </div>                
                 <div class="button-group">
-                    <a href="{% url 'management:view_drivers' %}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{% url 'management:home' %}" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Enviar convite</button>
                 </div>
             </div>

@@ -77,11 +77,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.is_active or not role:
             return False
 
-        roles = self.allowed_invitation.get(self.role)
-        if not roles:
-            return False
+        allowed_roles = self.allowed_invitation.get(self.role, set())
+        return role in allowed_roles 
 
-        return role in roles
 
     def save(self, *args, **kwargs):
         if not self.email:

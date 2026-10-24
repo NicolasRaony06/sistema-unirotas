@@ -165,22 +165,25 @@
             Motoristas
         </a>
 
-        <!-- 6. Paradas -->
-        <a class="{% if request.resolver_match.url_name == 'view_bus_stops' %}active{% endif %}"
-            href="{% url 'management:view_bus_stops' %}">
-            <span class="icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M3 3h18v3H3z" />
-                    <path d="M4 6v14" />
-                    <path d="M20 6v14" />
-                    <path d="M8 12h8" />
-                    <path d="M8 12v5" />
-                    <path d="M16 12v5" />
-                </svg>
-            </span>
-            Paradas
-        </a>
+
+        
+
+            <!-- 6. Paradas -->
+            <a class="{% if request.resolver_match.url_name == 'view_bus_stops' %}active{% endif %}" href="{% url "management:view_bus_stops" %}">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 3h18v3H3z" />
+                        <path d="M4 6v14" />
+                        <path d="M20 6v14" />
+                        <path d="M8 12h8" />
+                        <path d="M8 12v5" />
+                        <path d="M16 12v5" />
+                    </svg>
+                </span>
+                Paradas
+            </a>
+
 
         <!-- 7. Rotas -->
         <a href="#rotas">

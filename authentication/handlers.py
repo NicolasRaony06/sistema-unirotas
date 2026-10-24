@@ -56,8 +56,8 @@ def handle_student_signup(request, invitation_data:InviteDTO):
                         user=user,
                         course=data.get("course"),
                         period=data.get("period"),
-                        institution_id=invitation_data.institution_id,
-                        city_id=invitation_data.city_id
+                        institution=invitation_data.institution_id,
+                        city=invitation_data.city_id
                     )
                 return redirect("authentication:login"), True
             except Exception as e:
@@ -78,7 +78,7 @@ def handle_manager_driver_signup(request, invitation_data):
                     user.email = invitation_data.email
                     user.role = invitation_data.role
                     user.save()
-                    PersonelProfile.objects.create(user=user, city_id=invitation_data.city_id)
+                    PersonelProfile.objects.create(user=user, city=invitation_data.city_id)
                     return redirect("authentication:login"), True
             except Exception as e:
                 return render(request, 'signup_role.html', {"form_account": signup_form, 'error': 'ocorreu um erro an cadastrar a conta, por favor tente novamente mais tarde'}), False

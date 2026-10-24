@@ -44,11 +44,11 @@ class StopMetrics(models.Model):
     order = models.PositiveIntegerField()
 
     @property
-    def line(self):
+    def line_id(self):
         return self.last_route_day.line_id
 
     @property
-    def route(self):
+    def route_id(self):
         return self.last_route_day.route_id
 
     class Meta:
