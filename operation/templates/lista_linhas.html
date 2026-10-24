@@ -39,19 +39,17 @@
             </a>
         </div>
 
-        <div class="route-select-card__meta">
+        <div class="route-select-card__meta {% if linha.dias_ofertados|length >= 6 %}route-select-card__meta--wrap{% endif %}">
             <div>
                 <span class="label">DIAS ÚTEIS</span>
-                <strong>{{ linha.dias_da_semana }}</strong>
+                <strong>{% for dia in linha.dias_ofertados %}{{ dia }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
             </div>
             <div>
                 <span class="label">HORÁRIO</span>
                 <strong>{{ linha.horario_inicio|time:"H:i" }} - {{ linha.horario_fim|time:"H:i" }}</strong>
             </div>
             {% if moderacao %}
-                <div>
-                    <a class="btn btn--solid" id="moderador" href="{% url 'lista_alunos_moderador' moderacao.viagem.pk %}">Lista de alunos</a>
-                </div>
+                <a class="btn btn--solid" id="moderador" href="{% url 'lista_alunos_moderador' moderacao.viagem.pk %}">Lista de alunos</a>
             {% endif %}
         </div>
     </section>

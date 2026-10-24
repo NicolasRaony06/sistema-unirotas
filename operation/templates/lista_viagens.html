@@ -12,7 +12,7 @@
                 </svg>
             </div>
             <div class="route-card__title">
-                <h2>{{ viagem.linha }}</h2>
+                <h2>{{ viagem.rota.linha }}</h2>
                 <span>Transporte público</span>
             </div>
             <!-- estático: aviso ainda não implementado -->
@@ -24,14 +24,14 @@
 
         <!-- estático: origem/destino ainda não é um campo do model -->
         <div class="route-card__path">
-            <span class="dot"></span> {{ viagem.linha.origem }} <span class="arrow">→</span> {{ viagem.linha.destino }}
+            <span class="dot"></span> {{ viagem.rota.linha.city }} <span class="arrow">→</span> {% for instituicao in viagem.rota.linha.instituicoes_ofertadas.all %}{{ instituicao.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
         </div>
 
         <div class="route-card__meta">
             <div>
                 <!-- estático: dias úteis fixos, ainda não vem do model -->
-                <span class="label">DIAS ÚTEIS</span>
-                <strong>{{ viagem.linha.dias_funcionamento }}</strong>
+                <span class="label">DATA</span>
+                <strong>{{ viagem.data|date:"d/m/Y" }}</strong>
                 
                 
             </div>
