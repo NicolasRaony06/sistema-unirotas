@@ -37,12 +37,18 @@ def signin(request):
             )
             
             if valid_user is not None:
-                cache.delete(chave)  # login bem-sucedido zera o contador de falhas
+                cache.delete(chave)
                 login(request, valid_user)
 
                 next_url = request.GET.get('next')
-                default_redirect = 'authentication:settings'
-
+                role = valid_user.role
+                if role == "STUDENT":
+                    default_redirect = 'index_aluno'
+                elif role == "DRIVER":
+                    default_redirect = 'lista_viagens'
+                elif role == "MANAGER" or role == "ADMIN":
+                    default_redirect = "management:home"
+                
                 if next_url and url_has_allowed_host_and_scheme(
                     url=next_url,
                     allowed_hosts={request.get_host()},
@@ -90,9 +96,9 @@ def settings(request):
         'notifications': request.user.notifications,
         'full_name': request.user.full_name,
         'email': request.user.email,
-        'profile_picture': request.user.profile_picture
-        #'city': request.user.city,
-        #'institution': request.user.institution
+        'profile_picture': request.user.profile_picture,
+        'city': request.user.student_profile.city,
+        'institution': request.user.student_profile.institution
         })
 
 @login_required(login_url=reverse_lazy('authentication:login'))
@@ -102,8 +108,8 @@ def my_information(request):
         "email": request.user.email,
         "city": request.user.student_profile.city,
         "birth_date": request.user.birth_date,
-        "institution": request.user.student_profile.institution,
-        "campus": request.user.student_profile.institution,
+        "institution": request.user.student_profile.institution.name,
+        "campus": request.user.student_profile.institution.city,
         'change_avatar_form': AvatarForm()
     })
 

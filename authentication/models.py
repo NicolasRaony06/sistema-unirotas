@@ -97,7 +97,7 @@ class PersonelProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='personel_profile')
-    city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.full_name} ({self.user.role} - {self.city})"
@@ -109,7 +109,7 @@ class StudentProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='student_profile')
     institution = models.ForeignKey('management.Institution', on_delete=models.PROTECT)
-    city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 

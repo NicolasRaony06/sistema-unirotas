@@ -87,30 +87,6 @@ class AvatarForm(forms.Form):
                 raise ValidationError("A imagem é muito grande. O limite é de 2MB.")
         return imagem
 
-<<<<<<< HEAD
-class PersonelProfileForm(forms.ModelForm):
-    class Meta:
-        model = PersonelProfile
-        fields = ['city',
-                  'birth_date',]
-        widgets = {
-            'city': forms.Select(attrs={'class': 'form-select'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
-        }
-
-class StudentProfileForm(forms.ModelForm):
-    class Meta:
-        model = StudentProfile
-        fields = [#'city',
-                  'institution',
-                  'birth_date',
-                  'course',
-                  'period']
-        widgets = {
-            #'institution': forms.Select(attrs={'class': 'form-select'}),
-            'city': forms.Select(attrs={'class': 'form-select'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-=======
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
@@ -118,7 +94,6 @@ class StudentProfileForm(forms.ModelForm):
                   'course',
                   'period']
         widgets = {
->>>>>>> merged/auth/metrics
             'course': forms.TextInput(attrs={'class': 'form-control',
                                              'placeholder': 'Ex: Ciência da Computação'}
                                              ),
