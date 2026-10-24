@@ -202,7 +202,7 @@ def invite_user(request):
                     role=form.cleaned_data.get('role'),
                     email=email,
                     city_id = request.user.personel_profile.city,
-                    institution_id = form.cleaned_data.get('institution')
+                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
                 ),
                 request=request
             )
