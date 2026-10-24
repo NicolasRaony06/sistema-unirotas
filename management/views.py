@@ -12,6 +12,7 @@ from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm, InviteUserForm
 from .handlers import *
+from authentication.data_type import InviteDTO
 
 @login_required
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
@@ -182,14 +183,27 @@ def activate_manager(request,id):
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
 def invite_user(request):
+    user = request.user
+    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
+        'institutions', 
+        flat=True
+    )
+
     if request.method == 'POST':
-        form = InviteUserForm(request.POST)
+        form = InviteUserForm(request.POST, institutions_id=institutions_id)
         if form.is_valid():
             email = form.cleaned_data.get('email')
+            role=form.cleaned_data.get('role')
+
+           
             link = generate_elevated_signup_link(
-                higher_role_email=request.user.email,
-                email=email,
-                role=form.cleaned_data.get('role'),
+                InviteDTO(
+                    higher_role_email=user.email,
+                    role=form.cleaned_data.get('role'),
+                    email=email,
+                    city_id = request.user.personel_profile.city,
+                    institution_id = form.cleaned_data.get('institution')
+                ),
                 request=request
             )
 
@@ -201,7 +215,7 @@ def invite_user(request):
             else:
                 messages.error(request, f"Não foi possível enviar o convite para {email}.")
     else:
-        form = InviteUserForm()
+        form = InviteUserForm(institutions_id=institutions_id)
     return render(request, "manager/invite_user.html", {'form': form})
 
 @login_required
