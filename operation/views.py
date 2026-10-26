@@ -241,7 +241,7 @@ def alocar_aluno(request):
                                                status='aguardando',
                                                data__lte=fim,
                                                data__gte=inicio).first()
-            viagem_dir = viagem_dir if viagem_dir is not None else Viagem.objects.create(rota=rota_dir, status='aguardando', data__date=now)
+            viagem_dir = viagem_dir if viagem_dir is not None else Viagem.objects.create(rota=rota_dir, status='aguardando', data=now)
 
             viagens_a_criar = [
                 (viagem_dir, direcao)
