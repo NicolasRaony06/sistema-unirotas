@@ -6,8 +6,8 @@ from authentication.models import User
 
 
 class LastRouteDay(models.Model):
-    line_id = models.PositiveIntegerField()
-    route_id = models.PositiveIntegerField()
+    line = models.PositiveIntegerField()
+    route = models.PositiveIntegerField()
     is_concluded = models.BooleanField(default=False)
     date = models.DateField(default=timezone.localdate)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,25 +31,28 @@ class StopMetrics(models.Model):
         on_delete=models.CASCADE,
         related_name='stop_metrics'
     )
-    start_stop_id = models.PositiveIntegerField()
-    end_stop_id = models.PositiveIntegerField()
+
+    start_stop = models.PositiveIntegerField()
+    end_stop = models.PositiveIntegerField()
     distance = models.DecimalField(
         max_digits=6, 
         decimal_places=2, 
         null=True,
         blank=True
     )
+    order = models.PositiveIntegerField()
+    
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    order = models.PositiveIntegerField()
+    
 
     @property
     def line_id(self):
-        return self.last_route_day.line_id
+        return self.last_route_day.line
 
     @property
     def route_id(self):
-        return self.last_route_day.route_id
+        return self.last_route_day.route
 
     class Meta:
         ordering = ['start_time']
@@ -70,7 +73,7 @@ class StudentsUsingBus(models.Model):
         on_delete=models.CASCADE,
         related_name='bus_usages'
     )
-    route_id = models.IntegerField()
+    route = models.IntegerField()
     day = models.DateField(default=timezone.localdate)
 
     class Meta:
