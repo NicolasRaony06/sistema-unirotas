@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from management.models import *
+from management.models import BusStop
 # class Linha(models.Model):
 #     nome = models.CharField(max_length=50)
 #     origem = models.CharField(max_length=50)
@@ -79,3 +80,18 @@ class UsuarioDaViagem(models.Model):
     
     def __str__(self):
         return f'{self.estudante} - {self.viagem} ({self.direcao})'
+    
+class viagemparada(models.Model):
+    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE)
+    parada = models.ForeignKey(BusStop, on_delete=models.PROTECT)
+    momento_de_conclusao = models.DateTimeField(blank=True, null=True, )
+    status = models.CharField(max_length=30, choices =[
+        ('Aguardando', 'Aguardando'),
+        ('Concluido', 'Concluido'),
+    ], default='Aguardando')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.viagem} - {self.parada}'
+    
+    
