@@ -1,8 +1,9 @@
 :root {
-    --primary-color: #3b82f6;
+    --primary-color: #013FC0;
     --secondary-color: #1e293b;
-    --background-color: #f8fafc;
+    --background-color: #F5F4EE;
     --text-color: #0f172a;
+        --text-color-secondary: #78808D;
     --muted-text: #64748b;
     --border-color: #e2e8f0;
 
@@ -18,8 +19,7 @@
 
 body {
   font-family: var(--font-main);
-  background-color: var(--var-background-color, #f8fafc);
-  background-color: var(--background-color);
+  background-color: white;
   color: var(--text-color);
   line-height: 1.5; 
   -webkit-font-smoothing: antialiased; 
