@@ -16,6 +16,7 @@
 
 {% block content %}
     {% if linha %}
+    <!--<p class="route-select-hint">{{ indice_atual }} de {{ total_linhas }} · Rota selecionada. Vá até "Início" para confirmar sua presença.</p>-->
     <section class="route-select-card">
         <div class="route-select-card__head">
             <div class="route-card__bus" aria-hidden="true">
@@ -54,7 +55,23 @@
         </div>
     </section>
 
-    <p class="route-select-hint">{{ indice_atual }} de {{ total_linhas }} · Esta é a rota selecionada. Vá até "Início" para confirmar sua presença.</p>
+    <section class="stops">
+        <div class="stops__head">
+            <h3>Paradas de hoje</h3>
+            <span>1 de 4 concluído</span>
+        </div>
+        <div class="progress"><div class="progress__bar" style="width: 25%;"></div></div>
+        <ul class="timeline">
+            <li class="done">
+                <div class="stop-row">
+                    <div>
+                        <strong>Garagem · saída</strong>
+                        <small>Check-in feito às 12:45</small>
+                    </div>
+                    <span class="tag tag--feito">Feito</span>
+                </div>
+            </li>
+    </section>
 
     {% else %}
     <p class="empty">Nenhuma linha cadastrada ainda.</p>

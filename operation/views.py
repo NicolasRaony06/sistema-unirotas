@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from operation.models import Viagem, UsuarioDaViagem, Linha
+from operation.models import Viagem, UsuarioDaViagem, Linha, ViagemParada
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -16,10 +16,14 @@ def lista_viagens(request):
 
     if not viagem_atual:
         viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista = request.user).order_by('data').first()
+    
+    paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual)
+    paradas_atual_quantidade = paradas_atual.count()
+    paradas_atual_feitas = ViagemParada.objects.filter(viagem=viagem_atual, status='Concluido').count()
         
     moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
 
-    return render(request, 'lista_viagens.html', {'viagem': viagem_atual, 'moderador': moderador})
+    return render(request, 'lista_viagens.html', {'viagem': viagem_atual, 'moderador': moderador, 'paradas':paradas_atual, 'paradas_quantidade':paradas_atual_quantidade, 'concluidos':paradas_atual_feitas})
 
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
@@ -199,7 +203,6 @@ def alocar_aluno(request):
             return redirect('index_aluno')
 
         now = timezone.localtime()
-        data = now.date()
         inicio = now.replace(
         hour=0, minute=0, second=0, microsecond=0
         )
@@ -215,16 +218,22 @@ def alocar_aluno(request):
                 
             viagem_ida = Viagem.objects.filter(rota=rota_ida,
                                                status='aguardando',
-                                               data__lte=fim,
+                                               data__lt=fim,
                                                data__gte=inicio
                                                 ).first()
             viagem_volta = Viagem.objects.filter(rota=rota_volta,
                                                  status='aguardando',
-                                                 data__lte=fim,
+                                                 data__lt=fim,
                                                  data__gte=inicio).first()
-            print(viagem_ida, data)
-            viagem_ida = viagem_ida if viagem_ida is not None else Viagem.objects.create(rota=rota_ida, status='aguardando', data=now)
-            viagem_volta = viagem_volta if viagem_volta is not None else Viagem.objects.create(rota=rota_volta, status='aguardando', data=now)
+
+            
+            if viagem_ida is None:
+                viagem_ida = Viagem.objects.create(rota=rota_ida, status='aguardando', data=now)
+                viagem_ida.criar_paradas()
+
+            if viagem_volta is None:
+                viagem_volta = Viagem.objects.create(rota=rota_volta, status='aguardando', data=now)
+                viagem_volta.criar_paradas()
             
             viagens_a_criar = [
                 (viagem_ida, 'ida'),
@@ -239,9 +248,13 @@ def alocar_aluno(request):
                 
             viagem_dir = Viagem.objects.filter(rota=rota_dir,
                                                status='aguardando',
-                                               data__lte=fim,
+                                               data__lt=fim,
                                                data__gte=inicio).first()
-            viagem_dir = viagem_dir if viagem_dir is not None else Viagem.objects.create(rota=rota_dir, status='aguardando', data=now)
+
+            
+            if viagem_dir is None:
+                viagem_dir = Viagem.objects.create(rota=rota_dir, status='aguardando', data=now)
+                viagem_dir.criar_paradas()
 
             viagens_a_criar = [
                 (viagem_dir, direcao)

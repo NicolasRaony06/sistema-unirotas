@@ -50,6 +50,18 @@ class Viagem(models.Model):
             return proxima
         return None
     
+    def criar_paradas(self):
+        trechos = TrechoViagem.objects.filter(rota=self.rota).order_by('ordem')
+        primeiro = trechos.first()
+
+        if primeiro is None:
+            return
+
+        ViagemParada.objects.create(viagem=self, parada=primeiro.parada_inicio)
+
+        for trecho in trechos:
+            ViagemParada.objects.create(viagem=self, parada=trecho.parada_fim)
+    
 class UsuarioDaViagem(models.Model):
     estudante = models.ForeignKey('authentication.StudentProfile', on_delete=models.CASCADE, related_name='viagens')
     viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, related_name='usuarios')
@@ -81,8 +93,8 @@ class UsuarioDaViagem(models.Model):
     def __str__(self):
         return f'{self.estudante} - {self.viagem} ({self.direcao})'
     
-class viagemparada(models.Model):
-    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE)
+class ViagemParada(models.Model):
+    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, related_name='paradas')
     parada = models.ForeignKey(BusStop, on_delete=models.PROTECT)
     momento_de_conclusao = models.DateTimeField(blank=True, null=True, )
     status = models.CharField(max_length=30, choices =[
