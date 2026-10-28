@@ -290,11 +290,11 @@ def alocar_aluno(request):
 
             
             if viagem_ida is None:
-                viagem_ida = Viagem.objects.create(rota=rota_ida, status='aguardando', data=now)
+                viagem_ida = Viagem.objects.create(rota=rota_ida, status='aguardando', data=now.replace(hour=linha.horario_inicio.hour, minute=linha.horario_inicio.minute, second=0))
                 viagem_ida.criar_paradas()
 
             if viagem_volta is None:
-                viagem_volta = Viagem.objects.create(rota=rota_volta, status='aguardando', data=now)
+                viagem_volta = Viagem.objects.create(rota=rota_volta, status='aguardando', data=now.replace(hour=linha.horario_fim.hour, minute=linha.horario_fim.minute, second=0))
                 viagem_volta.criar_paradas()
             
             viagens_a_criar = [
@@ -315,6 +315,10 @@ def alocar_aluno(request):
 
             
             if viagem_dir is None:
+                if direcao == "ida":
+                    now = now.replace(hour=linha.horario_inicio.hour, minute=linha.horario_inicio.minute, second=0)
+                else:
+                    now = now.replace(hour=linha.horario_fim.hour, minute=linha.horario_fim.minute, second=0)
                 viagem_dir = Viagem.objects.create(rota=rota_dir, status='aguardando', data=now)
                 viagem_dir.criar_paradas()
 
