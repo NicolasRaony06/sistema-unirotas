@@ -206,7 +206,7 @@ main{
     display: flex;
     width: 100%;
     flex-direction: column;
-    row-gap: 10px;
+    row-gap: 15px;
     background-color: white;
     border-radius: 16px;
     padding: 20px;
@@ -253,10 +253,11 @@ main{
 .dashboard-card{
     display: flex;
     flex-direction: row;
+    align-items: center;
     column-gap: 15px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 10px;
+    padding: 15px;
 }
 
 .dashboard-card-info p, 
@@ -307,23 +308,31 @@ main{
 }
 
 .dashboard-card-actions a{
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
     text-decoration: none;
-    color: var(--secondary-color);
+    font-weight: bold;
+    font-size: 0.75em;
     border-radius: 999px;
     border: 1px solid var(--border-color);
+    color: var(--text-color-secondary);
     width: fit-content;
     height: fit-content;
-    padding: 10px;
-    background-color: var(--background-color-secondary);
+    padding: 10px 15px;
+    line-height: 1;
 }
 
 .dashboard-card-actions button{
+    display: flex;
+    align-items: center;
     border-radius: 100%;
     border: 1px solid var(--border-color);
+    color: var(--text-color-secondary);
+    background-color: white;
     width: fit-content;
     height: fit-content;
     padding: 10px;
-    background-color: var(--background-color-secondary);
 }
 
 .dashboard-card-actions svg{
@@ -349,3 +358,13 @@ main{
     background: #fae7e4;
 }
 
+.dashboard-empty{
+    background-color: var(--background-color-secondary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    font-size: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 10px;
+}
