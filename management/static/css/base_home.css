@@ -202,3 +202,96 @@ main{
     font-size: 0.87em;
 }
 
+.dashboard{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    border: 1px solid #edf2f7;
+}
+
+.dashboard-header{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 15px;
+}
+
+.dashboard-header h3{
+    color: var(--secondary-color);
+}
+
+.badge-count{
+    color: var(--tertiary-color);
+    background-color: var(--background-color-tertiary);
+    border-radius: 30px;
+    font-size: 0.75em;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    padding: 2px 10px;
+}
+
+.register-button{
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 999px;
+    font-size: 0.87em;
+    padding: 8px 15px;
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.dashboard-card{
+    display: flex;
+    flex-direction: row;
+}
+
+.dashboard-card p, span{
+    font-size: 0.79em;
+}
+
+.dashboard-card-icon{
+    background-color: var(--primary-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-card-icon svg{
+    color: white;
+    width: 20px;
+    height: 20px;
+}
+
+.dashboard-card-info div{
+    display: flex;
+    flex-direction: row;
+}
+
+.dashboard-card-info div p{
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.dashboard-card-actions{
+    display: flex;
+    flex-direction: row;
+}
+
+.dashboard-card-actions svg{
+    width: 14px;
+    height: 14px;
+}
+
+

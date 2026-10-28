@@ -1,8 +1,10 @@
 :root {
     --primary-color: #1d5bd1;
-    --secondary-color: #03153F;
+    --secondary-color: #03153F; 
+    --tertiary-color: #3730a3; 
     --background-color: #e8eaed;
     --background-color-secondary: #F5F4EE;
+    --background-color-tertiary: #E0E7FF;
     --text-color: #0f172a;
     --text-color-secondary: #78808D;
     --muted-text: #64748b;
