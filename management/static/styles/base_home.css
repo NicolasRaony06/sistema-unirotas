@@ -6,9 +6,14 @@ body{
 .sidebar{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    width: 18%;
+    row-gap: 20px;
+    width: 256px;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    background-color: white;
     padding: 0 13px;
+    border-right: 1px solid #e9e8e2;
 }
 
 .sidebar-header{
@@ -21,9 +26,11 @@ body{
     width: 150px;
 }
 
-.sidebar-header hr{
+.sidebar hr{
     width: 100%;
-    border: 1px solid var(--primary-color);
+    height: 1px;
+    border: none;
+    background-color: #dfe2e6;
 }
 
 .user-profile{
@@ -37,18 +44,30 @@ body{
     padding: 10px;
 }
 
+.user-info{
+    display: flex;
+    width: 60%;
+    flex-direction: column;
+}
+
 .user-profile img{
     width: 40px;
     height: 40px;
+    border-radius: 100%;
+    border: 2px solid rgba(29, 91, 209, 0.18);
+    box-shadow: 0 2px 8px rgba(29, 91, 209, 0.12)
 }
 
-.user-profile h2{
+.user-info h2{
     font-size: 1em;
+    line-height: 1;
     color: var(--secondary-color);
 }
 
-.user-profile p{
-    font-size: 0.9em;
+.user-info p{
+    font-size: 0.75em;
+    line-height: 1;
+    color: var(--text-color-secondary)
 }
 
 .user-profile svg{
@@ -65,8 +84,9 @@ body{
 }
 
 .sidebar-nav h2{
-    font-size: 1.1em;
+    font-size: 1em;
     padding-left: 5px;
+    font-weight: 600;
     color: var(--secondary-color);
 }
 
@@ -110,6 +130,10 @@ body{
     color: white;
 }
 
+.logout{
+    margin-top: auto;
+}
+
 .logout button{
     display: flex;
     width: 100%;
@@ -130,14 +154,15 @@ body{
 }
 
 .page-content{
-    width: 82%;
     display: flex;
+    flex: 1;
     flex-direction: column;
+    margin-left: 256px;
 }
 
 .topbar{
     width: 100%;
-    height: 100px;
+    height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -145,18 +170,18 @@ body{
 }
 
 .topbar h1{
-    font-size: 1.5em;
+    font-size: 1.25em;
     color: var(--secondary-color);
 }
 
 .topbar p{
-    font-size: 0.9em;
+    font-size: 0.87em;
     color: var(--text-color-secondary);
 }
 
 main{
     width: 100%;
-    height: 100%;
+    height: 100vh;
     background-color: var(--background-color);
 }
 
