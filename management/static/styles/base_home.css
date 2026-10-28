@@ -44,10 +44,11 @@ body{
 
 .user-profile h2{
     font-size: 1em;
+    color: var(--secondary-color);
 }
 
 .user-profile p{
-    font-size: 0.75em;
+    font-size: 0.9em;
 }
 
 .user-profile svg{
@@ -57,7 +58,16 @@ body{
 }
 
 .sidebar-nav{
-    height: 50%;
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+}
+
+.sidebar-nav h2{
+    font-size: 1.1em;
+    padding-left: 5px;
+    color: var(--secondary-color);
 }
 
 .sidebar-nav ul{
@@ -71,14 +81,17 @@ body{
     align-items: center;
 }
 
-.sidebar-nav li a{
+.nav-link{
     display: flex;
     flex-direction: row;
     align-items: center;
+    width: 100%;
+    height: 100%;
+    padding-left: 10px;
+    column-gap: 12px;
     text-decoration: none;
     color: var(--text-color-secondary);
     font-weight: bold;
-
 }
 
 .sidebar-nav-icon{
@@ -91,25 +104,59 @@ body{
     height: 100%;
 }
 
+.selected{
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    color: white;
+}
+
 .logout button{
     display: flex;
     width: 100%;
+    padding: 12px 10px;
+    column-gap: 10px;
     flex-direction: row;
+    align-items: center;
     color: red;
+    font-weight: bold;
+    font-size: 1em;
     border: 0;
     background-color: white;
 }
 
 .logout button span{
-    width: 18px; 
+    width: 22px;
+    height: 22px; 
 }
 
 .page-content{
     width: 82%;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
 .topbar{
     width: 100%;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 35px;
 }
+
+.topbar h1{
+    font-size: 1.5em;
+    color: var(--secondary-color);
+}
+
+.topbar p{
+    font-size: 0.9em;
+    color: var(--text-color-secondary);
+}
+
+main{
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+}
+
