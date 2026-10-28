@@ -14,7 +14,7 @@ from management.models import BusStop
 #         return self.nome
     
 class Viagem(models.Model):
-    rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
+    rota = models.ForeignKey(Rota, on_delete=models.CASCADE, related_name='viagens')
     data = models.DateTimeField()
     status = models.CharField(max_length=20, choices=[
         ('aguardando', 'Aguardando'),
@@ -105,5 +105,13 @@ class ViagemParada(models.Model):
     
     def __str__(self):
         return f'{self.viagem} - {self.parada}'
+    
+    def concluir_busstop(self):
+        self.status = 'Concluido'
+        self.momento_de_conclusao = timezone.now()
+        self.save()
+
+        return ViagemParada.objects.filter(viagem=self.viagem,status='Aguardando').order_by('id').first()
+   
     
     

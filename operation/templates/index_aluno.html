@@ -198,7 +198,7 @@
         <div class="bus-card__info">
             <span class="bus-card__title">{{ linha_selecionada.nome }} <span class="badge badge--blue">Em operação</span></span>
             <!-- estático: placa e cor ainda não vêm de um model de frota -->
-            <small><span class="bus-card__dot" aria-hidden="true"></span>Placa: ABC1D23 · Amarelo com faixa preta</small>
+            <small><span class="bus-card__dot" aria-hidden="true"></span>{{ onibus.name }} - Placa:{{onibus.license_plate}} - Cor:{{onibus.color}}</small>
         </div>
     </section>
 

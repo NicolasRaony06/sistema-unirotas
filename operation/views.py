@@ -2,6 +2,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from operation.models import Viagem, UsuarioDaViagem, Linha, ViagemParada
+from management.models import TrechoViagem
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -11,19 +12,50 @@ from django.db import IntegrityError
 #Viagem
 
 def lista_viagens(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista = request.user).order_by('rota__linha__horario_inicio').first()
-    
+    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user).order_by('rota__linha__horario_inicio').first()
 
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista = request.user).order_by('data').first()
-    
-    paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual)
-    paradas_atual_quantidade = paradas_atual.count()
-    paradas_atual_feitas = ViagemParada.objects.filter(viagem=viagem_atual, status='Concluido').count()
-        
-    moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user).order_by('data').first()
 
-    return render(request, 'lista_viagens.html', {'viagem': viagem_atual, 'moderador': moderador, 'paradas':paradas_atual, 'paradas_quantidade':paradas_atual_quantidade, 'concluidos':paradas_atual_feitas})
+    paradas_atual = []
+    paradas_atual_quantidade = 0
+    paradas_atual_feitas = 0
+    proxima_parada = None
+    moderador = None
+
+    if viagem_atual:
+        paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        paradas_atual_quantidade = paradas_atual.count()
+        paradas_atual_feitas = paradas_atual.filter(status='Concluido').count()
+        proxima_parada = paradas_atual.filter(status='Aguardando').first()
+        moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+
+    context = {
+        'viagem': viagem_atual,
+        'moderador': moderador,
+        'paradas': paradas_atual,
+        'paradas_quantidade': paradas_atual_quantidade,
+        'concluidos': paradas_atual_feitas,
+        'proxima_parada': proxima_parada,
+    }
+    return render(request, 'lista_viagens.html', context)
+
+def concluir_parada(request, parada_id):
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    proxima = obj_parada.concluir_busstop()
+
+    if proxima:
+        messages.success(request, f"Parada concluída! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+    else:
+        messages.warning(request, "Parada concluída, mas nenhuma próxima parada foi encontrada.")
+
+    if request.user.role == UserRole.STUDENT:
+        return redirect('lista_linhas') 
+        
+    elif request.user.role == UserRole.DRIVER:
+        return redirect('lista_viagens')
+    else:
+        return redirect('index')
 
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
@@ -118,18 +150,40 @@ def lista_linhas(request, indice=0):
 
     proximo_indice = (indice + 1) % len(linhas)
 
-    moderacao = UsuarioDaViagem.objects.filter(
-        estudante=request.user.student_profile,
-        moderador=True
-    ).first()
+    moderacao = UsuarioDaViagem.objects.filter(estudante=request.user.student_profile, moderador=True).first()
     
+    #pegar as paradas das rotas
+    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha=linha_atual).order_by('data').first()
+
+    if not viagem_atual:
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha=linha_atual).order_by('data').first()
+    
+    paradas_atual = []
+    paradas_atual_quantidade = 0
+    paradas_atual_feitas = 0
+    proxima_parada = None
+    moderador = None
+
+    if viagem_atual:
+        paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        paradas_atual_quantidade = paradas_atual.count()
+        paradas_atual_feitas = paradas_atual.filter(status='Concluido').count()
+        proxima_parada = paradas_atual.filter(status='Aguardando').first()
+        moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+
     return render(request, 'lista_linhas.html', {
         'linha': linha_atual,
+        'viagem':viagem_atual,
         'proximo_indice': proximo_indice,
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
         'moderacao': moderacao,
-        'instituicao': request.user.student_profile.institution
+        'instituicao': request.user.student_profile.institution,
+        'paradas': paradas_atual,
+        'paradas_quantidade': paradas_atual_quantidade,
+        'concluidos': paradas_atual_feitas,
+        'proxima_parada': proxima_parada,
+        'moderador': moderador,
     })
 
 # @login_required
@@ -144,10 +198,18 @@ def index_aluno(request):
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
         linha_selecionada = Linha.objects.all().first()
+        
+    if linha_selecionada:
+        
+        primeira_rota = linha_selecionada.linha_rota.first()
+        if primeira_rota and primeira_rota.onibus:
+            onibus = primeira_rota.onibus
+    
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
-        'instituicao': request.user.student_profile.institution
+        'instituicao': request.user.student_profile.institution,
+        'onibus':onibus
     }
     return render(request, 'index_aluno.html', context)
 

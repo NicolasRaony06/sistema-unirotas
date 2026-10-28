@@ -54,25 +54,52 @@
             {% endif %}
         </div>
     </section>
+        {% if paradas %}
+            <section class="stops">
 
-    <section class="stops">
-        <div class="stops__head">
-            <h3>Paradas de hoje</h3>
-            <span>1 de 4 concluído</span>
-        </div>
-        <div class="progress"><div class="progress__bar" style="width: 25%;"></div></div>
-        <ul class="timeline">
-            <li class="done">
-                <div class="stop-row">
-                    <div>
-                        <strong>Garagem · saída</strong>
-                        <small>Check-in feito às 12:45</small>
-                    </div>
-                    <span class="tag tag--feito">Feito</span>
+                <div class="stops__head">
+                    <h3>Paradas de hoje</h3>
+                    <span>{{ concluidos }} de {{paradas_quantidade}} concluído</span>
                 </div>
-            </li>
-    </section>
+                <div class="progress"><div class="progress__bar" style="width: 25%;"></div></div>
 
+                <ul class="timeline">
+                    {% for parada in paradas %}
+                        {% if parada.status == 'Aguardando' %}
+                            {% if parada == proxima_parada and viagem.status == 'em_andamento' and moderador %}
+                                <li class="active">
+                                    <div class="stop-row">
+                                        <div>
+                                            <strong>{{proxima_parada.parada.name}}</strong>
+                                        </div>
+                                        <a class="tag tag--checkin" href="{% url 'concluir_parda' parada.pk %}">Check-in</a>
+                                    </div>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <div class="stop-row">
+                                        <div>
+                                            <strong>{{parada.parada.name}}</strong>
+                                        </div>
+                                        <span class="tag tag--espera">Espera</span>
+                                    </div>
+                                </li>
+                            {% endif %}
+                        {% elif parada.status == 'Concluido' %}
+                            <li class="done">
+                                <div class="stop-row">
+                                    <div>
+                                        <strong>{{parada.parada.name}}</strong>
+                                        <small>Check-in feito às {{parada.momento_de_conclusao|date:"H:i"}}</small>
+                                    </div>
+                                    <span class="tag tag--feito">{{parada.status}}</span>
+                                </div>
+                            </li>        
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
     {% else %}
     <p class="empty">Nenhuma linha cadastrada ainda.</p>
     {% endif %}
