@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block title %}Início | Admin{% endblock title %}
+{% block extra_css %}
+    
+{% endblock extra_css %}
 
 {% block header %}
     <h1>Inicio</h1>
@@ -9,5 +12,9 @@
 {% endblock header %}
 
 {% block main-content %}
-    <h2>aa</h2>
+    <section class="greeting">
+        <p>{% now "D, d M Y H:i" %}</p>
+        <h2>Olá, {{request.user}}!</h2>
+        <p>4 rotas · 2 ônibus · 2 motoristas</p>
+    </section>
 {% endblock main-content %}
