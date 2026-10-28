@@ -112,6 +112,14 @@ class ViagemParada(models.Model):
         self.save()
 
         return ViagemParada.objects.filter(viagem=self.viagem,status='Aguardando').order_by('id').first()
+    
+    def cancelar_busstop(self):
+        self.status = 'Aguardando'
+        self.momento_de_conclusao = None
+        self.save()
+
+        return ViagemParada.objects.filter(viagem=self.viagem,status='Aguardando').order_by('id').first()
+    
    
     
     

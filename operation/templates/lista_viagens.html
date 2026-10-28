@@ -70,7 +70,7 @@
                                     <div>
                                         <strong>{{proxima_parada.parada.name}}</strong>
                                     </div>
-                                    <a class="tag tag--checkin" href="{% url 'concluir_parda' parada.pk %}">Check-in</a>
+                                    <a class="tag tag--checkin" href="{% url 'concluir_parada' parada.pk %}">Check-in</a>
                                 </div>
                             </li>
                         {% else %}
@@ -90,7 +90,15 @@
                                     <strong>{{parada.parada.name}}</strong>
                                     <small>Check-in feito às {{parada.momento_de_conclusao|date:"H:i"}}</small>
                                 </div>
-                                <span class="tag tag--feito">{{parada.status}}</span>
+                                <div class="status-action-group">
+                                    <span class="tag tag--feito">{{parada.status}}</span>
+                                    <a href="{% url 'cancelar_parada' parada.pk %}" class="btn-voltar" aria-label="Voltar">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M10 6L5 10l5 4" />
+                                            <path d="M5 10h10a5 5 0 0 1 0 10H8" />
+                                        </svg>
+                                    </a>
+                                </div>
                             </div>
                         </li>        
                     {% endif %}

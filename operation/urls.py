@@ -1,9 +1,10 @@
-from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador, lista_linhas, index_aluno, alocar_aluno, cancelar_inscricao_na_viagem, alterar_presenca,lista_alunos_moderador, concluir_parada
+from .views import lista_viagens, concluir_viagem, comecar_viagem, lista_alunos, lista_moderadores, definir_moderador, lista_linhas, index_aluno, alocar_aluno, cancelar_inscricao_na_viagem, alterar_presenca,lista_alunos_moderador, concluir_parada, cancelar_parada
 from django.urls import path
 
 urlpatterns = [
     path('viagens/', lista_viagens, name='lista_viagens'),
-    path('viagens/<int:parada_id>/concluir', concluir_parada, name='concluir_parda'),
+    path('viagens/<int:parada_id>/concluir', concluir_parada, name='concluir_parada'),
+    path('viagens/<int:parada_id>/cancelar', cancelar_parada, name='cancelar_parada'),
     path('viagens/concluir/<int:viagem_id>', concluir_viagem, name='concluir_viagem'),
     path('viagens/comecar/<int:viagem_id>', comecar_viagem, name='comecar_viagem'),
     path('viagem/<int:viagem_id>/alunos/', lista_alunos, name='lista_alunos'),

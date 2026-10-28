@@ -59,6 +59,8 @@ def signin(request):
 
                 if request.user.role == 'STUDENT':
                     return redirect("index_aluno")
+                elif request.user.role == 'DRIVER':
+                    return redirect("lista_viagens")
                 elif request.user.role == 'ADMIN':
                     return redirect("management:home")
                 elif request.user.role == 'MANAGER':

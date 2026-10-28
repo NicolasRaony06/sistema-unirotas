@@ -57,6 +57,23 @@ def concluir_parada(request, parada_id):
     else:
         return redirect('index')
 
+def cancelar_parada(request, parada_id):
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    proxima = obj_parada.cancelar_busstop()
+
+    if proxima:
+        messages.success(request, f"Parada cancelada! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+    else:
+        messages.warning(request, "Parada cancelada, mas nenhuma próxima parada foi encontrada.")
+
+    if request.user.role == UserRole.STUDENT:
+        return redirect('lista_linhas') 
+        
+    elif request.user.role == UserRole.DRIVER:
+        return redirect('lista_viagens')
+    else:
+        return redirect('index')
+
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
     proxima = obj_viagem.concluir(request.user)
@@ -162,14 +179,15 @@ def lista_linhas(request, indice=0):
     paradas_atual_quantidade = 0
     paradas_atual_feitas = 0
     proxima_parada = None
-    moderador = None
+    is_moderador = False
 
     if viagem_atual:
         paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
         paradas_atual_quantidade = paradas_atual.count()
         paradas_atual_feitas = paradas_atual.filter(status='Concluido').count()
         proxima_parada = paradas_atual.filter(status='Aguardando').first()
-        moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+        
+        is_moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, estudante=request.user.student_profile, moderador=True).exists()
 
     return render(request, 'lista_linhas.html', {
         'linha': linha_atual,
@@ -183,7 +201,7 @@ def lista_linhas(request, indice=0):
         'paradas_quantidade': paradas_atual_quantidade,
         'concluidos': paradas_atual_feitas,
         'proxima_parada': proxima_parada,
-        'moderador': moderador,
+        'moderador': is_moderador,
     })
 
 # @login_required
@@ -204,12 +222,34 @@ def index_aluno(request):
         primeira_rota = linha_selecionada.linha_rota.first()
         if primeira_rota and primeira_rota.onibus:
             onibus = primeira_rota.onibus
+            
+    #pegar as paradas das rotas
+    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha= linha_selecionada).order_by('data').first()
+
+    if not viagem_atual:
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha= linha_selecionada).order_by('data').first()
     
+    atual_parada = None
+    proxima_parada = None
+    
+    if viagem_atual:
+        paradas = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        aguardando = list(paradas.filter(status='Aguardando')[:2])
+        atual_parada = paradas.filter(status='Concluido').last()
+        
+        if atual_parada:
+            proxima_parada = aguardando[0] if len(aguardando) > 0 else None
+        else:
+            atual_parada = aguardando[0] if len(aguardando) > 0 else None
+            proxima_parada = aguardando[1] if len(aguardando) > 1 else None
+        
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
         'instituicao': request.user.student_profile.institution,
-        'onibus':onibus
+        'onibus':onibus,
+        'atual_parada':atual_parada,
+        'proxima_parada': proxima_parada,
     }
     return render(request, 'index_aluno.html', context)
 
