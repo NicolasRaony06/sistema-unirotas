@@ -1,7 +1,17 @@
 {% extends "base_home.html" %}
+{% load static %}
 
-{% block title %}Início | Manager{% endblock title %}
+{% block title %}Início | Gestor{% endblock title %}
 
-{% block 'page-content' %}
-    <h1>Teste</h1>
-{% endblock 'page-content' %}
+{% block header %}
+    <h1>Inicio</h1>
+    <p>Bem vindo ao painel do Gestor</p>
+{% endblock header %}
+
+{% block main-content %}
+    <section class="greeting">
+        <p>{% now "D, d M Y H:i" %}</p>
+        <h2>Olá, {{request.user}}!</h2>
+        <p>4 rotas · 2 ônibus · 2 motoristas</p>
+    </section>
+{% endblock main-content %}
