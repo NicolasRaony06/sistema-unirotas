@@ -81,6 +81,21 @@ class InviteUserForm(forms.Form):
     role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select(attrs={
         'class': 'select-field'
     }))
+    institution = forms.ChoiceField(choices=(), widget=forms.Select(attrs={
+            'class': 'select-field'
+    }))
+
+    def __init__(self, *args, **kwargs):
+        institutions_id = kwargs.pop('institutions_id', None)
+        super().__init__(*args, **kwargs)
+
+        if institutions_id:
+            institutions = Institution.objects.filter(
+                id__in=institutions_id, 
+                is_active=True
+            ).values_list('id', 'name', 'city__nome')
+
+            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
 
     def clean(self):
         cleaned_data = super().clean()

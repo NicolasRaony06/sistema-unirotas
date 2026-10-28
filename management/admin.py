@@ -17,3 +17,14 @@ class BusStopAdmin(admin.ModelAdmin):
 class InstitutionAdmin(admin.ModelAdmin):
     ...
 # Register your models here.
+@admin.register(Linha)
+class LinhaAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(Rota)
+class RotaAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(TrechoViagem)
+class TrechoViagemAdmin(admin.ModelAdmin):
+    ...
