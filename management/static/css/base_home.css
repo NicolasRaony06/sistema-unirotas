@@ -13,7 +13,7 @@ body{
     z-index: 1000;
     background-color: white;
     padding: 0 13px;
-    border-right: 1px solid #e9e8e2;
+    border-right: 1px solid var(--border-color);
 }
 
 .sidebar-header{
@@ -206,6 +206,7 @@ main{
     display: flex;
     width: 100%;
     flex-direction: column;
+    row-gap: 10px;
     background-color: white;
     border-radius: 16px;
     padding: 20px;
@@ -252,10 +253,16 @@ main{
 .dashboard-card{
     display: flex;
     flex-direction: row;
+    column-gap: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px;
 }
 
-.dashboard-card p, span{
-    font-size: 0.79em;
+.dashboard-card-info p, 
+.dashboard-card-info span{
+    font-size: 0.75em;
+    line-height: 1;
 }
 
 .dashboard-card-icon{
@@ -274,9 +281,12 @@ main{
     height: 20px;
 }
 
+
 .dashboard-card-info div{
     display: flex;
     flex-direction: row;
+    column-gap: 10px;
+    align-items: center;
 }
 
 .dashboard-card-info div p{
@@ -284,9 +294,36 @@ main{
     font-weight: bold;
 }
 
+.subinfo{
+    color: var(--text-color-secondary);
+}
+
 .dashboard-card-actions{
     display: flex;
     flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+    margin-left: auto;
+}
+
+.dashboard-card-actions a{
+    text-decoration: none;
+    color: var(--secondary-color);
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+    height: fit-content;
+    padding: 10px;
+    background-color: var(--background-color-secondary);
+}
+
+.dashboard-card-actions button{
+    border-radius: 100%;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+    height: fit-content;
+    padding: 10px;
+    background-color: var(--background-color-secondary);
 }
 
 .dashboard-card-actions svg{
@@ -294,4 +331,21 @@ main{
     height: 14px;
 }
 
+.badge-status{
+    width: fit-content;
+    height: fit-content;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-weight: bold;
+}
+
+.active {
+    color: #047857;
+    background-color: #dcfce7;
+}
+
+.inactive {
+    color: #d64b3c;
+    background: #fae7e4;
+}
 

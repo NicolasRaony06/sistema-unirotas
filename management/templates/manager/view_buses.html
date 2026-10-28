@@ -36,7 +36,7 @@
                         {% endif %}
                     </div>
                     <h4>{{bus.name}}</h4>
-                    <p>Capacidade total: {{bus.capacity}} assentos</p>
+                    <p class="subinfo">Capacidade total: {{bus.capacity}} assentos</p>
                 </div>
                 <div class="dashboard-card-actions">
                     <a href="{% url "management:edit_bus" bus.id %}">
