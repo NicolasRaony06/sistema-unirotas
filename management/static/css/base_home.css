@@ -358,7 +358,7 @@ main{
     background: #fae7e4;
 }
 
-.dashboard-empty{
+.dashboard-message{
     background-color: var(--background-color-secondary);
     border-radius: 10px;
     border: 1px solid var(--border-color);

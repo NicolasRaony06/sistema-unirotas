@@ -379,7 +379,7 @@ def view_bus_stops(request):
         Q(city__in=related_cities)
     ).select_related('city').distinct()
 
-    return render(request, 'manager/paradas.html', {'bus_stops': bus_stops})
+    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
