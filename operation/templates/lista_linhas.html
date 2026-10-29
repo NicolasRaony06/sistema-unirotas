@@ -1,0 +1,116 @@
+{% extends 'base_aluno.html' %}
+
+{% block title %}Rotas{% endblock %}
+{% block nav_rotas %}active{% endblock %}
+
+{% block header %}
+    <div class="topbar-alunos">
+        <a href="{% url 'index_aluno' %}" class="topbar-back" aria-label="Voltar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </a>
+        <h1>Rotas</h1>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if linha %}
+    <!--<p class="route-select-hint">{{ indice_atual }} de {{ total_linhas }} · Rota selecionada. Vá até "Início" para confirmar sua presença.</p>-->
+    <section class="route-select-card">
+        <div class="route-select-card__head">
+            <div class="route-card__bus" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0ZM6 7.5V12C6 12.8297 6.67031 13.5 7.5 13.5H12.75V6H7.5C6.67031 6 6 6.67031 6 7.5ZM14.25 13.5H19.5C20.3297 13.5 21 12.8297 21 12V7.5C21 6.67031 20.3297 6 19.5 6H14.25V13.5ZM6.75 18.75C7.14782 18.75 7.52936 18.592 7.81066 18.3107C8.09196 18.0294 8.25 17.6478 8.25 17.25C8.25 16.8522 8.09196 16.4706 7.81066 16.1893C7.52936 15.908 7.14782 15.75 6.75 15.75C6.35218 15.75 5.97064 15.908 5.68934 16.1893C5.40804 16.4706 5.25 16.8522 5.25 17.25C5.25 17.6478 5.40804 18.0294 5.68934 18.3107C5.97064 18.592 6.35218 18.75 6.75 18.75ZM20.25 18.75C20.6478 18.75 21.0294 18.592 21.3107 18.3107C21.592 18.0294 21.75 17.6478 21.75 17.25C21.75 16.8522 21.592 16.4706 21.3107 16.1893C21.0294 15.908 20.6478 15.75 20.25 15.75C19.8522 15.75 19.4706 15.908 19.1893 16.1893C18.908 16.4706 18.75 16.8522 18.75 17.25C18.75 17.6478 18.908 18.0294 19.1893 18.3107C19.4706 18.592 19.8522 18.75 20.25 18.75ZM18 3.75C18 3.3375 17.6625 3 17.25 3H9.75C9.3375 3 9 3.3375 9 3.75C9 4.1625 9.3375 4.5 9.75 4.5H17.25C17.6625 4.5 18 4.1625 18 3.75Z" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="route-select-card__title">
+                <h2>{{ linha.nome }}</h2>
+                <span>Transporte público</span>
+            </div>
+            <span class="badge badge--active">Ativo</span>
+        </div>
+
+        <div class="route-select-card__path">
+            <span class="route-select-card__path-text">
+                <span class="dot"></span> {{ linha.city }} <span class="arrow">→</span> {{ instituicao.name }}
+            </span>
+            <a href="{% url 'lista_linhas_indice' proximo_indice %}" class="route-select-card__next" aria-label="Próxima rota">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </a>
+        </div>
+
+        <div class="route-select-card__meta {% if linha.dias_ofertados|length >= 6 %}route-select-card__meta--wrap{% endif %}">
+            <div>
+                <span class="label">DIAS ÚTEIS</span>
+                <strong>{% for dia in linha.dias_ofertados %}{{ dia }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
+            </div>
+            <div>
+                <span class="label">HORÁRIO</span>
+                <strong>{{ linha.horario_inicio|time:"H:i" }} - {{ linha.horario_fim|time:"H:i" }}</strong>
+            </div>
+            {% if moderacao %}
+                <a class="btn btn--solid" id="moderador" href="{% url 'lista_alunos_moderador' moderacao.viagem.pk %}">Lista de alunos</a>
+            {% endif %}
+        </div>
+    </section>
+        {% if paradas %}
+            <section class="stops">
+
+                <div class="stops__head">
+                    <h3>Paradas de hoje</h3>
+                    <span>{{ concluidos }} de {{paradas_quantidade}} concluído</span>
+                </div>
+                <div class="progress"><div class="progress__bar" style="width: 25%;"></div></div>
+
+                <ul class="timeline">
+                    {% for parada in paradas %}
+                        {% if parada.status == 'Aguardando' %}
+                            {% if parada == proxima_parada and viagem.status == 'em_andamento' and moderador %}
+                                <li class="active">
+                                    <div class="stop-row">
+                                        <div>
+                                            <strong>{{proxima_parada.parada.name}}</strong>
+                                        </div>
+                                        <a class="tag tag--checkin" href="{% url 'concluir_parada' parada.pk %}">Check-in</a>
+                                    </div>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <div class="stop-row">
+                                        <div>
+                                            <strong>{{parada.parada.name}}</strong>
+                                        </div>
+                                        <span class="tag tag--espera">Espera</span>
+                                    </div>
+                                </li>
+                            {% endif %}
+                        {% elif parada.status == 'Concluido' %}
+                            <li class="done">
+                                <div class="stop-row">
+                                    <div>
+                                        <strong>{{parada.parada.name}}</strong>
+                                        <small>Check-in feito às {{parada.momento_de_conclusao|date:"H:i"}}</small>
+                                    </div>
+                                    <div class="status-action-group">
+                                        <span class="tag tag--feito">{{parada.status}}</span>
+                                        {% if moderador %}
+                                            <a href="{% url 'cancelar_parada' parada.pk %}" class="btn-voltar" aria-label="Voltar">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M10 6L5 10l5 4" />
+                                                    <path d="M5 10h10a5 5 0 0 1 0 10H8" />
+                                                </svg>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>        
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    {% else %}
+    <p class="empty">Nenhuma linha cadastrada ainda.</p>
+    {% endif %}
+{% endblock %}

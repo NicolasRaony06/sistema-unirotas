@@ -72,7 +72,8 @@ class BusStop(models.Model):
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_bus_stop_per_city"
+                name="unique_bus_stop_per_city",
+                violation_error_message="Já existe um ponto de ônibus com este nome nesta cidade."
             )
         ]
 
@@ -91,7 +92,9 @@ class Institution(models.Model):
             models.UniqueConstraint(
                 Lower('name'),
                 'city',
-                name="unique_institution_per_city"
+                name="unique_institution_per_city",
+                violation_error_message="Já existe uma instituição com este nome nesta cidade."
+
             )
         ]
 
@@ -151,7 +154,8 @@ class Linha(models.Model):
 
 class Rota(models.Model):
     nome = models.CharField(max_length=100)
-    linha = models.ForeignKey(Linha, on_delete=models.CASCADE,related_name='linha')
+
+    linha = models.ForeignKey(Linha, on_delete=models.CASCADE, related_name='linha_rota')
 
     class Direcao(models.TextChoices):
         IDA = 'IDA', 'Ida'

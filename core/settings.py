@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +45,9 @@ INSTALLED_APPS = [
     'authentication',
     'management',
     'django_extensions',
+    'operation',
+    'metrics',
+
 ]
 
 MIDDLEWARE = [
@@ -104,6 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+
     {
         'NAME': 'authentication.validators.UnirotaPasswordValidator',
     },
@@ -120,6 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
     # {
     #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     # },
+
 
 ]
 
@@ -156,16 +162,14 @@ STATICFILES_DIRS = [
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-#DEFAULT_FROM_EMAIL = 'noreply@seusite.com'
-from dotenv import load_dotenv
 
 load_dotenv(BASE_DIR / '.env')
 nome_exibido = "UniRota"
 email_real = os.environ.get('EMAIL_HOST_USER')
 
 DEFAULT_FROM_EMAIL = f'"{nome_exibido}" <{email_real}>'
-# DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@seusite.com')
-
+#DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@seusite.com')
+INVITE_TTL_SECONDS = 86400
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',

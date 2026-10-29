@@ -10,9 +10,9 @@ from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm, LinhaForm, RotaForm, TrechoViagemForm
-import copy
+from .forms import *
 from .handlers import *
+from authentication.data_type import InviteDTO
 
 @login_required
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
@@ -196,29 +196,41 @@ def activate_manager(request,id):
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 @role_required(allowed_roles=UserRole.MANAGER)
-def invite_driver(request):
+def invite_user(request):
+    user = request.user
+    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
+        'institutions', 
+        flat=True
+    )
+
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        confirm_email = request.POST.get('confirm_email', '').strip()
+        form = InviteUserForm(request.POST, institutions_id=institutions_id)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            role=form.cleaned_data.get('role')
 
-        if not email == confirm_email:
-            messages.error(request, "Os emails informados não são iguais.")
-            return render(request, "manager/invite_driver.html")
+           
+            link = generate_elevated_signup_link(
+                InviteDTO(
+                    higher_role_email=user.email,
+                    role=form.cleaned_data.get('role'),
+                    email=email,
+                    city_id = request.user.personel_profile.city,
+                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
+                ),
+                request=request
+            )
 
-        link = generate_elevated_signup_link(
-            higher_role_email=request.user.email,
-            email=email,
-            role=UserRole.DRIVER,
-            request=request
-        )
+            print(link)
 
-        if link:
-            messages.success(request, f'Convite enviado com sucesso para {email}.')
-            return render(request, "manager/invite_driver.html")
-        else:
-            messages.error(request, f"Não foi possível enviar o convite para {email}.")
-
-    return render(request, "manager/invite_driver.html")
+            if link:
+                messages.success(request, f'Convite enviado com sucesso para {email}.')
+                return redirect("management:home")
+            else:
+                messages.error(request, f"Não foi possível enviar o convite para {email}.")
+    else:
+        form = InviteUserForm(institutions_id=institutions_id)
+    return render(request, "manager/invite_user.html", {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -249,7 +261,7 @@ def deactivate_driver(request, id):
         if driver_user.is_active:
             driver_user.is_active = False
             driver_user.save()
-            messages.success(request, f"Motorista {driver_user.full_name} desativado com sucesso.")
+            #messages.success(request, f"Motorista {driver_user.full_name} desativado com sucesso.")
     return redirect('management:view_drivers')
 
 @login_required
@@ -266,7 +278,7 @@ def activate_driver(request, id):
         if not driver_user.is_active:
             driver_user.is_active = True
             driver_user.save()
-            messages.success(request, f"Motorista {driver_user.full_name} ativado com sucesso.")
+            #messages.success(request, f"Motorista {driver_user.full_name} ativado com sucesso.")
     return redirect('management:view_drivers')
 
 @login_required
@@ -288,7 +300,7 @@ def register_bus(request):
 
             return redirect('management:view_buses')
 
-        messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
+        #messages.error(request, "Ocorreu um erro ao tentar cadastrar o ônibus. Tente novamente.")
     else:
         form = BusForm()
     return render(request, "manager/register_bus.html", {'form': form})
@@ -313,7 +325,7 @@ def edit_bus(request, id):
             form.save()
             messages.success(request, f"Ônibus {bus.name} alterado com sucesso.")
             return redirect("management:view_buses")
-        messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
+        #messages.error(request, f"Erro ao tentar alterar ônibus {bus.name}")
     else:
         form = BusForm(instance=bus)
     return render(request, 'manager/edit_bus.html', {'form': form})
@@ -331,7 +343,7 @@ def deactivate_bus(request, id):
         if bus.is_active:
             bus.is_active = False
             bus.save()
-            messages.success(request, f"Ônibus {bus.name} desativado com sucesso.")
+            #messages.success(request, f"Ônibus {bus.name} desativado com sucesso.")
     return redirect('management:view_buses')
 
 @login_required
@@ -347,7 +359,7 @@ def activate_bus(request, id):
         if not bus.is_active:
             bus.is_active = True
             bus.save()
-            messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
+            #messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
 
 @login_required
@@ -358,7 +370,7 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:view_bus_stops')
+            return redirect('management:home')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
@@ -369,10 +381,12 @@ def register_bus_stop(request):
 def view_bus_stops(request):
     city = request.user.personel_profile.city
 
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
+    # related_cities = []
+    # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    # if not filter_ocult_related_cities: 
+    #     
+
+    related_cities = city.municipios_relacionados.all()
 
     bus_stops = BusStop.objects.filter(
         Q(city__in=related_cities)
@@ -399,7 +413,7 @@ def edit_bus_stop(request, id):
             form.save()
             messages.success(request, "Parada alterada com sucesso.")
             return redirect("management:view_bus_stops")
-        messages.error(request, "Não foi possível alterar a parada")
+        #messages.error(request, "Não foi possível alterar a parada")
     else:
         form = BusStopForm(instance=bus_stop, city=city)
     return render(request, 'manager/edit_bus_stop.html', {'form': form})
@@ -422,7 +436,8 @@ def deactivate_bus_stop(request, id):
             bus_stop.is_active = False
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
-    return redirect('management:view_bus_stops')
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -433,17 +448,18 @@ def activate_bus_stop(request, id):
             BusStop,
             id=id
         )
-
+        
         if not can_manage_model(city, bus_stop):
             messages.error(request, f"Não é possível ativar a parada {bus_stop.name}, pois ela pertence a um outro município ofertado pelo sistema.")
             return redirect('management:view_bus_stops')
 
         if not bus_stop.is_active:
+            print('shgfhjsajkf')
             bus_stop.is_active = True
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
-    return redirect('management:view_bus_stops')
-
+    base_url = reverse('management:view_bus_stops')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -455,7 +471,7 @@ def register_institution(request):
             form.save()
             messages.success(request, "Instituição cadastrada com sucesso.")
             return redirect("management:view_institutions")
-        messages.error(request, "Não foi possível cadastrar instituição.")
+        #messages.error(request, "Não foi possível cadastrar instituição.")
     else:
         form = InstitutionForm(city=city)
     return render(request, 'manager/register_institution.html', {'form': form})
@@ -465,10 +481,12 @@ def register_institution(request):
 def view_institutions(request):
     city = request.user.personel_profile.city
 
-    related_cities = []
-    filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    if not filter_ocult_related_cities: 
-        related_cities = city.municipios_relacionados.all()
+    # related_cities = []
+    # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
+    # if not filter_ocult_related_cities: 
+    #     related_cities = city.municipios_relacionados.all()
+
+    related_cities = city.municipios_relacionados.all()
 
     institutions = Institution.objects.filter(
         Q(city__in=related_cities)
@@ -494,7 +512,10 @@ def deactivate_institution(request, id):
         if institution.is_active:
             institution.is_active = False
             institution.save()
-            messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
+            #messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
+
+    # base_url = reverse('management:view_institutions')
+    # return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
     return redirect('management:view_institutions')
 
@@ -517,27 +538,8 @@ def activate_institution(request, id):
             institution.is_active = True
             institution.save()
             messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
-    return redirect('management:view_institutions')
-
-@login_required
-@role_required(allowed_roles=UserRole.MANAGER)
-def inativar_linha(request, id):
-    if request.method == 'POST':
-        linha = Linha.objects.filter(id=id).first()
-        if  linha.is_active:
-            linha.is_active = False
-            linha.save()
-    return redirect('management:linhas')
-
-@login_required
-@role_required(allowed_roles=UserRole.MANAGER)
-def ativar_linha(request, id):
-    if request.method == 'POST':
-        linha = Linha.objects.filter(id=id).first()
-        if  linha.is_active == False:
-            linha.is_active = True
-            linha.save()
-    return redirect('management:linhas')
+    base_url = reverse('management:view_institutions')
+    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -558,7 +560,7 @@ def edit_institution(request, id):
             form.save()
             messages.success(request, "Instituição alterada com sucesso.")
             return redirect('management:view_institutions')
-        messages.error(request, "Não foi possível alterar a instituição.")
+        #messages.error(request, "Não foi possível alterar a instituição.")
     else:
         form = InstitutionForm(instance=institution, city=city)
     return render(request, 'manager/edit_institution.html', {'form': form})
