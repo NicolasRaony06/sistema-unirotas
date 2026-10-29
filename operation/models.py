@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from management.models import *
+from management.models import BusStop
 # class Linha(models.Model):
 #     nome = models.CharField(max_length=50)
 #     origem = models.CharField(max_length=50)
@@ -13,7 +14,7 @@ from management.models import *
 #         return self.nome
     
 class Viagem(models.Model):
-    rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
+    rota = models.ForeignKey(Rota, on_delete=models.CASCADE, related_name='viagens')
     data = models.DateTimeField()
     status = models.CharField(max_length=20, choices=[
         ('aguardando', 'Aguardando'),
@@ -49,6 +50,18 @@ class Viagem(models.Model):
             return proxima
         return None
     
+    def criar_paradas(self):
+        trechos = TrechoViagem.objects.filter(rota=self.rota).order_by('ordem')
+        primeiro = trechos.first()
+
+        if primeiro is None:
+            return
+
+        ViagemParada.objects.create(viagem=self, parada=primeiro.parada_inicio)
+
+        for trecho in trechos:
+            ViagemParada.objects.create(viagem=self, parada=trecho.parada_fim)
+    
 class UsuarioDaViagem(models.Model):
     estudante = models.ForeignKey('authentication.StudentProfile', on_delete=models.CASCADE, related_name='viagens')
     viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, related_name='usuarios')
@@ -79,3 +92,34 @@ class UsuarioDaViagem(models.Model):
     
     def __str__(self):
         return f'{self.estudante} - {self.viagem} ({self.direcao})'
+    
+class ViagemParada(models.Model):
+    viagem = models.ForeignKey(Viagem, on_delete=models.CASCADE, related_name='paradas')
+    parada = models.ForeignKey(BusStop, on_delete=models.PROTECT)
+    momento_de_conclusao = models.DateTimeField(blank=True, null=True, )
+    status = models.CharField(max_length=30, choices =[
+        ('Aguardando', 'Aguardando'),
+        ('Concluido', 'Concluido'),
+    ], default='Aguardando')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.viagem} - {self.parada}'
+    
+    def concluir_busstop(self):
+        self.status = 'Concluido'
+        self.momento_de_conclusao = timezone.now()
+        self.save()
+
+        return ViagemParada.objects.filter(viagem=self.viagem,status='Aguardando').order_by('id').first()
+    
+    def cancelar_busstop(self):
+        self.status = 'Aguardando'
+        self.momento_de_conclusao = None
+        self.save()
+
+        return ViagemParada.objects.filter(viagem=self.viagem,status='Aguardando').order_by('id').first()
+    
+   
+    
+    

@@ -151,28 +151,61 @@
     <section class="route-mini">
         <h3>Rota do ônibus</h3>
         <div class="route-mini__track">
+            
+            <!-- NOVA DIV: A LINHA QUE CONECTA TUDO NO FUNDO -->
+            <div class="route-mini__line"></div>
+
             <div class="route-mini__stop">
                 <span class="route-mini__dot route-mini__dot--home" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
                 </span>
                 <small class="route-mini__stop-label">(origem)<br>{{ linha_selecionada.city }}</small>
             </div>
-            <span class="route-mini__gap"><span class="route-mini__pill">10 min</span></span>
+            {% if eta_current_stop %}
+                <span class="route-mini__gap"><span class="route-mini__pill">{{eta_current_stop}}</span></span>
+            {%else%}
+                <span class="route-mini__gap"><span class="route-mini__pill"></span></span>
+            {% endif %}
+            
+            
             <div class="route-mini__stop">
                 <span class="route-mini__dot" aria-hidden="true"></span>
-                <small class="route-mini__stop-label">Parada<br>principal</small>
+                <small class="route-mini__stop-label">{{atual_parada.parada.name}}</small>
             </div>
-            <span class="route-mini__gap"><span class="route-mini__pill">15 min</span></span>
+            {%if eta_next_stop_minutes %}
+                {% if eta_next_stop_minutes > 0%}
+                <span class="route-mini__gap"><span class="route-mini__pill">{{eta_next_stop_minutes}} min </span></span>
+                {%else%}
+                    <span class="route-mini__gap"><span class="route-mini__pill">N/A</span></span>
+                {%endif%}  
+            {%else%}
+              <span class="route-mini__gap"><span class="route-mini__pill"></span></span>
+            {% endif %}
             <div class="route-mini__stop">
                 <span class="route-mini__dot" aria-hidden="true"></span>
-                <small class="route-mini__stop-label">Parada<br>principal 2</small>
+                <small class="route-mini__stop-label">{{proxima_parada.parada.name}}</small>
             </div>
+            
             <span class="route-mini__gap">
+                {% if eta_last_stop_minutes %}
+                    {% if eta_last_stop_minutes > 0%}
+                        <span class="route-mini__pill route-mini__pill--bus">
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
+                            {{eta_last_stop_minutes}} min
+                        </span>
+                    {%else%}
+                        <span class="route-mini__pill route-mini__pill--bus">
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
+                            N/A
+                        </span>
+                    {%endif%}
+                {%else%}
                 <span class="route-mini__pill route-mini__pill--bus">
-                    <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
-                    12 min
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
                 </span>
+                {%endif%}
             </span>
+            
             <div class="route-mini__stop">
                 <span class="route-mini__dot route-mini__dot--end" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>
@@ -198,7 +231,7 @@
         <div class="bus-card__info">
             <span class="bus-card__title">{{ linha_selecionada.nome }} <span class="badge badge--blue">Em operação</span></span>
             <!-- estático: placa e cor ainda não vêm de um model de frota -->
-            <small><span class="bus-card__dot" aria-hidden="true"></span>Placa: ABC1D23 · Amarelo com faixa preta</small>
+            <small><span class="bus-card__dot" aria-hidden="true"></span>{{ onibus.name }} - Placa:{{onibus.license_plate}} - Cor:{{onibus.color}}</small>
         </div>
     </section>
 
