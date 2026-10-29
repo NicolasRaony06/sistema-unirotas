@@ -10,7 +10,8 @@ from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
-from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm
+from .forms import BusForm, MunicipioForm, BusStopForm, InstitutionForm, LinhaForm, RotaForm, TrechoViagemForm
+import copy
 from .handlers import *
 
 @login_required
@@ -24,8 +25,11 @@ def home(request):
         template_name = "manager/home.html"
 
     context = {
+        'linhas': Linha.objects.all(),
+        'motoristas':User.objects.filter(role=UserRole.DRIVER).count(),
+        'onibus': Bus.objects.all().count(),
         'estudantes':User.objects.filter(role=UserRole.STUDENT).count(),
-        'municipios': Municipio.objects.count(),
+        'municipios': Municipio.objects.all().count(),
         'full_name' : request.user.full_name,
         'data': timezone.now(),
     }
@@ -35,32 +39,32 @@ def home(request):
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
 def gestores(request):
-    gestores = User.objects.filter(role=UserRole.MANAGER)
-    gestores_inativos = User.objects.filter(role = UserRole.MANAGER,is_active=False).count()
-    total_gestores = User.objects.filter(role=UserRole.MANAGER).count() 
-    return render(request,'admin/gestores.html',{
-        'gestores': gestores,
-        'gestores_inativos': gestores_inativos,
-        'total_gestores': total_gestores,
-    })
+
+    context = {
+    'gestores': User.objects.filter(role=UserRole.MANAGER),
+    'gestores_inativos': User.objects.filter(role = UserRole.MANAGER,is_active=False).count(),
+    'total_gestores' :User.objects.filter(role=UserRole.MANAGER).count(),
+    }
+
+    return render(request,'admin/gestores.html',context)
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
 def municipios(request):
-        total_onibus = Bus.objects.all().count()
-        municipios_ofertados = Municipio.objects.filter(ofertado_pelo_sistema = True)
-        municipios = Municipio.objects.all()
-        tot_municipios = Municipio.objects.all().count()
-        gestores = User.objects.filter(role=UserRole.MANAGER)
-        gestores_ativos = User.objects.filter(role=UserRole.MANAGER, is_active=True)
-        return render(request,'admin/municipios.html',{
-        'gestores_ativos': gestores_ativos,
-        'total_onibus': total_onibus,
-        'municipios_ofertados': municipios_ofertados,
-        'tot_municipios': tot_municipios,
-        'municipios': municipios,
-        'gestores':gestores,
-    })
+        
+        context = {
+        'linhas': Linha.objects.filter(is_active=True),
+        'total_onibus' : Bus.objects.all().count(),
+        'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
+        'municipios' : Municipio.objects.all(),
+        'tot_municipios' : Municipio.objects.all().count(),
+        'gestores' : User.objects.filter(role=UserRole.MANAGER),
+        'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
+        }
+
+        return render(request,'admin/municipios.html',context)
+
+
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
 def criar_municipio(request):
@@ -73,30 +77,34 @@ def criar_municipio(request):
             if request.user.role == UserRole.ADMIN:
                 municipio.ofertado_pelo_sistema = True
                 municipio.save()
-                #cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado,gestor=gestor)#''',gestor=gestor'''
                 return redirect('management:municipios')
-
-            '''def home_manager(request):
-                return render(request,'home_manager.html',{
-                    'full_name' : request.user.full_name,
-                    'data': datetime.now(),
-                })
-            '''
-            '''elif request.user.role == UserRole.MANAGER:
-                e_ofertado = False
-                municipio_base = request.user.municipio.first()
-
-                if municipio_base is None:
-                    return HttpResponse("Você não esta associado a nenhum municipio")
-                else:
-                    municipio_criado, *_ = cadastrar_municipio(nome=nome,codigo_ibge=cod_ibge,ofertado_pelo_sistema=e_ofertado)
-                    municipio_base.municipios_relacionados.add(municipio_criado)
-                    return redirect('management:home-manager')'''
         else:
             return render(request, 'admin/cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
     return render(request, 'admin/cadastro_municipio.html', {'form': form})
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def adicionar_municipio(request):
+    if request.method == 'POST':
+        form = MunicipioForm(request.POST)
+
+        if form.is_valid():
+            municipio = form.save(commit=False)
+
+            if request.user.role == UserRole.MANAGER:
+                municipio.ofertado_pelo_sistema = False
+                municipio.save()
+
+                municipio_gestor = Municipio.objects.filter(gestor=request.user).first()
+                municipio_gestor.municipios_relacionados.add(municipio)
+                return redirect('management:localizacoes')
+        else:
+            return render(request, 'manager/cadastro_municipio.html', {'erro': 'Dados inválidos'})
+    else:
+        form = MunicipioForm()
+    return render(request, 'manager/cadastro_municipio.html', {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
@@ -110,10 +118,12 @@ def associar_gestor(request):
 
         if municipio_buscado is None or email_buscado is None:
             return HttpResponse("Dados não encontrados")
+        
         atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
         return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
-        
-    return render(request,'test.html')
+    
+    return redirect('management:municipios')
+
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
@@ -126,6 +136,8 @@ def homologar_mun(request,id):
         municipio_buscado.ofertado_pelo_sistema = True
         municipio_buscado.save()
         return redirect('management:municipios')
+    
+    return redirect('management:municipios')
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
@@ -140,6 +152,8 @@ def desabilitar_mun(request,id):
         #mun = desabilitar_municipio(codigo_ibge=codigo_ibge)
         # return HttpResponse(f"Municipio {municipio_buscado} desabilitado")
         return redirect('management:municipios')
+    
+    return redirect('management:municipios')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -155,6 +169,7 @@ def localizacoes(request):
         tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
         municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk)
         return render(request, 'manager/localizacoes.html', {
+                    
                     'municipio': municipio_base,
                     'total_municipios': tot_municipios,
                     'municipios': municipios,
@@ -343,7 +358,7 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:home')
+            return redirect('management:view_bus_stops')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
@@ -360,11 +375,10 @@ def view_bus_stops(request):
         related_cities = city.municipios_relacionados.all()
 
     bus_stops = BusStop.objects.filter(
-        Q(city=city) |
         Q(city__in=related_cities)
     ).select_related('city').distinct()
 
-    return render(request, 'manager/paradas.html', {'bus_stops': bus_stops})
+    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -408,8 +422,7 @@ def deactivate_bus_stop(request, id):
             bus_stop.is_active = False
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
-    base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_bus_stops')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -429,8 +442,8 @@ def activate_bus_stop(request, id):
             bus_stop.is_active = True
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
-    base_url = reverse('management:view_bus_stops')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_bus_stops')
+
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -458,7 +471,6 @@ def view_institutions(request):
         related_cities = city.municipios_relacionados.all()
 
     institutions = Institution.objects.filter(
-        Q(city=city) |
         Q(city__in=related_cities)
     ).select_related('city').distinct()
     
@@ -484,8 +496,7 @@ def deactivate_institution(request, id):
             institution.save()
             messages.success(request, f"Instituição {institution.name} desativada com sucesso.")
 
-    base_url = reverse('management:view_institutions')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_institutions')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -506,8 +517,27 @@ def activate_institution(request, id):
             institution.is_active = True
             institution.save()
             messages.success(request, f"Instituição {institution.name} ativada com sucesso.")
-    base_url = reverse('management:view_institutions')
-    return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
+    return redirect('management:view_institutions')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def inativar_linha(request, id):
+    if request.method == 'POST':
+        linha = Linha.objects.filter(id=id).first()
+        if  linha.is_active:
+            linha.is_active = False
+            linha.save()
+    return redirect('management:linhas')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def ativar_linha(request, id):
+    if request.method == 'POST':
+        linha = Linha.objects.filter(id=id).first()
+        if  linha.is_active == False:
+            linha.is_active = True
+            linha.save()
+    return redirect('management:linhas')
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -541,6 +571,131 @@ def retirar_municipio(request,id):
         municipio_listado = Municipio.objects.filter(id=id).first()
         municipio_pai.municipios_relacionados.remove(municipio_listado)
     return redirect('management:localizacoes')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def criar_linha(request):
+    if request.method == 'POST':
+        form = LinhaForm(request.POST)
+        if not form.is_valid():
+            print("ERROS DO FORMULÁRIO:", form.errors)
+        if form.is_valid():
+            a = form.save(commit=False)
+            a.city = request.user.personel_profile.city
+            a.save()
+            form.save_m2m()
+           #  return redirect('management:view_institutions')
+            return redirect('management:criar-rota',linha_id=a.id)
+    else:
+        form = LinhaForm()
+
+    cidades_relacionadas = []
+    cidades_relacionadas = request.user.personel_profile.city.municipios_relacionados.all()
+    motoristas = User.objects.filter(role=UserRole.DRIVER,personel_profile__city=request.user.personel_profile.city,is_active=True,)
+    instituicoes = Institution.objects.filter(city__in=cidades_relacionadas)
+    contexto = {'form': form,'instituicoes':instituicoes,'motoristas':motoristas}
+    
+    return render(request, 'manager/criar_linha.html', contexto)
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def criar_rota(request,linha_id):
+    if request.method == 'POST':
+        form = RotaForm(request.POST,prefix='Ida')
+        form2 = RotaForm(request.POST,prefix='Volta')
+        if form.is_valid() :
+            Ida = form.save(commit=False)
+            linha = get_object_or_404(Linha,id=linha_id)
+            Ida.linha = linha
+            Ida.save()
+        if form2.has_changed() and form2.is_valid():
+            Volta = form2.save(commit=False)
+            Volta.linha = linha
+            Volta.save()
+        return redirect('management:criar-trecho',rota_id=Ida.id)
+    else:
+        form = RotaForm(prefix='Ida')
+        form2 = RotaForm(prefix='Volta')
+
+    onibus = Bus.objects.filter(city=request.user.personel_profile.city)
+    return render(request,'manager/criar_rota.html',{'form':form, 'form2': form2,'onibus':onibus})
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def linhas(request):
+    context = {
+        'linhas': Linha.objects.all(),
+
+    }
+    return render(request,'manager/linhas.html',context)
+
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def criar_trecho(request,rota_id):
+    if request.method == 'POST':
+        form = TrechoViagemForm(request.POST)
+        if form.is_valid():
+            trecho = form.save(commit=False)
+            rota = get_object_or_404(Rota, id=rota_id)
+            trecho.rota = rota
+            trecho.save()
+
+            linha = rota.linha
+            rota_volta = Rota.objects.filter(linha=linha, direcao="VOLTA").first()
+
+            if rota_volta is not None:
+                trecho_volta = trecho
+                trecho_volta.pk = None
+                trecho_volta.id = None
+                trecho_volta.rota = rota_volta
+                trecho_volta.save()
+
+    # if request.method == 'POST':
+    #     form = TrechoViagemForm(request.POST)
+    #     if form.is_valid():
+    #         trecho = form.save(commit=False)
+    #         rota = get_object_or_404(Rota,id=rota_id)
+    #         trecho.rota = rota
+    #         trecho.save()
+
+
+    #         trecho.pk = None
+    #         trecho.id = None
+
+    #         linha = rota.linha
+    #         rota_volta = Rota.objects.filter(linha=linha,direcao="VOLTA").first()
+    #         if rota_volta is not None:
+    #             trecho2 = form.save(commit=False)
+    #             trecho2.rota = rota_volta
+    #             trecho2.save()
+          
+            return redirect('management:criar-trecho',rota_id=rota.id)
+    else:
+        form = TrechoViagemForm()
+    trechos = TrechoViagem.objects.filter(rota__id=rota_id)
+    cidades_relacionadas = []
+    cidades_relacionadas = request.user.personel_profile.city.municipios_relacionados.all()
+    paradas = BusStop.objects.filter(city__in=cidades_relacionadas)
+    return render(request,'manager/criar_trecho.html',{'form':form,'trechos':trechos,'paradas':paradas})
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def excluir_trecho(request,id):
+    if request.method == 'POST':
+        trecho = get_object_or_404(TrechoViagem,id=id)
+        linha = trecho.rota.linha
+        trecho_exclude = TrechoViagem.objects.filter(
+        rota__linha=linha,
+        parada_inicio=trecho.parada_inicio,
+        parada_fim=trecho.parada_fim,
+        ordem=trecho.ordem,
+        distancia_km=trecho.distancia_km,
+    )
+        trecho_exclude.delete()
+        id = trecho.rota.id
+    return redirect('management:criar-trecho',rota_id=id)
+    #return render(request,'manager/criar_trecho.html')
 
 
 # @login_required

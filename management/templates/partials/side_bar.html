@@ -16,8 +16,14 @@
         </div>
 
         <div>
+            {% if request.user.role == 'MANAGER' %}
+            <strong>{{request.user.full_name}}</strong>
+            <span>{{request.user.role}} - {{request.user.municipio.first.nome}}</span>
+            {% else %}
             <strong>{{request.user.full_name}}</strong>
             <span>{{request.user.role}}</span>
+            {% endif %}
+
         </div>
 
         <span class="icon">
@@ -183,7 +189,8 @@
         </a>
 
         <!-- 7. Rotas -->
-        <a href="#rotas">
+         <a class="{% if request.resolver_match.url_name == 'linhas' %}active{% endif %}"
+            href="{%url 'management:linhas'%}">
             <span class="icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round">
@@ -192,7 +199,7 @@
                     <circle cx="18" cy="5" r="3" />
                 </svg>
             </span>
-            Rotas
+            Linhas
         </a>
 
         <!-- 8. Configurações -->

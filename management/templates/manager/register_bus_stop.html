@@ -1,10 +1,13 @@
+{% comment %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Template registrar parada teste</title>
 </head>
+
 <body>
     <form method="post">
         {% csrf_token %}
@@ -12,4 +15,93 @@
         <button type="submit">Enviar</button>
     </form>
 </body>
+
+</html> {% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Parada</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles/cadastro_municipio.css' %}">
+
+
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Registrar Parada</h2>
+            <p>Preencha os dados da nova parada</p>
+        </div>
+        <form method="post" >
+            {% csrf_token %}
+            <div class="card-body">
+                <!-- Nome da parada -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Nome da parada <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004de6"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                        </div>
+
+                        <input type="text" class="input-field" placeholder="Ex: Atacarejo" name="name" />
+                    </div>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        Descrição </span>
+                    </label>
+                    <textarea id="description" name="description" class="form-control description-field" rows="4" required></textarea>
+                </div>
+
+                
+                <div class="form-group">
+                    <label class="form-label" for="city">
+                        Cidade </span>
+                    </label>
+                    <div class="input-wrapper select-wrapper">
+                        <select class="select-field" id="city" name="city" required>
+                            <option value="" disabled selected>Selecionar Município</option>
+                            {% for municipio in request.user.personel_profile.city.municipios_relacionados.all %}
+                            <option value="{{ municipio.id }}">{{ municipio.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <svg class="select-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#004de6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                </div>
+
+
+                <div class="button-group">
+                    <a href="{% url 'management:view_bus_stops' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Registrar parada</button>
+                </div>
+            </div>
+            {% if erro%}
+            <p style="color: red; font-weight: bold;text-align: center;">{{ erro }}</p>
+            {% endif %}
+        </form>
+
+    </div>
+
+</body>
+
 </html>

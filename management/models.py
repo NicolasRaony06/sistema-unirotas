@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from authentication.models import User , UserRole
 import re
 from django.db.models import Q, F
+import datetime
 
 from multiselectfield import MultiSelectField
 
@@ -100,10 +101,25 @@ class Institution(models.Model):
 class Linha(models.Model):
     nome = models.CharField(max_length=100)
     instituicoes_ofertadas = models.ManyToManyField(Institution)
-    city = models.ForeignKey(Municipio,on_delete=models.PROTECT)
+    city = models.ForeignKey(Municipio,on_delete=models.PROTECT,related_name='linhas')
     motorista = models.ForeignKey(User,on_delete=models.PROTECT,limit_choices_to={'role': 'DRIVER'} )
     horario_inicio = models.TimeField()
-    horario_fim = models.TimeField()
+    horario_fim = models.TimeField()    
+
+    @property
+    def periodo(self):
+        # Define os limites de horário
+        meio_dia = datetime.time(12, 0)
+        seis_da_tarde = datetime.time(18, 0)
+        seis_da_manha = datetime.time(6, 0)
+
+        if seis_da_manha <= self.horario_inicio < meio_dia:
+            return "Manhã"
+        elif meio_dia <= self.horario_inicio < seis_da_tarde:
+            return "Tarde"
+        else:
+            return "Noite"
+        
     dias_da_semana = [
         ('SEG', 'Segunda-feira'),
         ('TER', 'Terça-feira'),
@@ -118,6 +134,9 @@ class Linha(models.Model):
         max_choices = 7,
         max_length= 30
     )
+    is_active = models.BooleanField(default=True)
+
+
 
     def clean(self):
         if self.horario_inicio is not None and self.horario_fim is not None and self.horario_fim <= self.horario_inicio:
@@ -132,7 +151,7 @@ class Linha(models.Model):
 
 class Rota(models.Model):
     nome = models.CharField(max_length=100)
-    linha = models.ForeignKey(Linha, on_delete=models.CASCADE)
+    linha = models.ForeignKey(Linha, on_delete=models.CASCADE,related_name='linha')
 
     class Direcao(models.TextChoices):
         IDA = 'IDA', 'Ida'

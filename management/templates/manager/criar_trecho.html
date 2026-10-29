@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paradas e Trechos - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/criar_linha.css' %}">
+</head>
+
+<body>
+    <div class="main-card">
+        <!-- SEÇÃO 3: PARADAS/TRECHOS -->
+        <div>
+            <div class="section-header">
+                <h2 class="section-title">Paradas e Trechos</h2>
+                <p class="section-subtitle">Defina a ordem e a distância das paradas associadas.</p>
+            </div>
+
+            <div class="table-container">
+                <table class="table-trechos">
+                    <thead>
+                        <tr>
+                            <th style="padding-left: 24px;">ORDEM</th>
+                            <th>PARADA DE INÍCIO</th>
+                            <th>PARADA DE FIM</th>
+                            <th>DISTÂNCIA</th>
+                            <th style="padding-right: 24px; text-align: right;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trecho in trechos %}
+                        <tr>
+                            <td style="padding-left: 24px;">
+                                <div class="order-circle">{{trecho.ordem}}</div>
+                            </td>
+                            <td>
+                                <div class="pin-text">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    {{trecho.parada_inicio }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pin-text">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    {{trecho.parada_fim}}
+                                </div>
+                            </td>
+                            <td>{{trecho.distancia_km}}</td>
+                            <td style="padding-right: 24px;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    <button class="btn-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 20h9" />
+                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                        </svg>
+                                    </button>
+
+                                    <!-- FORMULÁRIO DE EXCLUSÃO ISOLADO E COM CONFIRMAÇÃO -->
+                                    <form action="{% url 'management:excluir-trecho' trecho.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <p class="empty-message">Nenhum trecho criado</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FORMULÁRIO PARA ADICIONAR TRECHO -->
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="form-row-5">
+                    <div class="form-group no-margin">
+                        <label>Ordem</label>
+                        <input type="text" name="ordem">
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Parada de início</label>
+                        <select name="parada_inicio">
+                            <option>Selecionar parada</option>
+                            {% for parada in paradas %}
+                            <option value="{{parada.id}}">{{parada.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Parada de fim</label>
+                        <select name="parada_fim">
+                            <option>Selecionar parada</option>
+                            {% for parada in paradas %}
+                            <option value="{{parada.id}}">{{parada.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Distância (km)</label>
+                        <input name="distancia_km" type="text" placeholder="0,0 km">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 44px;">+ Adicionar trecho</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-actions route-actions">
+            <a href="{% url 'management:criar-linha' %}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'management:linhas' %}" class="btn btn-primary">Fim</a>
+        </div>
+    </div>
+</body>
+
+</html>

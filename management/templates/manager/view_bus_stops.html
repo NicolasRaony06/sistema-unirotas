@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -62,4 +63,137 @@
         <p>Não há paradas cadastradas.</p>
     {% endif %}
 </body>
-</html>
+</html> {% endcomment %}
+
+{% block title %}Paradas | Gestor{% endblock %}
+
+{% block side_bar%}
+{% include 'partials/side_bar.html' %}
+{% endblock %}
+
+{% block content %}
+
+<header class="topbar">
+    <h1>Paradas</h1>
+    <p>Gerencie as paradas municipais de {{request.user.municipio.first.nome}}</p>
+</header>
+
+<div class="dashboard municipios-page localizacoes-page">
+
+    <div class="content-grid">
+        <div class="main-column">
+
+            <section class="panel municipios-panel">
+                <div class="panel-head border-bottom-none">
+                    <div class="head-title">
+                        <h3>Lista de Paradas</h3>
+                        <span class="badge-count">{{bus_stops.count}} registros</span>
+                    </div>
+                    <div class="head-actions">
+                        <div class="search-box">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg>
+                            </span>
+                            <input type="text" placeholder="Pesquisar">
+                        </div>
+                        <button type="button" class="btn-filter">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                                </svg>
+                            </span>
+                            Filtrar
+
+                            <a href="">
+                                <button type="button" class="btn-primary">+ Novo Instituição</button>
+                            </a>
+                            <a href="{%url 'management:register_bus_stop' %}">
+                                <button type="button" class="btn-primary">+ Novo Parada</button>
+                            </a>
+                    </div>
+                </div>
+
+                <div class="municipios-list">
+
+                    {% for bus_stop in bus_stops %}
+
+                    <article class="municipio-card">
+                        <div class="municipio-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024">
+                                <path d="M0 0h1024v1024H0z" fill="none" />
+                                <path fill="currentColor" d="M880 305H624V192c0-17.7-14.3-32-32-32H184v-40c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v784c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V640h248v113c0 17.7 14.3 32 32 32h416c17.7 0 32-14.3 32-32V337c0-17.7-14.3-32-32-32M184 568V232h368v336zm656 145H504v-73h112c4.4 0 8-3.6 8-8V377h216z" />
+                            </svg>
+
+                        </div>
+                        <div class="municipio-info">
+                            <div class="code-status">
+                                <span class="code">{{bus_stop.city}}</span>
+
+                                <span
+                                    class="status-badge {% if bus_stop.is_active %}online active{% else %}offline inactive{% endif %}">
+                                    {% if bus_stop.is_active %} Ativo {% else %} Inativo {% endif %}
+                                </span>
+
+                            </div>
+                            <h4 class="name">{{bus_stop.name}}</h4>
+                             <p class="details">{{bus_stop.description}}</p>
+                        </div>
+                        <div class="municipio-actions">
+
+                            <a href="{% url 'management:edit_bus_stop' bus_stop.id %}" class="btn-action">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                </svg>
+                                Editar
+                            </a>
+
+                            {% if bus_stop.is_active == False %}
+                            <form action="{% url 'management:activate_bus_stop' bus_stop.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon-only" aria-label="Pausar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"
+                                        viewBox="0 0 24 24">
+                                        <path d="M0 0h24v24H0z" fill="none" />
+                                        <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
+                                            stroke-linejoin="round" stroke-width="2"
+                                            d="M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0">
+                                            <animate fill="freeze" attributeName="d" dur="0.6s" keyTimes="0;0.33;1"
+                                                values="M9 18l-2 0l0 -12l2 0l0 12M15 6l2 0l0 12l-2 0l0 -12;M13 15l-5 3l0 -12l5 3l0 6M13 9l5 3l0 0l-5 3l0 -6;M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0" />
+                                        </path>
+                                    </svg>
+
+                                </button>
+                            </form>
+                            {% else %}
+                            <form action="{% url 'management:deactivate_bus_stop' bus_stop.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon-only" aria-label="Pausar">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="6" y="4" width="4" height="16" />
+                                        <rect x="14" y="4" width="4" height="16" />
+                                    </svg>
+                                </button>
+                            </form>
+
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% empty %}
+                    <p class="empty-message">Nenhuma Parada cadastrada</p>
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

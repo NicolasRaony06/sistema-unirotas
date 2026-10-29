@@ -10,7 +10,7 @@
 
 <header class="topbar">
     <h1>Paradas</h1>
-    <p>Gerencie as paradas municipais de pau dos ferros</p>
+    <p>Gerencie as paradas municipais de {{request.user.municipio.first.nome}}</p>
 </header>
 
 <div class="dashboard municipios-page localizacoes-page">
@@ -45,7 +45,7 @@
                             <a href="">
                                 <button type="button" class="btn-primary">+ Novo Instituição</button>
                             </a>
-                            <a href="">
+                            <a href="{%url 'management:register_bus_stop' %}">
                                 <button type="button" class="btn-primary">+ Novo Parada</button>
                             </a>
                     </div>
