@@ -422,6 +422,7 @@ def deactivate_bus_stop(request, id):
             bus_stop.is_active = False
             bus_stop.save()
             messages.success(request, f"Parada {bus_stop.name} desativada com sucesso.")
+
     return redirect('management:view_bus_stops')
 
 @login_required
@@ -444,6 +445,7 @@ def activate_bus_stop(request, id):
             messages.success(request, f"Parada {bus_stop.name} ativada com sucesso.")
     return redirect('management:view_bus_stops')
 
+    #return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)

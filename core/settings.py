@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'authentication',
     'management',
     'django_extensions',
+    'operation',
 ]
 
 MIDDLEWARE = [
@@ -104,6 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+
     {
         'NAME': 'authentication.validators.UnirotaPasswordValidator',
     },
@@ -120,6 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
     # {
     #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     # },
+
 
 ]
 

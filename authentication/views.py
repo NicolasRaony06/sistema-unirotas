@@ -56,7 +56,12 @@ def signin(request):
             user = authenticate(request, username=data.get("email"), password=data.get("password"))
             if user is not None:
                 login(request, user)
-                if request.user.role == 'ADMIN':
+
+                if request.user.role == 'STUDENT':
+                    return redirect("index_aluno")
+                elif request.user.role == 'DRIVER':
+                    return redirect("lista_viagens")
+                elif request.user.role == 'ADMIN':
                     return redirect("management:home")
                 elif request.user.role == 'MANAGER':
                     return redirect("management:home")
