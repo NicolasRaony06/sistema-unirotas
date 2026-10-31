@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static "css/base_form.css" %}">
+{% endblock extra_css %}
+
+{% block content %}
+    <main>
+        {% if messages %}
+            <div class="form-messages">
+                {% for message in messages %}
+                    <span>{{message}}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <header class="form-header">
+            {% block header %}{% endblock header %}
+        </header>
+        {% if form.non_field_errors %}
+            <div class="form-messages">
+                {% for error in form.non_field_errors %}
+                    <p style="color: red">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <hr>
+        <form action="{% block form_url %}{% endblock form_url %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% block form_content %}{% endblock form_content %}
+        </form>
+    </main>
+{% endblock content %}
+
+
+        {% comment %} {% for field in form %}
+            {% for error in field.errors %}
+                <p style="color: red">{{error}}</p>
+            {% endfor %}
+        {% endfor %} {% endcomment %}
