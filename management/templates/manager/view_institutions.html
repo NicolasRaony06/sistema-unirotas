@@ -1,0 +1,80 @@
+{% extends "base_home.html" %}
+{% load static %}
+
+{% block title %}Instituições | Gestor{% endblock title %}
+
+{% block header %}
+    <h1>Instituições</h1>
+    <p>Gerencie as instituições municipais de {{request.user.personel_profile.city}}</p>
+{% endblock header %}
+
+{% block main-content %}
+    <section class="dashboard">
+        <div class="dashboard-header">
+            <h3>Lista de Instituições</h3>
+            <span class="badge-count">{{institutions.count}} registros</span>
+            <a href="{% url "management:register_institution" %}" class="register-button">+ Nova Instituição</a>
+        </div>
+        {% for institution in institutions %}
+            <div class="dashboard-card">
+                <span class="dashboard-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor"
+                            d="M21.5 8H21V6c0-2.21-1.79-4-4-4H7C4.79 2 3 3.79 3 6v2h-.5c-.28 0-.5.22-.5.5v3c0 .28.22.5.5.5H3v6c0 .74.41 1.38 1 1.72v1.78c0 .28.22.5.5.5h2c.28 0 .5-.22.5-.5V20h10v1.5c0 .28.22.5.5.5h2c.28 0 .5-.22.5-.5v-1.78A2 2 0 0 0 21 18v-6h.5c.28 0 .5-.22.5-.5v-3c0-.28-.22-.5-.5-.5M19 18H5v-5h14zM5 11V8h6v3zm8 0V8h6v3zM7 4h10c1.1 0 2 .9 2 2H5c0-1.1.9-2 2-2" />
+                        <path fill="currentColor"
+                            d="M7.5 14a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3m9 0a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3" />
+                    </svg>
+                </span>
+                <div class="dashboard-card-info">
+                    <div>
+                        <p>{{institution}}</p>
+                        {% if institution.is_active %}
+                            <span class="badge-status active">Ativo</span>
+                        {% else %}
+                            <span class="badge-status inactive">Inativo</span>
+                        {% endif %}
+                    </div>
+                    <h4>{{institution.name}}</h4>
+                </div>
+                <div class="dashboard-card-actions">
+                    <a href="{% url "management:edit_institution" institution.id %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                        <span>Editar</span>
+                    </a>
+                    {% if institution.is_active == False %}
+                        <form action="{% url 'management:activate_institution' institution.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" aria-label="Ativar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                                    <path d="M0 0h24v24H0z" fill="none" />
+                                    <path fill="currentColor" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round" stroke-width="2"
+                                        d="M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0">
+                                        <animate fill="freeze" attributeName="d" dur="0.6s" keyTimes="0;0.33;1"
+                                            values="M9 18l-2 0l0 -12l2 0l0 12M15 6l2 0l0 12l-2 0l0 -12;M13 15l-5 3l0 -12l5 3l0 6M13 9l5 3l0 0l-5 3l0 -6;M13 15l-5 3l0 -12l5 3l0 0M13 9l5 3l0 0l-5 3l0 0" />
+                                    </path>
+                                </svg>
+                            </button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'management:deactivate_institution' institution.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" aria-label="Pausar">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="6" y="4" width="4" height="16" />
+                                    <rect x="14" y="4" width="4" height="16" />
+                                </svg>
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p class="dashboard-message">Nenhuma instituição cadastrada</p>
+        {% endfor %}
+    </section>
+{% endblock main-content %}
