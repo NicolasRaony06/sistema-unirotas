@@ -55,8 +55,54 @@ form{
     border: none;
 }
 
+.form-group div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.form-group span{
+    display: flex;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+}
+
+.form-group span svg{
+    color: var(--primary-color);
+    width: 100%;
+    height: 100%;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+    width: 100%;
+    min-height: 48px;
+}
+
+.form-group input,
+.form-group select{
+    height: 46px;
+}
+
 .form-actions{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+}
+
+.form-actions a{
+    text-decoration: none;
+}
+
+.form-actions button{
+    color: white;
+    background-color: var(--primary-color);
+    border-radius: 999px;
+    border: none;
 }
