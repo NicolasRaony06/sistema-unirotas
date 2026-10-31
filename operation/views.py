@@ -250,8 +250,9 @@ def index_aluno(request):
         ))
         if eta:
             eta_current_stop = eta.timeline[eta.current_order-1].status
-            minutes_next = timezone.localtime(eta.timeline[eta.current_order].eta).time()
-            minutes_last = timezone.localtime(eta.timeline[-1].eta).time()
+            if eta.current_order < len(eta.timeline):
+                minutes_next = timezone.localtime(eta.timeline[eta.current_order].eta).time()
+                minutes_last = timezone.localtime(eta.timeline[-1].eta).time()
         if atual_parada:
             proxima_parada = aguardando[0] if len(aguardando) > 0 else None
         else:
