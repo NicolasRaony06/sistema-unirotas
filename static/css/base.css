@@ -3,9 +3,10 @@
     --secondary-color: #03153F; 
     --tertiary-color: #3730a3; 
     --background-color: #e8eaed;
-    --background-color-secondary: #F5F4EE;
+    --background-color-secondary:  #F5F4EE;;
     --background-color-tertiary: #E0E7FF;
-    --text-color: #0f172a;
+    --background-color-form: #f1f5f9;
+    --text-color: #03153f;
     --text-color-secondary: #78808D;
     --muted-text: #64748b;
     --border-color: #e9e8e2;

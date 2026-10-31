@@ -1,0 +1,28 @@
+{% extends "base_form.html" %}
+{% load static %}
+
+{% block title %}Editar Parada{% endblock title %}
+
+{% block header %}
+    <h1>Editar Parada de Ônibus</h1>
+    <p>Edite os dados da parada</p>
+{% endblock header %}
+
+{% block form_content %}
+    <div class="form-group">
+        <label for="">Nome da Parada</label>
+        {{form.name}}
+    </div>
+    <div class="form-group">
+        <label for="">Descrição</label>
+        {{form.description}}
+    </div>
+    <div class="form-group">
+        <label for="">Cidade</label>
+        {{form.city}}
+    </div>
+    <div class="form-actions">
+        <a href="{% url "management:view_bus_stops" %}">Cancelar</a>
+        <button type="submit">Alterar Parada</button>
+    </div>
+{% endblock form_content %}
