@@ -20,7 +20,7 @@
         {% if form.non_field_errors %}
             <div class="form-messages">
                 {% for error in form.non_field_errors %}
-                    <p style="color: red">{{ error }}</p>
+                    <span>{{ error }}</span>
                 {% endfor %}
             </div>
         {% endif %}
@@ -33,8 +33,4 @@
 {% endblock content %}
 
 
-        {% comment %} {% for field in form %}
-            {% for error in field.errors %}
-                <p style="color: red">{{error}}</p>
-            {% endfor %}
-        {% endfor %} {% endcomment %}
+        
