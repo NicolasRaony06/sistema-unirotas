@@ -161,26 +161,49 @@
                 </span>
                 <small class="route-mini__stop-label">(origem)<br>{{ linha_selecionada.city }}</small>
             </div>
+            {% if eta_current_stop %}
+                <span class="route-mini__gap"><span class="route-mini__pill">{{eta_current_stop}}</span></span>
+            {%else%}
+                <span class="route-mini__gap"><span class="route-mini__pill"></span></span>
+            {% endif %}
             
-            <span class="route-mini__gap"><span class="route-mini__pill">10 min</span></span>
             
             <div class="route-mini__stop">
                 <span class="route-mini__dot" aria-hidden="true"></span>
                 <small class="route-mini__stop-label">{{atual_parada.parada.name}}</small>
             </div>
-            
-            <span class="route-mini__gap"><span class="route-mini__pill">15 min</span></span>
-            
+            {%if eta_next_stop_minutes %}
+                {% if eta_next_stop_minutes > 0%}
+                <span class="route-mini__gap"><span class="route-mini__pill">{{eta_next_stop_minutes}} min </span></span>
+                {%else%}
+                    <span class="route-mini__gap"><span class="route-mini__pill">N/A</span></span>
+                {%endif%}  
+            {%else%}
+              <span class="route-mini__gap"><span class="route-mini__pill"></span></span>
+            {% endif %}
             <div class="route-mini__stop">
                 <span class="route-mini__dot" aria-hidden="true"></span>
                 <small class="route-mini__stop-label">{{proxima_parada.parada.name}}</small>
             </div>
             
             <span class="route-mini__gap">
+                {% if eta_last_stop_minutes %}
+                    {% if eta_last_stop_minutes > 0%}
+                        <span class="route-mini__pill route-mini__pill--bus">
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
+                            {{eta_last_stop_minutes}} min
+                        </span>
+                    {%else%}
+                        <span class="route-mini__pill route-mini__pill--bus">
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
+                            N/A
+                        </span>
+                    {%endif%}
+                {%else%}
                 <span class="route-mini__pill route-mini__pill--bus">
-                    <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
-                    12 min
+                            <svg width="10" height="10" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z" fill="currentColor"/></svg>
                 </span>
+                {%endif%}
             </span>
             
             <div class="route-mini__stop">

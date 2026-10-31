@@ -1,4 +1,5 @@
 from datetime import timedelta
+import math
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from operation.models import Viagem, UsuarioDaViagem, Linha, ViagemParada
@@ -9,6 +10,8 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from authentication.models import UserRole
 from django.db import IntegrityError
+from metrics import service
+from metrics.data_type import LastStopDTO, RouteDTO
 #Viagem
 
 def lista_viagens(request):
@@ -42,6 +45,7 @@ def lista_viagens(request):
 
 def concluir_parada(request, parada_id):
     obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    service.set_last_stop_metrics(LastStopDTO(line=obj_parada.viagem.rota.linha, route=obj_parada.viagem.rota, current_stop=obj_parada.parada))
     proxima = obj_parada.concluir_busstop()
 
     if proxima:
@@ -59,6 +63,7 @@ def concluir_parada(request, parada_id):
 
 def cancelar_parada(request, parada_id):
     obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    service.cancel_stop_metric(obj_parada.parada, obj_parada.viagem.rota)
     proxima = obj_parada.cancelar_busstop()
 
     if proxima:
@@ -82,7 +87,7 @@ def concluir_viagem(request, viagem_id):
         messages.success(request, f"Viagem concluída! Próxima viagem: ID {proxima.pk} ({proxima.data})")
     else:
         messages.warning(request, "Viagem concluída, mas nenhuma próxima viagem foi encontrada.")
-
+    service.set_route_as_done(obj_viagem.rota.linha, obj_viagem.rota)
     return redirect('lista_viagens')
 
 def comecar_viagem(request, viagem_id):
@@ -231,24 +236,38 @@ def index_aluno(request):
     
     atual_parada = None
     proxima_parada = None
-    
+    eta = None
+    minutes_next = None
+    minutes_last = None
+    eta_current_stop = None
     if viagem_atual:
         paradas = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
         aguardando = list(paradas.filter(status='Aguardando')[:2])
         atual_parada = paradas.filter(status='Concluido').last()
-        
+        eta = service.build_route_timeline_prediction(RouteDTO(
+        line=viagem_atual.rota.linha,
+        route=viagem_atual.rota
+        ))
+        if eta:
+            eta_current_stop = eta.timeline[eta.current_order-1].status
+            minutes_next = math.ceil(eta.timeline[eta.current_order].accumulated_seconds/60)
+            minutes_last = math.ceil(eta.timeline[-1].accumulated_seconds/60)
         if atual_parada:
             proxima_parada = aguardando[0] if len(aguardando) > 0 else None
         else:
             atual_parada = aguardando[0] if len(aguardando) > 0 else None
             proxima_parada = aguardando[1] if len(aguardando) > 1 else None
-        
+
+
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
         'instituicao': request.user.student_profile.institution,
         'onibus':onibus,
         'atual_parada':atual_parada,
+        'eta_current_stop': eta_current_stop,
+        'eta_next_stop_minutes': minutes_next,
+        'eta_last_stop_minutes': minutes_last,
         'proxima_parada': proxima_parada,
     }
     return render(request, 'index_aluno.html', context)
@@ -368,6 +387,7 @@ def alocar_aluno(request):
         
         try:
             for viagem, direcao_percurso in viagens_a_criar:
+                service.register_student_on_route(request.user, viagem.rota)
                 UsuarioDaViagem.objects.create(
                     estudante=request.user.student_profile,
                     viagem=viagem,
@@ -399,8 +419,9 @@ def cancelar_inscricao_na_viagem(request):
     if not inscricoes.exists():
         messages.error(request, "Você não possui inscrições ativas em viagens pendentes.")
         return redirect('index_aluno')
-
-    inscricoes.delete()
+    for inscricao in inscricoes:
+        service.destruct_student_from_route(request.user, inscricao.viagem.rota)
+        inscricao.delete()
     
     messages.success(request, "Inscrições canceladas com sucesso.")
 

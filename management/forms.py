@@ -1,5 +1,7 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
+
+from authentication.models import UserRole
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -12,7 +14,6 @@ class BusForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Ônibus 001'}),
             'capacity': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'Ex: 50'}),
             'color': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Amarelo'}),
-            #'identification_photo': forms.FileInput(attrs={'class': '', 'label': 'Envie uma foto de identificação do ônibus'})
         }
 
     def clean_license_plate(self):
@@ -30,6 +31,15 @@ class BusStopForm(forms.ModelForm):
     class Meta:
         model = BusStop
         fields = ['name', 'description', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Atacarejo'}),
+            'description': forms.Textarea(attrs={
+                "class": "input-field",
+                "placeholder": "Descreva a parada",
+                "rows": 4,
+            }),
+            'city': forms.Select(attrs={"class": "select-field"})
+        }
 
     def __init__(self, *args, **kwargs):
         city = kwargs.pop('city', None)
@@ -45,6 +55,10 @@ class InstitutionForm(forms.ModelForm):
     class Meta:
         model = Institution
         fields = ['name', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: IFRN'}),
+            'city': forms.Select(attrs={"class": "select-field"})
+        }
 
     def __init__(self, *args, **kwargs):
         city = kwargs.pop('city', None)
@@ -71,3 +85,43 @@ class TrechoViagemForm(forms.ModelForm):
     class Meta:
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
+class InviteUserForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'input-field',
+        'placeholder': 'motorista@example.com'
+    }))
+    confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'input-field',
+        'placeholder': 'motorista@example.com'
+    }))
+    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select(attrs={
+        'class': 'select-field'
+    }))
+    institution = forms.ChoiceField(choices=(), widget=forms.Select(attrs={
+            'class': 'select-field'
+    }))
+
+    def __init__(self, *args, **kwargs):
+        institutions_id = kwargs.pop('institutions_id', None)
+        super().__init__(*args, **kwargs)
+
+        if institutions_id:
+            institutions = Institution.objects.filter(
+                id__in=institutions_id, 
+                is_active=True
+            ).values_list('id', 'name', 'city__nome')
+
+            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        confirm_email = cleaned_data.get('confirm_email')
+
+        if email and confirm_email:
+            if email != confirm_email:
+                self.add_error(
+                    'confirm_email', 'A confirmação de email não corresponde ao email digitado.'
+                )
+
+        return cleaned_data

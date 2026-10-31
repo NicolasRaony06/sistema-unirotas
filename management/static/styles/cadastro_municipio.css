@@ -110,6 +110,71 @@
      color: #7b8186;
  }
 
+ 
+
+/* Contêiner da descrição */
+.input-wrapper:has(.input-field[name="description"]) {
+    height: auto;
+    min-height: 120px;
+    align-items: flex-start;
+    padding: 12px 16px;
+}
+
+/* Textarea gerado pelo Django */
+.input-wrapper .input-field[name="description"] {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100px;
+    padding: 0;
+    border: none;
+    outline: none;
+    resize: vertical;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #03153f;
+}
+
+.input-wrapper .input-field[name="description"]::placeholder {
+    color: #7b8186;
+}
+
+/* Campo de cidade */
+
+.input-wrapper .select-field {
+    display: block;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: #03153f;
+    appearance: none;
+    cursor: pointer;
+}
+
+.input-wrapper .select-field:invalid {
+    color: #7b8186;
+}
+
+.input-wrapper .select-field option {
+    color: #03153f;
+    background-color: #ffffff;
+}
+
+
+/* Mantém o foco visual nos campos */
+.input-wrapper:focus-within {
+    border-color: #004de6;
+}
+
  .select-field {
      width: 100%;
      height: 100%;
