@@ -15,7 +15,7 @@
         <main>
             {% if messages %}
                 {% for message in messages %}
-                    <span class="dashboard-message">{{message}}</span>
+                    <span class="dashboard-message {{message.tags}}">{{message}}</span>
                 {% endfor %} 
             {% endif %}
             {% block main_content %}{% endblock main_content %}
