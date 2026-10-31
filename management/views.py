@@ -647,11 +647,15 @@ def criar_trecho(request,rota_id):
             rota_volta = Rota.objects.filter(linha=linha, direcao="VOLTA").first()
 
             if rota_volta is not None:
-                trecho_volta = trecho
+                t_existentes = TrechoViagem.objects.filter(rota=rota_volta)
+                for t in t_existentes:
+                    t.ordem += 1
+                    t.save()
+                trecho_volta = TrechoViagem.objects.filter(id = trecho.id).first()
                 trecho_volta.pk = None
                 trecho_volta.id = None
                 trecho_volta.rota = rota_volta
-                trecho_volta.save()
+                trecho_volta.inverter()
 
     # if request.method == 'POST':
     #     form = TrechoViagemForm(request.POST)

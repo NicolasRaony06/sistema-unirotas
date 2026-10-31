@@ -181,6 +181,13 @@ class TrechoViagem(models.Model):
     distancia_km = models.DecimalField(max_digits=6, decimal_places=2)
     rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
 
+    
+    def inverter(self):
+        temp = self.parada_inicio
+        self.parada_inicio = self.parada_fim
+        self.parada_fim = temp
+        self.ordem = 1
+        self.save()
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -200,6 +207,8 @@ class TrechoViagem(models.Model):
                 name='check_parada_inicio_diferente_parada_fim'
             )
         ]
-        
+
+
+
     def __str__(self):
         return f"{self.parada_inicio} → {self.parada_fim} (ordem {self.ordem})"
