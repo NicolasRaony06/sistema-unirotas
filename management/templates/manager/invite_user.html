@@ -1,0 +1,102 @@
+{% extends "base_form.html" %}
+{% load static %}
+
+{% block title %}Convidar usuário{% endblock title %}
+
+{% block header %}
+    <h1>Convidar usuário</h1>
+    <p>Insira o email do usuário e instituição se for Aluno</p>
+{% endblock header %}
+
+{% block form_content %}
+    <div class="form-group">
+        <label for="{{form.email.id_for_label}}">Email 
+            {% if form.email.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+        <div class="form-input-wrapper">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 36 36">
+                    <path d="M0 0h36v36H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M32 6H4a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h28a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2m-1.54 22H5.66l7-7.24l-1.44-1.39L4 26.84V9.52l12.43 12.37a2 2 0 0 0 2.82 0L32 9.21v17.5l-7.36-7.36l-1.41 1.41ZM5.31 8h25.07L17.84 20.47Z" />
+                </svg>
+            </span>
+            {{form.email}}
+        </div>
+        {% for error in form.email.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <label for="{{form.confirm_email.id_for_label}}">Confirmar Email 
+            {% if form.confirm_email.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+        <div class="form-input-wrapper">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 36 36">
+                    <path d="M0 0h36v36H0z" fill="none" />
+                    <path fill="currentColor"
+                        d="M32 6H4a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h28a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2m-1.54 22H5.66l7-7.24l-1.44-1.39L4 26.84V9.52l12.43 12.37a2 2 0 0 0 2.82 0L32 9.21v17.5l-7.36-7.36l-1.41 1.41ZM5.31 8h25.07L17.84 20.47Z" />
+                </svg>
+            </span>
+            {{form.confirm_email}}
+        </div>
+        {% for error in form.confirm_email.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <label for="{{form.role.id_for_label}}">Tipo de Usuário 
+            {% if form.role.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+        <div class="form-input-wrapper">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
+                    <path d="M19 8v6" />
+                    <path d="M16 11h6" />
+                </svg>
+            </span>
+            {{form.role}}
+        </div>
+        {% for error in form.role.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
+    </div>
+    <div class="form-group" style="display: none">
+        <label for="{{form.institution.id_for_label}}">Instituição 
+            {% if form.institution.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+        <div class="form-input-wrapper">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
+                    <path d="M19 8v6" />
+                    <path d="M16 11h6" />
+                </svg>
+            </span>
+            {{form.institution}}
+        </div>
+        {% for error in form.institution.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
+    </div>
+    <div class="form-actions">
+        <a href="{% url "management:home" %}">Cancelar</a>
+        <button type="submit">Enviar convite</button>
+    </div>
+{% endblock form_content %}
+
+{% block extra_js %}
+    <script src="{% static "js/script_invite_user.js" %}"></script>
+{% endblock extra_js %}
