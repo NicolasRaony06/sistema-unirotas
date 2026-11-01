@@ -27,10 +27,10 @@
                 </svg>
             </span>
             {{form.name}}
-            {% for error in form.name.errors %}
-                <span>{{error}}</span>
-            {% endfor %}
         </div>
+        {% for error in form.name.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
     </div>
     <div class="form-group">
         <label for="{{form.description.id_for_label}}">Descrição 
@@ -48,10 +48,10 @@
                 </svg>
             </span>
             {{form.description}}
-            {% for error in form.description.errors %}
-                <span>{{error}}</span>
-            {% endfor %}
         </div>
+        {% for error in form.description.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}        
     </div>
     <div class="form-group">
         <label for="{{form.city.id_for_label}}">Cidade 
@@ -69,10 +69,10 @@
                 </svg>
             </span>
             {{form.city}}
-            {% for error in form.city.errors %}
-                <span>{{error}}</span>
-            {% endfor %}
         </div>
+        {% for error in form.city.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}       
     </div>
     <div class="form-actions">
         <a href="{% url "management:view_bus_stops" %}">Cancelar</a>
