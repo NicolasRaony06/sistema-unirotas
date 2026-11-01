@@ -301,7 +301,7 @@ main{
 .subinfo{
     color: var(--text-color-secondary);
 }
-
+.dashboard-table-actions,
 .dashboard-card-actions{
     display: flex;
     flex-direction: row;
@@ -326,6 +326,7 @@ main{
     line-height: 1;
 }
 
+.dashboard-table-actions button,
 .dashboard-card-actions button{
     display: flex;
     align-items: center;
@@ -338,6 +339,7 @@ main{
     padding: 10px;
 }
 
+.dashboard-table-actions svg,
 .dashboard-card-actions svg{
     width: 14px;
     height: 14px;
@@ -380,4 +382,34 @@ main{
 .error {
     color: #d64b3c;
     background: #fae7e4;
+}
+
+.dashboard-table{
+    font-size: 0.87em;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.dashboard-table table{
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+.dashboard-table thead{
+    background-color: var(--background-color-form);
+}
+
+.dashboard-table th{
+    text-align: left;
+}
+
+.dashboard-table th:last-of-type{
+    text-align: right;
+}
+
+.dashboard-table tr:hover{
+    background-color: var(--background-color-form);
 }
