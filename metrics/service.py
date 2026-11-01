@@ -114,7 +114,7 @@ def set_last_stop_metrics(last_stop_data: LastStopDTO) -> StopMetrics:
             return last_stop
 
 
-def get_time_prediction(stop_data: StopDTO) -> int:
+def get_time_prediction(stop_data: StopDTO, last_prediction=None) -> int:
     last_route = LastRouteDay.objects.filter(route = stop_data.route, line = stop_data.line, date=timezone.localdate()).first()
     last_stop = StopMetrics.objects.filter(last_route_day=last_route).exclude(end_stop=None).order_by("-order").first()
     if not last_stop:
@@ -125,7 +125,12 @@ def get_time_prediction(stop_data: StopDTO) -> int:
     if not current_distance or not velocity:
         return 0
     time = Decimal(str(current_distance))/Decimal(str(velocity))
-    return math.ceil(time)
+    time_delta = timedelta(
+        seconds=float(time)
+    )  # ou minutes=..., dependendo da unidade
+    print()
+    predict = last_stop.end_time + time_delta if last_prediction is None else last_prediction + time_delta
+    return predict #math.ceil(time)
 
 
 def build_route_timeline_prediction(route_data: RouteDTO, base_time:timezone.datetime = None) -> RoutePredictionDTO:
@@ -141,7 +146,7 @@ def build_route_timeline_prediction(route_data: RouteDTO, base_time:timezone.dat
     route.get_route_stops()
     route_stops = route.route_stops
     timeline = []
-    accumulated_seconds = 0
+    last_prediction = None
 
     for rs in route_stops:
         if rs.order <= current_order:
@@ -150,17 +155,17 @@ def build_route_timeline_prediction(route_data: RouteDTO, base_time:timezone.dat
             eta = None
         else:
             status = "pendente"
-            step_seconds = get_time_prediction(
+            last_prediction = get_time_prediction(
                 StopDTO(
                 line=route_data.line,
                 route=route_data.route,
                 order=rs.order,
                 distance_km=rs.distance_km
-                )
+                ),
+                last_prediction
             )
-            accumulated_seconds += step_seconds
 
-            eta = base_time + timedelta(seconds=accumulated_seconds)
+            eta = last_prediction #base_time + timedelta(seconds=accumulated_seconds)
 
         timeline.append(TimeLineDTO(
             order= rs.order,
@@ -169,13 +174,13 @@ def build_route_timeline_prediction(route_data: RouteDTO, base_time:timezone.dat
             status= status,
             distance_km= rs.distance_km,
             step_seconds= step_seconds,
-            accumulated_seconds= accumulated_seconds,
+            accumulated_seconds=0,
             eta= eta
         ))
 
     return RoutePredictionDTO(
         current_order= current_order,
         base_time= base_time,
-        total_remaining_seconds= accumulated_seconds,
+        total_remaining_seconds=0,
         timeline= timeline
     )
