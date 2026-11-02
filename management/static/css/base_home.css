@@ -314,6 +314,9 @@ main{
     font-size: 0.87em;
     padding: 8px 15px;
     font-weight: bold;
+}
+
+.register-button:first-of-type{
     margin-left: auto;
 }
 
