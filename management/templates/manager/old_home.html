@@ -1,0 +1,93 @@
+{% extends "base_home.html" %}
+{% load static %}
+
+{% block title %}Início | Gestor{% endblock title %}
+
+{% block header %}
+    <h1>Inicio</h1>
+    <p>Bem vindo ao painel do Gestor</p>
+{% endblock header %}
+
+{% block main_content %}
+    <section class="greeting">
+        <p>{% now "D, d M Y H:i" %}</p>
+        <h2>Olá, {{request.user}}!</h2>
+        <p>4 rotas · 2 ônibus · 2 motoristas</p>
+    </section>
+    <section class="dashboard">
+        {% if request.user.role == 'ADMIN' %}
+            <div class="dashboard-header">
+                <h3>Linhas Recentes</h3>
+                <a href="#rotas">Ver todas →</a>
+            </div>
+            <div class="dashboard-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Turno</th>
+                            <th>Motorista</th>
+                            <th>Instituições</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for linha in linhas %}
+                            <tr>
+                                <td>{{linha.nome}}</td>
+                                <td>{{linha.periodo}}</td>
+                                <td>{{linha.motorista}}</td>
+                                <td>{{linha.instituicoes_ofertadas.count}}</td>
+                                <td>
+                                    {% if linha.is_active %}
+                                        <span class="badge-status active">Ativa</span>
+                                    {% else %}
+                                        <span class="badge-status inactive">Inativa</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <p class="dashboard-message">Nenhuma linha encontrada</p>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif request.user.role == 'MANAGER' %}
+            <div class="dashboard-header">
+                <h3>Rotas de {{request.user.municipio.first.nome}}</h3>
+                <a href="#rotas">Ver todas →</a>
+            </div>
+            <div class="dashboard-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Rota</th>
+                            <th>Turno</th>
+                            <th>Motorista</th>
+                            <th>Alunos</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for linha in request.user.municipio.first.linhas.all %}
+                            <tr>
+                                <td>{{linha.nome}}</td>
+                                <td>Pau dos Ferros → Mossoró</td>
+                                <td>Manhã</td>
+                                <td>João Silva</td>
+                                <td>28</td>
+                                <td>
+                                    <span class="badge-status active">Ativo</span>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <p class="dashboard-message">Nenhuma rota encontrada</p>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+{% endblock main_content %}
+
