@@ -24,7 +24,7 @@
                     </span>
                     Filtrar
 
-                    <a href="">
+                    <a href="{% url 'management:adicionar-municipio' %}">
                         <button type="button" class="btn-primary">+ Nova Localização</button>
                     </a>
             </div>
@@ -49,7 +49,7 @@
 
                     </div>
                     <h4 class="name">{{municipio.nome}}</h4>
-                    <p class="details">4 Paradas · 2 Instituições </p>
+                    <p class="details">{{municipio.bus_stops.count}} Paradas · {{municipio.institutions.count}} Instituições </p>
                 </div>
                 <div class="municipio-actions">
                     <button type="button" class="btn-action">
@@ -59,7 +59,7 @@
                         </svg>
                         Editar
                     </button>
-                    <form action="{% url 'management:retirar-municipio' municipio.id %}" method='Post'">
+                    <form action="{% url 'management:retirar-municipio' municipio.id %}" method='Post'>
                         {% csrf_token %}
                     <button type="submit" class="btn-icon-only" aria-label="Pausar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">

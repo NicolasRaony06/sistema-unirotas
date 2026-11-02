@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dados da Linha - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/criar_linha.css' %}">
+</head>
+
+<body>
+    <div class="main-card">
+        <!-- SEÇÃO 1: DADOS DA LINHA -->
+        <form method="POST">
+            {% csrf_token %}
+            <div>
+                <div class="section-header">
+                    <h2 class="section-title">Dados da Linha</h2>
+                    <p class="section-subtitle">Preencha as informações gerais da linha de transporte.</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group no-margin">
+                        <label>Nome da linha</label>
+                        <input type="text" name="nome" placeholder="Ex: Linha 01 - Centro/UFERSA">
+                    </div>
+                    {% comment %} <div class="form-group no-margin">
+                        <label>Município</label>
+                        <select name="city" id="city">
+                            {% for municipio in request.user.municipio.first.municipios_relacionados.all%}
+                            <option value={{municipio.id}}>{{municipio}}</option>
+                            {% endfor %}
+                        </select>
+                    </div> {% endcomment %}
+                </div>
+
+                <div class="form-group">
+                    <label>Instituições ofertadas</label>
+                    
+                    {% comment %} <span class="tag-blue">UFERSA</span>
+                    <span class="tag-blue">FACEP</span>
+                    <span class="tag-blue">UERN</span>
+                    <button type="button" class="btn-text" style="margin-left: 8px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Adicionar
+                    </button> {% endcomment %}
+                    <select name="instituicoes_ofertadas" multiple class="multi-select">
+                        {% for instituicao in instituicoes %}
+                        <option value="{{ instituicao.id }}">{{ instituicao }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Motorista</label>
+                    <select name="motorista">
+                        <option value="">Selecionar</option>
+                        {% for motorista in motoristas %}
+                        
+                        <option value="{{ motorista.id }}">{{ motorista.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group no-margin">
+                        <label>Horário de início</label>
+                        <input type="time" name="horario_inicio">
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Horário de fim</label>
+                        <input type="time" name="horario_fim">
+                    </div>
+                </div>
+
+                <div class="form-group no-margin">
+                    <label>Dias da semana ofertados</label>
+                    {% comment %} <div class="weekdays">
+                        <select name="dias_ofertados" id="id_dias_ofertados" multiple
+                            style="width: 300px; height: 120px;">
+                            <option value="SEG">Segunda-feira</option>
+                            <option value="TER">Terça-feira</option>
+                            <option value="QUA">Quarta-feira</option>
+                            <option value="QUI">Quinta-feira</option>
+                            <option value="SEX">Sexta-feira</option>
+                            <option value="SAB">Sábado</option>
+                            <option value="DOM">Domingo</option>
+                        </select>
+                    </div> {% endcomment %}
+                    <div class="weekdays">
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="SEG">
+                            <span class="day-circle">Seg</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="TER">
+                            <span class="day-circle">Ter</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="QUA">
+                            <span class="day-circle">Qua</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="QUI">
+                            <span class="day-circle">Qui</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="SEX">
+                            <span class="day-circle">Sex</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="SAB">
+                            <span class="day-circle">Sab</span>
+                        </label>
+                        <label class="day-circle-option">
+                            <input type="checkbox" name="dias_ofertados" value="DOM">
+                            <span class="day-circle">Dom</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'management:linhas' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" name="linha" class="btn btn-primary">Continuar</button>
+                </div>
+        </form>
+    </div>
+</body>
+
+</html>

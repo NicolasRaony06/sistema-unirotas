@@ -9,8 +9,8 @@
 {% block content %}
 
 <header class="topbar">
-    <h1>Paradas Escolar</h1>
-    <p>Gerencie as paradas municipais de {{request.user.personel_profile.city}}</p>
+    <h1>Paradas</h1>
+    <p>Gerencie as paradas municipais de {{request.user.municipio.first.nome}}</p>
 </header>
 
 <div class="dashboard municipios-page localizacoes-page">
@@ -55,8 +55,11 @@
                             </span>
                             Filtrar
 
-                            <a href="{% url 'management:register_bus_stop' %}">
-                                <button type="button" class="btn-primary">+ Nova Parada</button>
+                            <a href="">
+                                <button type="button" class="btn-primary">+ Novo Instituição</button>
+                            </a>
+                            <a href="{%url 'management:register_bus_stop' %}">
+                                <button type="button" class="btn-primary">+ Novo Parada</button>
                             </a>
                     </div>
                 </div>

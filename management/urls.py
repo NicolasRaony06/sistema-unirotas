@@ -36,6 +36,14 @@ urlpatterns = [
     path('deactive-manager/<int:id>',deactive_manager,name='deactive-manager'),
     path('active-manager/<int:id>',activate_manager,name='active-manager'),
     path('retirar-municipio/<int:id>',retirar_municipio,name='retirar-municipio'),
+    path('adicionar-municipio/',adicionar_municipio,name='adicionar-municipio'),
+    path('criar-linha/',criar_linha,name='criar-linha'),
+    path('linhas',linhas,name='linhas'),
+    path('ativar-linha/<int:id>', ativar_linha,name='ativar-linha'),
+    path('inativar-linha/<int:id>', inativar_linha,name='inativar-linha'),
+    path('criar-rota/<int:linha_id>', criar_rota,name='criar-rota'),
+    path('criar-trecho/<int:rota_id>',criar_trecho,name='criar-trecho'),
+    path('excluir-trecho/<int:id>', excluir_trecho,name='excluir-trecho'),
     # path('adicionar-municipio',adicionar_municipio,name='adicionar-municipio'),
 
 ]

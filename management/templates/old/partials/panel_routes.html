@@ -1,7 +1,7 @@
 <section class="panel routes-panel">
     {% if request.user.role == 'ADMIN' %}
     <div class="panel-head">
-        <h3>Rotas Recentes</h3>
+        <h3>Linhas Recentes</h3>
         <a href="#rotas">Ver todas →</a>
     </div>
 
@@ -9,54 +9,33 @@
         <table>
             <thead>
                 <tr>
-                    <th>CÓDIGO</th>
-                    <th>ROTA</th>
+                    <th>NOME</th>
                     <th>TURNO</th>
                     <th>MOTORISTA</th>
-                    <th>ALUNOS</th>
+                    <th>INSTITUIÇÕES</th>
                     <th>STATUS</th>
                 </tr>
             </thead>
             <tbody>
+                
+                {% for linha in linhas %}
                 <tr>
-                    <td><b>RT-001</b></td>
-                    <td><span class="route-path">Pau dos Ferros<span>→</span>Mossoró</span></td>
-                    <td>Manhã</td>
-                    <td>João Silva</td>
-                    <td><strong>28</strong></td>
-                    <td><span class="status on">Ativo</span></td>
+                    <td><b>{{linha.nome}}</b></td>
+                    <td><span class="route-path">{{linha.periodo}}</span></td>
+                    <td><span class="route-path">{{linha.motorista}}</span></td>
+                    <td><span class="route-path">{{linha.instituicoes_ofertadas.count}}</span></td>
+                    <td><span class={% if linha.is_active %}"status on" {%else%} "status off"{% endif %}>
+                        {% if linha.is_active  %} Ativa {%else%} Inativa{% endif %}
+                        
+                    </span></td>
                 </tr>
-                <tr>
-                    <td><b>RT-002</b></td>
-                    <td><span class="route-path">Pau dos Ferros<span>→</span>UERN Campus</span></td>
-                    <td>Tarde</td>
-                    <td>Marcos Neto</td>
-                    <td><strong>19</strong></td>
-                    <td><span class="status on">Ativo</span></td>
-                </tr>
-                <tr>
-                    <td><b>RT-003</b></td>
-                    <td><span class="route-path">Umarizal<span>→</span>IFRN Pau dos Ferros</span>
-                    </td>
-                    <td>Manhã</td>
-                    <td>Pedro Assis</td>
-                    <td><strong>14</strong></td>
-                    <td><span class="status off">Inativo</span></td>
-                </tr>
-                <tr>
-                    <td><b>RT-004</b></td>
-                    <td><span class="route-path">Alexandria<span>→</span>UFERSA</span></td>
-                    <td>Noite</td>
-                    <td>Luís Gomes</td>
-                    <td><strong>32</strong></td>
-                    <td><span class="status on">Ativo</span></td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
     {% elif request.user.role == 'MANAGER' %}
     <div class="panel-head">
-        <h3>Rotas Do Municipio</h3>
+        <h3>Rotas De {{request.user.municipio.first.nome}}</h3>
         <a href="#rotas">Ver todas →</a>
     </div>
 
@@ -73,23 +52,18 @@
                 </tr>
             </thead>
             <tbody>
+                {% for linha in  request.user.municipio.first.linhas.all %}
                 <tr>
-                    <td><b>RT-001</b></td>
+                    <td><b>{{linha.nome}}</b></td>
                     <td><span class="route-path">Pau dos Ferros<span>→</span>Mossoró</span></td>
                     <td>Manhã</td>
                     <td>João Silva</td>
                     <td><strong>28</strong></td>
                     <td><span class="status on">Ativo</span></td>
                 </tr>
-                <tr>
-                    <td><b>RT-002</b></td>
-                    <td><span class="route-path">Pau dos Ferros<span>→</span>UERN Campus</span></td>
-                    <td>Tarde</td>
-                    <td>Marcos Neto</td>
-                    <td><strong>19</strong></td>
-                    <td><span class="status on">Ativo</span></td>
+                
                 </tr>
-               
+               {% endfor %}
             </tbody>
         </table>
     </div>

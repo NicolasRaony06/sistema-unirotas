@@ -4,37 +4,35 @@ from django.utils import timezone
 
 @dataclass(frozen=True)
 class LastStopDTO:
-    line_id: int
-    route_id: int
-    current_stop_id: int
-    current_order: int
-    distance_km: float
+    line: int
+    route: int
+    current_stop: int
 
 @dataclass(frozen=True)
 class StopDTO:
-    line_id: int
-    route_id: int
+    line: int
+    route: int
     order: int
     distance_km: float
 
 @dataclass(frozen=True)
 class RouteDTO:
-    line_id: int
-    route_id: int
-    current_order: int
+    line: int
+    route: int
+
 
 @dataclass(frozen=True)
 class TripStopDTO:
-    start_stop_id: int
-    end_stop_id: int
+    start_stop: int
+    end_stop: int
     order: int
     distance_km: float
 
 @dataclass(frozen=True)
 class TimeLineDTO:
     order: int
-    start_stop_id: int
-    end_stop_id: int
+    start_stop: int
+    end_stop: int
     status: str
     distance_km: float
     step_seconds: int

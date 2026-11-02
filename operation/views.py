@@ -1,25 +1,83 @@
 from datetime import timedelta
+import math
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from operation.models import Viagem, UsuarioDaViagem, Linha
+from operation.models import Viagem, UsuarioDaViagem, Linha, ViagemParada
+from management.models import TrechoViagem
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from authentication.models import UserRole
 from django.db import IntegrityError
+from metrics import service
+from metrics.data_type import LastStopDTO, RouteDTO
 #Viagem
 
 def lista_viagens(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista = request.user).order_by('rota__linha__horario_inicio').first()
-    
+    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user).order_by('rota__linha__horario_inicio').first()
 
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista = request.user).order_by('data').first()
-        
-    moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user).order_by('data').first()
 
-    return render(request, 'lista_viagens.html', {'viagem': viagem_atual, 'moderador': moderador})
+    paradas_atual = []
+    paradas_atual_quantidade = 0
+    paradas_atual_feitas = 0
+    proxima_parada = None
+    moderador = None
+
+    if viagem_atual:
+        paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        paradas_atual_quantidade = paradas_atual.count()
+        paradas_atual_feitas = paradas_atual.filter(status='Concluido').count()
+        proxima_parada = paradas_atual.filter(status='Aguardando').first()
+        moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
+
+    context = {
+        'viagem': viagem_atual,
+        'moderador': moderador,
+        'paradas': paradas_atual,
+        'paradas_quantidade': paradas_atual_quantidade,
+        'concluidos': paradas_atual_feitas,
+        'proxima_parada': proxima_parada,
+    }
+    return render(request, 'lista_viagens.html', context)
+
+def concluir_parada(request, parada_id):
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    service.set_last_stop_metrics(LastStopDTO(line=obj_parada.viagem.rota.linha, route=obj_parada.viagem.rota, current_stop=obj_parada.parada))
+    proxima = obj_parada.concluir_busstop()
+
+    if proxima:
+        messages.success(request, f"Parada concluída! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+    else:
+        messages.warning(request, "Parada concluída, mas nenhuma próxima parada foi encontrada.")
+
+    if request.user.role == UserRole.STUDENT:
+        return redirect('lista_linhas') 
+        
+    elif request.user.role == UserRole.DRIVER:
+        return redirect('lista_viagens')
+    else:
+        return redirect('index')
+
+def cancelar_parada(request, parada_id):
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    service.cancel_stop_metric(obj_parada.parada, obj_parada.viagem.rota)
+    proxima = obj_parada.cancelar_busstop()
+
+    if proxima:
+        messages.success(request, f"Parada cancelada! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+    else:
+        messages.warning(request, "Parada cancelada, mas nenhuma próxima parada foi encontrada.")
+
+    if request.user.role == UserRole.STUDENT:
+        return redirect('lista_linhas') 
+        
+    elif request.user.role == UserRole.DRIVER:
+        return redirect('lista_viagens')
+    else:
+        return redirect('index')
 
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
@@ -29,7 +87,7 @@ def concluir_viagem(request, viagem_id):
         messages.success(request, f"Viagem concluída! Próxima viagem: ID {proxima.pk} ({proxima.data})")
     else:
         messages.warning(request, "Viagem concluída, mas nenhuma próxima viagem foi encontrada.")
-
+    service.set_route_as_done(obj_viagem.rota.linha, obj_viagem.rota)
     return redirect('lista_viagens')
 
 def comecar_viagem(request, viagem_id):
@@ -114,18 +172,41 @@ def lista_linhas(request, indice=0):
 
     proximo_indice = (indice + 1) % len(linhas)
 
-    moderacao = UsuarioDaViagem.objects.filter(
-        estudante=request.user.student_profile,
-        moderador=True
-    ).first()
+    moderacao = UsuarioDaViagem.objects.filter(estudante=request.user.student_profile, moderador=True).first()
     
+    #pegar as paradas das rotas
+    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha=linha_atual).order_by('data').first()
+
+    if not viagem_atual:
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha=linha_atual).order_by('data').first()
+    
+    paradas_atual = []
+    paradas_atual_quantidade = 0
+    paradas_atual_feitas = 0
+    proxima_parada = None
+    is_moderador = False
+
+    if viagem_atual:
+        paradas_atual = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        paradas_atual_quantidade = paradas_atual.count()
+        paradas_atual_feitas = paradas_atual.filter(status='Concluido').count()
+        proxima_parada = paradas_atual.filter(status='Aguardando').first()
+        
+        is_moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, estudante=request.user.student_profile, moderador=True).exists()
+
     return render(request, 'lista_linhas.html', {
         'linha': linha_atual,
+        'viagem':viagem_atual,
         'proximo_indice': proximo_indice,
         'total_linhas': len(linhas),
         'indice_atual': indice + 1,
         'moderacao': moderacao,
-        'instituicao': request.user.student_profile.institution
+        'instituicao': request.user.student_profile.institution,
+        'paradas': paradas_atual,
+        'paradas_quantidade': paradas_atual_quantidade,
+        'concluidos': paradas_atual_feitas,
+        'proxima_parada': proxima_parada,
+        'moderador': is_moderador,
     })
 
 # @login_required
@@ -140,10 +221,54 @@ def index_aluno(request):
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
         linha_selecionada = Linha.objects.all().first()
+        
+    if linha_selecionada:
+        
+        primeira_rota = linha_selecionada.linha_rota.first()
+        if primeira_rota and primeira_rota.onibus:
+            onibus = primeira_rota.onibus
+            
+    #pegar as paradas das rotas
+    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha= linha_selecionada).order_by('data').first()
+
+    if not viagem_atual:
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha= linha_selecionada).order_by('data').first()
+    
+    atual_parada = None
+    proxima_parada = None
+    eta = None
+    minutes_next = None
+    minutes_last = None
+    eta_current_stop = None
+    if viagem_atual:
+        paradas = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
+        aguardando = list(paradas.filter(status='Aguardando')[:2])
+        atual_parada = paradas.filter(status='Concluido').last()
+        eta = service.build_route_timeline_prediction(RouteDTO(
+        line=viagem_atual.rota.linha,
+        route=viagem_atual.rota
+        ))
+        if eta:
+            eta_current_stop = eta.timeline[eta.current_order-1].status
+            minutes_next = math.ceil(eta.timeline[eta.current_order].accumulated_seconds/60)
+            minutes_last = math.ceil(eta.timeline[-1].accumulated_seconds/60)
+        if atual_parada:
+            proxima_parada = aguardando[0] if len(aguardando) > 0 else None
+        else:
+            atual_parada = aguardando[0] if len(aguardando) > 0 else None
+            proxima_parada = aguardando[1] if len(aguardando) > 1 else None
+
+
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
-        'instituicao': request.user.student_profile.institution
+        'instituicao': request.user.student_profile.institution,
+        'onibus':onibus,
+        'atual_parada':atual_parada,
+        'eta_current_stop': eta_current_stop,
+        'eta_next_stop_minutes': minutes_next,
+        'eta_last_stop_minutes': minutes_last,
+        'proxima_parada': proxima_parada,
     }
     return render(request, 'index_aluno.html', context)
 
@@ -199,7 +324,6 @@ def alocar_aluno(request):
             return redirect('index_aluno')
 
         now = timezone.localtime()
-        data = now.date()
         inicio = now.replace(
         hour=0, minute=0, second=0, microsecond=0
         )
@@ -215,16 +339,22 @@ def alocar_aluno(request):
                 
             viagem_ida = Viagem.objects.filter(rota=rota_ida,
                                                status='aguardando',
-                                               data__lte=fim,
+                                               data__lt=fim,
                                                data__gte=inicio
                                                 ).first()
             viagem_volta = Viagem.objects.filter(rota=rota_volta,
                                                  status='aguardando',
-                                                 data__lte=fim,
+                                                 data__lt=fim,
                                                  data__gte=inicio).first()
-            print(viagem_ida, data)
-            viagem_ida = viagem_ida if viagem_ida is not None else Viagem.objects.create(rota=rota_ida, status='aguardando', data=now)
-            viagem_volta = viagem_volta if viagem_volta is not None else Viagem.objects.create(rota=rota_volta, status='aguardando', data=now)
+
+            
+            if viagem_ida is None:
+                viagem_ida = Viagem.objects.create(rota=rota_ida, status='aguardando', data=now.replace(hour=linha.horario_inicio.hour, minute=linha.horario_inicio.minute, second=0))
+                viagem_ida.criar_paradas()
+
+            if viagem_volta is None:
+                viagem_volta = Viagem.objects.create(rota=rota_volta, status='aguardando', data=now.replace(hour=linha.horario_fim.hour, minute=linha.horario_fim.minute, second=0))
+                viagem_volta.criar_paradas()
             
             viagens_a_criar = [
                 (viagem_ida, 'ida'),
@@ -239,9 +369,17 @@ def alocar_aluno(request):
                 
             viagem_dir = Viagem.objects.filter(rota=rota_dir,
                                                status='aguardando',
-                                               data__lte=fim,
+                                               data__lt=fim,
                                                data__gte=inicio).first()
-            viagem_dir = viagem_dir if viagem_dir is not None else Viagem.objects.create(rota=rota_dir, status='aguardando', data__date=now)
+
+            
+            if viagem_dir is None:
+                if direcao == "ida":
+                    now = now.replace(hour=linha.horario_inicio.hour, minute=linha.horario_inicio.minute, second=0)
+                else:
+                    now = now.replace(hour=linha.horario_fim.hour, minute=linha.horario_fim.minute, second=0)
+                viagem_dir = Viagem.objects.create(rota=rota_dir, status='aguardando', data=now)
+                viagem_dir.criar_paradas()
 
             viagens_a_criar = [
                 (viagem_dir, direcao)
@@ -249,6 +387,7 @@ def alocar_aluno(request):
         
         try:
             for viagem, direcao_percurso in viagens_a_criar:
+                service.register_student_on_route(request.user, viagem.rota)
                 UsuarioDaViagem.objects.create(
                     estudante=request.user.student_profile,
                     viagem=viagem,
@@ -280,8 +419,9 @@ def cancelar_inscricao_na_viagem(request):
     if not inscricoes.exists():
         messages.error(request, "Você não possui inscrições ativas em viagens pendentes.")
         return redirect('index_aluno')
-
-    inscricoes.delete()
+    for inscricao in inscricoes:
+        service.destruct_student_from_route(request.user, inscricao.viagem.rota)
+        inscricao.delete()
     
     messages.success(request, "Inscrições canceladas com sucesso.")
 

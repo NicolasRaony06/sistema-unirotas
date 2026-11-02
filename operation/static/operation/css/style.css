@@ -39,6 +39,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding-bottom: 90px;
 }
 
 .flash {
@@ -117,26 +118,51 @@ body {
 }
 
 /* ---- Paradas de hoje (motorista) ---- */
-.stops { background: #fff; border-radius: 20px; padding: 18px; }
+.stops {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
 .stops__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
 .stops__head h3 { margin: 0; font-size: 15px; font-weight: 800; }
 .stops__head span { font-size: 12px; color: var(--grey-500); font-weight: 600; }
-.progress { height: 5px; border-radius: 999px; background: var(--grey-200); overflow: hidden; margin-bottom: 16px; }
-.progress__bar { height: 100%; background: var(--blue-500); border-radius: 999px; }
+.progress {
+    width: 100%;
+    height: 8px; /* Altura da barra */
+    background-color: #e5e7eb; /* Cor de fundo (cinzento claro) */
+    border-radius: 8px;
+    margin: 16px 0; /* Espaçamento entre o cabeçalho e a lista */
+    overflow: hidden;
+}
+.progress__bar {
+    height: 100%;
+    background-color: #10b981; /* Cor da barra preenchida (verde) */
+    border-radius: 8px;
+    transition: width 0.4s ease; /* Animação suave ao crescer */
+}
+
+
 
 .timeline { list-style: none; margin: 0; padding: 0; }
 .timeline li { position: relative; padding: 12px 14px 12px 26px; margin-bottom: 8px; border-radius: 14px; }
 .timeline li::before {
     content: ''; position: absolute; left: 6px; top: 18px;
     width: 8px; height: 8px; border-radius: 50%; background: var(--grey-200);
+    z-index: 2;
 }
 .timeline li.done::before { background: var(--green-600); }
 .timeline li.active { background: var(--blue-100); }
 .timeline li.active::before { background: var(--blue-500); }
+
 .timeline li:not(:last-child)::after {
-    content: ''; position: absolute; left: 9.5px; top: 26px;
-    width: 1px; height: calc(100% + 6px); background: var(--grey-200);
+    content: ''; position: absolute; left: 9px; top: 26px;
+    width: 2px; height: calc(100% + 6px); background: var(--grey-200);
+    z-index: 1;
 }
+.timeline li.done:not(:last-child)::after {
+    background: var(--green-600);
+}
+
 .stop-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .stop-row strong { font-size: 13.5px; }
 .stop-row small { display: block; color: var(--grey-500); font-size: 11.5px; margin-top: 2px; }
@@ -194,12 +220,40 @@ body {
 
 /* ---- Navegação inferior ---- */
 .bottom-nav {
-    display: flex; justify-content: space-around; padding: 12px 0 8px;
-    background: #fff; border-top: 1px solid var(--grey-200);
-    position: sticky; bottom: 0;
+    position: fixed;
+    bottom: 0;
+    
+    /* Centraliza e limita o tamanho da navbar */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px; /* Ajuste este valor para ser EXATAMENTE igual ao max-width da sua classe .app */
+    
+    background-color: #ffffff;
+    z-index: 999;
+    
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--grey-200);
 }
-.bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--grey-500); text-decoration: none; }
-.bottom-nav a.active { color: var(--blue-500); }
+.bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px; /* Espaço entre o SVG e o texto */
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--grey-500); /* Cor cinzenta para os inativos */
+    text-decoration: none;
+}
+
+/* Cor azul para o link que estiver ativo (se utilizar uma classe para isso) */
+.bottom-nav a.active {
+    color: var(--blue-500);
+}
 
 /* ---- Cabeçalho com seta de voltar ---- */
 .topbar-alunos {
@@ -528,35 +582,95 @@ input[type='time']::-webkit-calendar-picker-indicator{
 /* ---- Rota do ônibus (mini timeline horizontal, aluno) ---- */
 .route-mini { background: #fff; border-radius: 20px; padding: 18px 14px; }
 .route-mini h3 { margin: 0 0 20px; font-size: 15px; font-weight: 800; padding: 0 4px; }
-.route-mini__track { display: flex; align-items: center; margin-bottom: 6px; }
-.route-mini__stop {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+
+/* 1. Track: ganha margem no topo para dar espaço aos balões que ficarão acima da linha */
+.route-mini__track { 
+    display: flex; 
+    align-items: flex-start; /* Mantém os círculos no topo e os textos pendurados para baixo */
+    margin-top: 36px; /* Espaço para as pílulas "voadoras" */
+    margin-bottom: 6px; 
+    position: relative; 
+}
+
+/* 2. A LINHA PRINCIPAL: agora gerada automaticamente por trás de tudo */
+.route-mini__track::before {
+    content: "";
+    position: absolute;
+    top: 12px; /* Centraliza perfeitamente com os ícones de 28px */
+    left: 24px; 
+    right: 24px;
+    height: 4px; /* Linha mais grossa como na foto 2 */
+    background: var(--blue-500); /* Linha azul sólida */
+    z-index: 1;
+}
+
+/* 3. Paradas (nós) */
+.route-mini__stop { 
+    display: flex; flex-direction: column; align-items: center; gap: 6px; 
     width: 54px; text-align: center; flex-shrink: 0;
+    position: relative; z-index: 2;
 }
 .route-mini__stop-label { font-size: 9px; color: var(--grey-500); font-weight: 700; line-height: 1.3; }
-.route-mini__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--blue-500); flex-shrink: 0; }
-.route-mini__dot--home, .route-mini__dot--end {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--navy-950);
+
+/* 4. Bolinhas intermediárias centralizadas na linha grossa */
+.route-mini__dot { 
+    width: 18px; height: 18px; /* Ligeiramente maiores para acompanhar a linha grossa */
+    border-radius: 50%; background: var(--blue-500); flex-shrink: 0; 
+    margin-top: 5px; /* (28 - 18) / 2 = 5px para alinhar com os ícones maiores */
 }
-.route-mini__gap {
-    flex: 1; position: relative; height: 2px; background: var(--grey-200);
-    display: flex; align-items: center; justify-content: center;
+
+/* 5. Ícones das pontas (Origem e Destino) */
+.route-mini__dot--home, .route-mini__dot--end { 
+    width: 28px; height: 28px; 
+    display: flex; align-items: center; justify-content: center; 
+    border-radius: 50%; /* Garante o formato circular igual à foto 2 */
 }
-.route-mini__pill {
-    background: var(--paper);
-    color: var(--grey-500);
-    font-size: 10px; font-weight: 700;
-    padding: 3px 8px; border-radius: 999px;
-    white-space: nowrap;
+.route-mini__dot--home { background: var(--blue-500); }
+.route-mini__dot--end { background: var(--grey-200); color: var(--navy-950); }
+
+/* 6. Espaçamento entre as paradas: serve de base para os balões */
+.route-mini__gap { 
+    flex: 1; 
+    height: 28px; /* Mesma altura do ícone principal */
+    position: relative; z-index: 2;
+    display: flex; justify-content: center; 
 }
-.route-mini__pill--bus {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+
+/* 7. BALÕES DE TEMPO: flutuam acima com um "pino" conectando à linha */
+.route-mini__pill { 
+    position: absolute;
+    bottom: 100%; /* Joga o balão para cima da linha */
+    margin-bottom: 4px; /* Distância do balão até a linha imaginária do topo do ícone */
+    background: var(--grey-200); /* Fundo cinza claro da foto 2 */
+    color: var(--navy-950); 
+    font-size: 10px; font-weight: 700; 
+    padding: 4px 8px; border-radius: 999px; white-space: nowrap; 
+}
+
+/* O "pino" vertical do balão normal que desce até a linha azul */
+.route-mini__pill::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* Nasce no fundo do balão */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 18px; /* Desce até o meio da linha azul principal */
+    background: var(--grey-200);
+    z-index: -1;
+}
+
+/* Balão do Ônibus (Destacado em azul) */
+.route-mini__pill--bus { 
+    display: flex; align-items: center; gap: 4px; 
+    background: var(--blue-500); color: #fff; 
+    margin-bottom: 8px; /* Fica um pouco mais alto que os outros para se destacar */
+}
+
+/* O "pino" vertical azul do balão do ônibus */
+.route-mini__pill--bus::after {
     background: var(--blue-500);
-    color: #fff;
+    height: 22px; /* Como ele é mais alto, o pino precisa ser mais longo para alcançar a linha */
 }
 
 /* ---- Card do ônibus da rota (aluno) ---- */
@@ -807,4 +921,39 @@ input[type='time']::-webkit-calendar-picker-indicator{
 
 .presence-card form + form {
     margin-top: 10px;
+}
+
+/* Agrupa o status e o botão, permitindo controlar o espaço exato entre eles */
+.status-action-group {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Ajuste este valor para aproximar ou afastar o botão do texto 'Concluido' */
+}
+
+/* Tamanho do botão reduzido */
+.btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;          /* Reduzido de 36px para 28px */
+    height: 28px;         /* Reduzido de 36px para 28px */
+    background-color: #ef4444; 
+    border-radius: 6px;   /* Arredondamento um pouco menor para combinar com o novo tamanho */
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    margin-left: 0;       /* Margem removida, pois o 'gap' da classe acima já faz o espaçamento */
+}
+
+/* Tamanho do ícone SVG reduzido proporcionalmente */
+.btn-voltar svg {
+    width: 14px;          
+    height: 14px;
+}
+
+.btn-voltar:hover {
+    background-color: #dc2626; 
+}
+
+.btn-voltar:active {
+    transform: scale(0.95); 
 }

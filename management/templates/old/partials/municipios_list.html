@@ -50,10 +50,10 @@
                         <span class="code">{{municipio.codigo_ibge}}</span>
                         <span
                             class="status-badge {% if municipio.ofertado_pelo_sistema %} active {% else %} inactive {% endif %}">
-                            {% if municipio.ofertado_pelo_sistema %}Ativo{% else %}Inativo{% endif %}</span>
+                            {% if municipio.ofertado_pelo_sistema %}Ofertado{% else %}Não ofertado{% endif %}</span>
                     </div>
                     <h4 class="name">{{municipio.nome}}</h4>
-                    <p class="details">4 Motoristas · {{municipio.bus}} ônibus · 2 Rotas</p>
+                    <p class="details">4 Motoristas · {{municipio.buses.count}} ônibus · {{municipio.linhas.count}} Linhas</p>
                 </div>
                 <div class="municipio-actions">
                     <button type="button" class="btn-action">
@@ -135,12 +135,12 @@
             <div class="form-group">
                 <label for="email_gestor">Gestor</label>
                 <!-- <input type="text" name="email_gestor" placeholder="gestor@example.com" required> -->
-                 <select name="email_gestor" id="email_gestor">
-                    <option value=""disabled selected>Selecionar Gestor</option>
+                <select name="email_gestor" id="email_gestor">
+                    <option value="" disabled selected>Selecionar Gestor</option>
                     {% for gestor in gestores_ativos %}
                     <option value="{{gestor.email}}">{{ gestor.full_name }}</option>
                     {% endfor %}
-                 </select>
+                </select>
             </div>
 
             <div class="form-group">

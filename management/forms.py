@@ -1,5 +1,6 @@
 from django import forms
-from .models import Bus, Municipio, BusStop, Institution
+from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
+
 from authentication.models import UserRole
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -69,6 +70,21 @@ class InstitutionForm(forms.ModelForm):
             self.fields['city'].queryset = Municipio.objects.filter(
                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
 
+class LinhaForm(forms.ModelForm):
+    class  Meta:
+        model = Linha
+        fields = ['nome','motorista','horario_inicio','horario_fim','dias_ofertados','instituicoes_ofertadas']
+        
+
+class RotaForm(forms.ModelForm):
+    class Meta:
+        model = Rota
+        fields = ['nome','direcao','onibus']
+
+class TrechoViagemForm(forms.ModelForm):
+    class Meta:
+        model = TrechoViagem
+        fields = ['parada_inicio','parada_fim','ordem','distancia_km']
 class InviteUserForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         'placeholder': 'motorista@example.com'

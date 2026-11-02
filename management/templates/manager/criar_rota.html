@@ -1,0 +1,130 @@
+{% load static %}
+{% comment %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form method="POST" action="">
+        {% csrf_token %}
+
+        <!-- Opção 1: Renderizar automático (com parágrafos) -->
+        {{ form.as_p }}
+        {{ form.as_p }}
+        <!-- Ou Opção 2: Renderizar campo por campo (mais controle visual) -->
+        <!--
+    <div>
+        {{ form.nome.label_tag }}
+        {{ form.nome }}
+    </div>
+    <div>
+        {{ form.email.label_tag }}
+        {{ form.email }}
+    </div>
+    -->
+
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+
+</html> {% endcomment %}
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotas da Linha - UniRota</title>
+    <link rel="stylesheet" href="{% static 'styles/criar_linha.css' %}">
+</head>
+
+<body>
+    <div class="main-card route-card">
+        <div class="section-header section-header-flex">
+            <div>
+                <h2 class="section-title">Rotas da Linha</h2>
+                <p class="section-subtitle">Cada rota representa uma direção de operação: Ida ou Volta.</p>
+            </div>
+        </div>
+
+        <div class="route-box">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="route-direction-block">
+                    <h4 class="route-box-title">Rota de ida</h4>
+
+                    <div class="form-row-3 route-form-grid">
+                        <div class="form-group no-margin">
+                            <label>Nome da rota</label>
+                            <input type="text" name="Ida-nome" placeholder="Ex: Centro → UFERSA">
+                        </div>
+
+                        <div class="form-group no-margin">
+                            <label>Direção</label>
+                            <select name="Ida-direcao">
+                                <option value="">Selecionar</option>
+                                <option value="IDA">Ida</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group no-margin">
+                            <label>Ônibus associado</label>
+                            <select name="Ida-onibus">
+                                {% for onibus in onibus%}
+                                <option value="">Selecionar</option>
+
+                                <option value="{{onibus.id}}">{{onibus}}</option>
+
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="route-direction-block">
+                    <h4 class="route-box-title">Rota de volta</h4>
+
+                    <div class="form-row-3 route-form-grid">
+                        <div class="form-group no-margin">
+                            <label>Nome da rota</label>
+                            <input type="text" name="Volta-nome" placeholder="Ex: UFERSA → Centro">
+                        </div>
+
+                        <div class="form-group no-margin">
+                            <label>Direção</label>
+                            <select name="Volta-direcao">
+                                <option value="">Selecionar</option>
+                                <option value="VOLTA">Volta</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group no-margin">
+                            <label>Ônibus associado</label>
+                            <select name="Volta-onibus">
+                                {% for onibus in onibus%}
+                                <option value="">Selecionar</option>
+                                <option value="{{onibus.id}}">{{onibus}}</option>
+
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions route-actions">
+                    <a href="{% url 'management:criar-linha' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" name="rota" class="btn btn-primary">Salvar rotas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
