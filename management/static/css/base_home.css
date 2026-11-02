@@ -205,6 +205,12 @@ main{
     font-size: 0.87em;
 }
 
+.dashboards{
+    display: flex;
+    flex-direction: row;
+    column-gap: 15px;
+}
+
 .dashboard{
     display: flex;
     width: 100%;
@@ -244,6 +250,7 @@ main{
 
 .register-button{
     background-color: var(--primary-color);
+    border: none;
     color: white;
     text-decoration: none;
     border-radius: 999px;
@@ -251,6 +258,12 @@ main{
     padding: 8px 15px;
     font-weight: bold;
     margin-left: auto;
+}
+
+.secondary{
+    border-radius: 10px;
+    width: 100%;
+    height: 46px;
 }
 
 .dashboard-card{
@@ -455,4 +468,39 @@ main{
     color: var(--primary-color);
     padding-right: 10px;
     border-right: 2px solid var(--border-color-secondary);
+}
+
+.dashboard-form{
+    justify-content: center;
+    min-width: 300px;
+    max-width: 300px;
+    height: fit-content;
+    background-color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    border: 1px solid #edf2f7;
+}
+
+.dashboard-form form{
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+
+.dashboard-form h4{
+    font-size: 1.17em;
+}
+
+.dashboard-form label{
+    font-size: 0.75em;
+    color: var(--text-color-secondary);
+    font-weight: bold;
+}
+
+.dashboard-form select{
+    border: 1px solid var(--border-color-secondary);
+    border-radius: 10px;
+    height: 46px;
+    padding-left: 10px;
 }
