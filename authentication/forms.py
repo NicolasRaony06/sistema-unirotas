@@ -3,16 +3,16 @@ from django.contrib.auth import get_user_model, password_validation
 from .models import StudentProfile
 from django.core.exceptions import ValidationError
 import re
-
+from datetime import date
 
 User = get_user_model()
 
 class Validation:
     def is_password_invalid(self, password, confirm_password):
-            if not password or not confirm_password:
-                return True
-            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
-            return not validation or password != confirm_password
+        if not password or not confirm_password:
+            return True
+        validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+        return not validation or password != confirm_password
     
 
 class UserRegistrationForm(forms.ModelForm, Validation):
@@ -30,11 +30,12 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
     class Meta:
         model = User
-        fields = ["email", "full_name", "birth_date"]
+        fields = [
+            "full_name",
+            "birth_date"]
         widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'seu@email.com'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
 
     def save(self, commit=True):
@@ -54,11 +55,20 @@ class UserRegistrationForm(forms.ModelForm, Validation):
         confirm_password = cleaned.get("confirm_password")
 
         if self.is_password_invalid(password, confirm_password):
-            raise ValidationError("senha invalida.")
+            self.add_error(
+                'password', 'A senha tem que atender a todos os requisitos e coincidir com o confirmar senha.'
+            )
 
-        email = cleaned.get("email")
-        if email:
-            cleaned["email"] = email.lower().strip()
+        if password:
+            try:
+                user = User(email=cleaned.get("email"), full_name=cleaned.get("full_name"))
+                password_validation.validate_password(password, user=user)
+            except ValidationError as e:
+                self.add_error('password', e.messages)
+
+        data = cleaned.get("birth_date")
+        if data and data > date.today():
+            self.add_error("birth_date", "A data de nascimento não pode estar no futuro.")
 
         return cleaned
 
@@ -80,13 +90,10 @@ class AvatarForm(forms.Form):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = [# 'city',
-                  # 'institution',
+        fields = [
                   'course',
                   'period']
         widgets = {
-            # 'institution': forms.Select(attrs={'class': 'form-select'}),
-            # 'city': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.TextInput(attrs={'class': 'form-control',
                                              'placeholder': 'Ex: Ciência da Computação'}
                                              ),
@@ -130,44 +137,44 @@ class ChangePassword(forms.Form, Validation):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Senha'}
-            ), label="Senha")
+            'placeholder': 'Senha atual'
+        }), 
+        label="Senha atual"
+    )
     
     new_password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Confirme a Senha'}
-           ), label="Confirmação de Senha")
+            'placeholder': 'Nova senha'
+        }),
+        label="Nova senha"
+    )
 
     new_password2 = forms.CharField(
-            widget=forms.PasswordInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Confirme a Senha'}
-               ), label="Confirmação de Senha")
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirme a nova senha'
+        }),
+        label="Confirmação de Senha"
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
 
-    def is_password_invalid(self, password, confirm_password):
-      is_invalid = super().is_password_invalid(password, confirm_password)
-      if not is_invalid:
-        try:
-          password_validation.validate_password(password, user=self.user)
-        except ValidationError as e:
-          self.add_error("new_password1", e.messages)
-          return True
-      return is_invalid
-
     def clean(self):
         cleaned = super().clean()
-        if not cleaned:
-            return cleaned
-        
         password = cleaned.get("new_password1")
         confirm_password = cleaned.get("new_password2")
 
-        if self.is_password_invalid(password, confirm_password):
-            raise ValidationError("senha invalida.")
+        if password and confirm_password and password != confirm_password:
+            self.add_error('new_password2', 'A senha tem que ser igual a confirmação de senha')
+        elif self.is_password_invalid(password, confirm_password):
+            self.add_error("new_password1", "A senha tem que atender a todos os requisitos")
 
+        if password:
+            try:
+                password_validation.validate_password(password, user=self.user)
+            except ValidationError as e:
+                self.add_error('new_password1', e.messages)
         return cleaned

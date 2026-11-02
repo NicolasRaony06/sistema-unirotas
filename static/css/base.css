@@ -1,0 +1,33 @@
+:root {
+    --primary-color: #1d5bd1;
+    --secondary-color: #03153F; 
+    --tertiary-color: #3730a3; 
+    --background-color: #e8eaed;
+    --background-color-secondary:  #F5F4EE;;
+    --background-color-tertiary: #E0E7FF;
+    --background-color-form: #f1f5f9;
+    --text-color: #03153f;
+    --text-color-secondary: #78808D;
+    --muted-text: #64748b;
+    --border-color: #e9e8e2;
+    --border-color-secondary: #cbd5e0;
+
+    --font-main: Arial, sans-serif;
+    --font-code: 'Fira Code', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: white;
+  color: var(--text-color);
+  line-height: 1.5; 
+  -webkit-font-smoothing: antialiased; 
+  min-height: 100vh;
+}
+

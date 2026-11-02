@@ -40,3 +40,19 @@
     border-color: #0047ab;
     box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
 }
+
+.input-group input.error, 
+.input-group select.error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.field-error-msg {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 0.3rem;
+    margin-left: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}

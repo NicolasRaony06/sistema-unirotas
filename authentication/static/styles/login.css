@@ -218,7 +218,7 @@ body {
         flex: unset;
         border-radius: 0; /* Remove os cantos arredondados de mobile */
         margin-top: 0;
-        background-color: #fefae0; /* Tom creme exato do design de referência */
+        background-color: #F5F4EE; /* Tom creme exato do design de referência */
         padding: 3rem 2.5rem;
         display: flex;
         flex-direction: column;
@@ -226,4 +226,20 @@ body {
         box-shadow: none;
         overflow-y: auto;
     }
+}
+
+.input-group input.error, 
+.input-group select.error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+.field-error-msg {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 0.3rem;
+    margin-left: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
 }
