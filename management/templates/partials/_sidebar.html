@@ -134,7 +134,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link {% if request.resolver_match.url_name == 'rotas' %}selected{% endif %}">
+                    <a href="{% url "management:linhas" %}" class="nav-link {% if request.resolver_match.url_name == 'linhas' %}selected{% endif %}">
                         <span class="sidebar-nav-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round">
@@ -143,9 +143,9 @@
                                 <circle cx="18" cy="5" r="3" />
                             </svg>
                         </span>
-                        <span>Rotas</span>
+                        <span>Linhas</span>
                     </a>
-                </li>                  
+                </li>                       
             {% endif %}
         </ul>
     </nav>
