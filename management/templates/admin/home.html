@@ -1,33 +1,17 @@
-{% extends 'base.html' %}
+{% extends "base_home.html" %}
+{% load static %}
 
-{% block title %}Início | Admin{% endblock %}
+{% block title %}Início | Admin{% endblock title %}
 
-{% block side_bar%} 
-{% include 'partials/side_bar.html' %} 
-{% endblock %}
+{% block header %}
+    <h1>Inicio</h1>
+    <p>Bem vindo ao painel Administrativo</p>
+{% endblock header %}
 
-{% block content %}
-
-<header class="topbar">
-    <h1>Início</h1>
-    <p>Bem-vindo ao painel administrativo UniRota</p>
-</header>
-
-<div class="dashboard">
+{% block main_content %}
     <section class="greeting">
-        <small>{{ data|date:"D, d M Y H:i" }}</small>
-        <h2>Olá, {{ full_name }}!</h2>
-        <p>Você tem 2 notificações não lidas e 1 chamado pendente.</p>
+        <p>{% now "D, d M Y H:i" %}</p>
+        <h2>Olá, {{request.user}}!</h2>
+        <p>4 rotas · 2 ônibus · 2 motoristas</p>
     </section>
-
-    {% include 'partials/metrics.html' %}
-    
-    <div class="content-grid">
-
-        {% include 'partials/panel_routes.html'%}
-        {% include 'partials/notifications.html'%}
-
-    </div>
-
-</div>
-{% endblock %}
+{% endblock main_content %}

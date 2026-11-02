@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Município</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles/cadastro_municipio.css' %}">
+
+
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Criar Município</h2>
+            <p>Preencha os dados do novo município</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <!-- Nome do Município -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Nome do Município <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004de6"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                        </div>
+
+                        <input type="text" class="input-field" placeholder="Ex: Mossoró" name="nome" />
+                    </div>
+                </div>
+
+
+
+                <!-- Código IBGE -->
+                <div class="form-group">
+                    <label class="form-label">
+                        Codigo IBGE <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004de6"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="9" x2="20" y2="9" />
+                                <line x1="4" y1="15" x2="20" y2="15" />
+                                <line x1="10" y1="3" x2="8" y2="21" />
+                                <line x1="16" y1="3" x2="14" y2="21" />
+                            </svg>
+                        </div>
+                        <input type="text" class="input-field" placeholder="Ex: 1234567" name="codigo_ibge" />
+                    </div>
+                </div>
+
+                <!-- Associar Gestor -->
+                <div class="form-group">
+                    <label class="form-label" for="nome_gestor">
+                        Associar Gestor <span class="optional">(opcional)</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004de6"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <select class="select-field" name="gestor" id="id_gestor">
+                            <option value="">Selecionar gestor...</option>
+
+                            <!-- Iteramos direto pelos objetos do banco trazidos pela ForeignKey -->
+                            {% for gestor in form.fields.gestor.queryset %}
+                            <option value="{{ gestor.pk }}">
+                                {{ gestor }}
+                            </option>
+                            {% endfor %}
+                            
+                        </select>
+                        <div class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="button-group">
+                    <a href="{% url 'management:municipios' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Criar município</button>
+                </div>
+            </div>
+            {% if erro%}
+            <p style="color: red; font-weight: bold;text-align: center;">{{ erro }}</p>
+            {% endif %}
+        </form>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 from django import forms
-from .models import Bus, Municipio, BusStop, Institution
+from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
+
 from authentication.models import UserRole
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -9,10 +10,11 @@ class BusForm(forms.ModelForm):
         model = Bus
         fields = ['license_plate', 'name', 'capacity', 'color', 'identification_photo']
         widgets = {
-            'license_plate': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: ABC-1234'}),
-            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Ônibus 001'}),
-            'capacity': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'Ex: 50'}),
-            'color': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Amarelo'}),
+            'license_plate': forms.TextInput(attrs={'placeholder': 'Ex: ABC-1234'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Ex: Ônibus 001'}),
+            'capacity': forms.NumberInput(attrs={'placeholder': 'Ex: 50'}),
+            'color': forms.TextInput(attrs={'placeholder': 'Ex: Amarelo'}),
+            'identification_photo': forms.FileInput()
         }
 
     def clean_license_plate(self):
@@ -31,13 +33,12 @@ class BusStopForm(forms.ModelForm):
         model = BusStop
         fields = ['name', 'description', 'city']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: Atacarejo'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Ex: Atacarejo'}),
             'description': forms.Textarea(attrs={
-                "class": "input-field",
                 "placeholder": "Descreva a parada",
                 "rows": 4,
             }),
-            'city': forms.Select(attrs={"class": "select-field"})
+            'city': forms.Select()
         }
 
     def __init__(self, *args, **kwargs):
@@ -55,8 +56,8 @@ class InstitutionForm(forms.ModelForm):
         model = Institution
         fields = ['name', 'city']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Ex: IFRN'}),
-            'city': forms.Select(attrs={"class": "select-field"})
+            'name': forms.TextInput(attrs={'placeholder': 'Ex: IFRN'}),
+            'city': forms.Select()
         }
 
     def __init__(self, *args, **kwargs):
@@ -69,21 +70,30 @@ class InstitutionForm(forms.ModelForm):
             self.fields['city'].queryset = Municipio.objects.filter(
                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
 
+class LinhaForm(forms.ModelForm):
+    class  Meta:
+        model = Linha
+        fields = ['nome','motorista','horario_inicio','horario_fim','dias_ofertados','instituicoes_ofertadas']
+        
+
+class RotaForm(forms.ModelForm):
+    class Meta:
+        model = Rota
+        fields = ['nome','direcao','onibus']
+
+class TrechoViagemForm(forms.ModelForm):
+    class Meta:
+        model = TrechoViagem
+        fields = ['parada_inicio','parada_fim','ordem','distancia_km']
 class InviteUserForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'class': 'input-field',
         'placeholder': 'motorista@example.com'
     }))
     confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'class': 'input-field',
         'placeholder': 'motorista@example.com'
     }))
-    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select(attrs={
-        'class': 'select-field'
-    }))
-    institution = forms.ChoiceField(choices=(), widget=forms.Select(attrs={
-            'class': 'select-field'
-    }))
+    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select())
+    institution = forms.ChoiceField(choices=(), widget=forms.Select())
 
     def __init__(self, *args, **kwargs):
         institutions_id = kwargs.pop('institutions_id', None)
