@@ -28,7 +28,12 @@
                     </span>
                     <div class="dashboard-card-info">
                         <div>
-                            <p>{{municipio.codigo_ibge}}</p>
+                            <p>{{municipio}}</p>
+                            {% if municipio.ofertado_pelo_sistema %}
+                                <span class="badge-status active">Ofertado</span>
+                            {% else %}
+                                <span class="badge-status inactive">Inofertado</span>
+                            {% endif %}
                         </div>
                         <h4>{{municipio.nome}}</h4>
                         <p class="subinfo">4 Paradas · 2 Instituições</p>
