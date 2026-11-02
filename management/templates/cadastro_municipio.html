@@ -71,7 +71,11 @@
         {% endfor %}
     </div>
     <div class="form-actions">
-        <a href="{% url "management:municipios" %}">Cancelar</a>
+        {% if request.user.role == 'ADMIN' %}
+            <a href="{% url "management:municipios" %}">Cancelar</a>
+        {% else %}
+            <a href="{% url "management:localizacoes" %}">Cancelar</a>
+        {% endif %}
         <button type="submit">Criar município</button>
     </div>
 {% endblock form_content %}

@@ -13,6 +13,8 @@
         <div class="dashboard-header">
             <h3>Lista de Municípios</h3>
             <span class="badge-count">{{municipios.count}} registros</span>
+            <a href="{% url "management:register_institution" %}" class="register-button">+ Nova Instituição</a>
+            <a href="{% url "management:adicionar-municipio" %}" class="register-button">+ Novo Municipio</a>
         </div>
         {% for municipio in municipios %}
             <div class="dashboard-card">

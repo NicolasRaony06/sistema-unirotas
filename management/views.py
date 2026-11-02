@@ -72,10 +72,10 @@ def criar_municipio(request):
                 municipio.save()
                 return redirect('management:municipios')
         else:
-            return render(request, 'admin/cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
-    return render(request, 'admin/cadastro_municipio.html', {'form': form})
+    return render(request, 'cadastro_municipio.html', {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -94,10 +94,10 @@ def adicionar_municipio(request):
                 municipio_gestor.municipios_relacionados.add(municipio)
                 return redirect('management:localizacoes')
         else:
-            return render(request, 'manager/cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
-    return render(request, 'manager/cadastro_municipio.html', {'form': form})
+    return render(request, 'cadastro_municipio.html', {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
