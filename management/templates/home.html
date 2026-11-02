@@ -16,7 +16,7 @@
 {% block main_content %}
     <section class="greeting">
         <p>{% now "D, d M Y H:i" %}</p>
-        <h2>Olá, {{request.user}}!</h2>
+        <h2>Olá, {{request.user.full_name}}!</h2>
         <p>4 rotas · 2 ônibus · 2 motoristas</p>
     </section>
     <div class="dashboards">
@@ -98,28 +98,67 @@
         <section class="dashboard-notifications">
             <div class="dashboard-notifications-header">
                 <h4>Notificações <span>2</span></h4>
-                <a href="#">Marcar lidas</a>
+                <a href="#" class="see-more">Marcar lidas</a>
             </div>
             <div class="dashboard-notifications-content">
-                <span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 4v10"></path>
-                        <circle cx="12" cy="18" r="1"></circle>
-                    </svg>
-                </span>
-                <div class="notification-message">
-                    <h4>Rota RT-002 atrasada</h4>
-                    <p>Motorista Marcos Neto reportou 15min de atraso devido ao trânsito</p>
+                <div class="notification-card">
+                    <span class="notification-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 4v10"></path>
+                            <circle cx="12" cy="18" r="1"></circle>
+                        </svg>
+                    </span>
+                    <div class="notification-message">
+                        <h4>Rota RT-002 atrasada</h4>
+                        <p>Motorista Marcos Neto reportou 15min de atraso devido ao trânsito</p>
+                    </div>
                     <p>há 5 min</p>
-                    <span></span>
+                    <span class="unread-sign"></span>
                 </div>
-                <div class="notification-message">
-                    <h4>Rota RT-002 atrasada</h4>
-                    <p>Motorista Marcos Neto reportou 15min de atraso devido ao trânsito</p>
-                    <p>há 5 min</p>
-                    <span></span>
+                <div class="notification-card">
+                    <span class="notification-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="8" r="4"></circle>
+                            <path d="M2 20c0-4 3-6 7-6s7 2 7 6M17 8a4 4 0 0 1 0 8"></path>
+                        </svg>
+                    </span>
+                    <div class="notification-message">
+                        <h4>Novo motorista vinculado</h4>
+                        <p>Carlos Silva foi adicionado à sua frota com sucessoo</p>
+                    </div>
+                    <p>há 1h</p>
+                    <span class="unread-sign"></span>
+                </div>
+                <div class="notification-card">
+                    <span class="notification-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="8" r="4"></circle>
+                            <path d="M2 20c0-4 3-6 7-6s7 2 7 6M17 8a4 4 0 0 1 0 8"></path>
+                        </svg>
+                    </span>
+                    <div class="notification-message">
+                        <h4>Novo motorista vinculado</h4>
+                        <p>Carlos Silva foi adicionado à sua frota com sucessoo</p>
+                    </div>
+                    <p>há 1h</p>
+                    <span class="unread-sign"></span>
+                </div>
+                <div class="notification-card">
+                    <span class="notification-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="8" r="4"></circle>
+                            <path d="M2 20c0-4 3-6 7-6s7 2 7 6M17 8a4 4 0 0 1 0 8"></path>
+                        </svg>
+                    </span>
+                    <div class="notification-message">
+                        <h4>Novo motorista vinculado</h4>
+                        <p>Carlos Silva foi adicionado à sua frota com sucessoo</p>
+                    </div>
+                    <p>há 1h</p>
+                    <span class="unread-sign"></span>
                 </div>
             </div>
+            <a href="#">Ver todas as Noticações</a>
         </section>
     </div>
 {% endblock main_content %}
