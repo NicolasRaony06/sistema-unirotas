@@ -37,7 +37,7 @@ body{
     display: flex;
     flex-direction: row;
     height: 64px;
-    justify-content: space-between;
+    column-gap: 10px;
     align-items: center;
     background-color: var(--background-color-secondary);
     border-radius: 8px;
@@ -46,7 +46,7 @@ body{
 
 .user-info{
     display: flex;
-    width: fit-content;
+    flex: 1;
     flex-direction: column;
     row-gap: 2px;
 }
@@ -71,7 +71,7 @@ body{
     color: var(--text-color-secondary)
 }
 
-.dropdown-icon svg{
+.dropdown-icon{
     width: 18px;
     height: 18px;
     color: var(--primary-color);
