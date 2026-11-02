@@ -8,7 +8,7 @@
     <div class="user-profile">
         <img src="{{request.user.avatar_url}}" alt="Foto do Usuário">
         <div class="user-info">
-            <h2>{{request.user}}</h2>
+            <h2>{{request.user.full_name}}</h2>
             {% if request.user.role == 'MANAGER' %}
                 <p>Gestor - {{request.user.personel_profile.city}}</p>
             {% else %}
