@@ -17,13 +17,6 @@ from authentication.data_type import InviteDTO
 @login_required
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def home(request):
-    user_role = request.user.role
-    if user_role == UserRole.ADMIN:
-        template_name = "admin/home.html"
-        
-    elif user_role == UserRole.MANAGER:
-        template_name = "manager/home.html"
-
     context = {
         'linhas': Linha.objects.all(),
         'motoristas':User.objects.filter(role=UserRole.DRIVER).count(),
@@ -34,7 +27,7 @@ def home(request):
         'data': timezone.now(),
     }
 
-    return render(request, template_name, context)
+    return render(request, "home.html", context)
 
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
