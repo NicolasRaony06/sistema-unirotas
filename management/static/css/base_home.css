@@ -400,16 +400,59 @@ main{
 
 .dashboard-table thead{
     background-color: var(--background-color-form);
+    color: var(--text-color-secondary);
+    height: 44px;
 }
 
 .dashboard-table th{
     text-align: left;
+    
 }
 
 .dashboard-table th:last-of-type{
     text-align: right;
 }
 
+.dashboard-table td:last-of-type div{
+    justify-content: right;
+}
+
+.dashboard-table th:nth-last-child(1),
+.dashboard-table th:nth-last-child(2){
+    width: 18%;
+}
+
+.dashboard-table tr{
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-table thead tr{
+    border: none;
+}
+
 .dashboard-table tr:hover{
     background-color: var(--background-color-form);
+}
+
+.dashboard-table th{
+    padding: 15px 15px;
+}
+
+.dashboard-table td{
+    padding: 20px 15px;
+}
+
+.dashboard-table-actions{
+    column-gap: 20px;
+}
+
+.dashboard-table-actions a{
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.dashboard-table-actions a:first-of-type{
+    color: var(--primary-color);
+    padding-right: 10px;
+    border-right: 2px solid var(--border-color-secondary);
 }
