@@ -3,16 +3,16 @@ from django.contrib.auth import get_user_model, password_validation
 from .models import StudentProfile
 from django.core.exceptions import ValidationError
 import re
-
+from datetime import date
 
 User = get_user_model()
 
 class Validation:
     def is_password_invalid(self, password, confirm_password):
-            if not password or not confirm_password:
-                return True
-            validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
-            return not validation or password != confirm_password
+        if not password or not confirm_password:
+            return True
+        validation = re.search(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", password)
+        return not validation or password != confirm_password
     
 
 class UserRegistrationForm(forms.ModelForm, Validation):
@@ -30,11 +30,12 @@ class UserRegistrationForm(forms.ModelForm, Validation):
 
     class Meta:
         model = User
-        fields = ["email", "full_name", "birth_date"]
+        fields = [
+            "full_name",
+            "birth_date"]
         widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'seu@email.com'}),
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
 
     def save(self, commit=True):
@@ -58,12 +59,16 @@ class UserRegistrationForm(forms.ModelForm, Validation):
                 'password', 'A senha tem que atender a todos os requisitos e coincidir com o confirmar senha.'
             )
 
-        email = cleaned.get("email")
-        if email:
-            cleaned["email"] = email.lower().strip()
+        if password:
+            try:
+                user = User(email=cleaned.get("email"), full_name=cleaned.get("full_name"))
+                password_validation.validate_password(password, user=user)
+            except ValidationError as e:
+                self.add_error('password', e.messages)
 
-        if User.objects.filter(email=email).exists():
-                    self.add_error('email', 'Não foi possível concluir o cadastro. Verifique se você já possui uma conta ou tente recuperar sua senha.')
+        data = cleaned.get("birth_date")
+        if data and data > date.today():
+            self.add_error("birth_date", "A data de nascimento não pode estar no futuro.")
 
         return cleaned
 
@@ -85,13 +90,10 @@ class AvatarForm(forms.Form):
 class StudentProfileForm(forms.ModelForm):
     class Meta:
         model = StudentProfile
-        fields = [# 'city',
-                  # 'institution',
+        fields = [
                   'course',
                   'period']
         widgets = {
-            # 'institution': forms.Select(attrs={'class': 'form-select'}),
-            # 'city': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.TextInput(attrs={'class': 'form-control',
                                              'placeholder': 'Ex: Ciência da Computação'}
                                              ),
@@ -165,17 +167,14 @@ class ChangePassword(forms.Form, Validation):
         password = cleaned.get("new_password1")
         confirm_password = cleaned.get("new_password2")
 
-        # 2. Valida se as novas senhas coincidem
         if password and confirm_password and password != confirm_password:
-            self.add_error('new_password2', 'A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual')
-        if self.is_password_invalid(password, confirm_password):
-            self.add_error("new_password2", "A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual")
+            self.add_error('new_password2', 'A senha tem que ser igual a confirmação de senha')
+        elif self.is_password_invalid(password, confirm_password):
+            self.add_error("new_password1", "A senha tem que atender a todos os requisitos")
 
-        # 3. Valida as regras de complexidade do Django
         if password:
             try:
                 password_validation.validate_password(password, user=self.user)
             except ValidationError as e:
-                self.add_error('new_password1', "A senha tem que atender a todos os requisitos e coincidir com a confirmação de senha, se o erro persistir, cheque sua senha atual")
-                raise forms.ValidationError("")
+                self.add_error('new_password1', e.messages)
         return cleaned

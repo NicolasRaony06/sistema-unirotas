@@ -41,8 +41,8 @@ class UserRole(models.TextChoices):
 
 class User(AbstractBaseUser, PermissionsMixin):
     allowed_invitation = {
-        UserRole.ADMIN: UserRole.MANAGER,
-        UserRole.MANAGER: UserRole.DRIVER
+        UserRole.ADMIN: (UserRole.MANAGER, ),
+        UserRole.MANAGER: (UserRole.DRIVER, UserRole.STUDENT)
     }
 
     email = models.EmailField(unique=True)
@@ -53,9 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=UserRole.choices,
         default=UserRole.STUDENT
     )
+    birth_date = models.DateField(null=True, blank=True)
 
     notifications = models.BooleanField(default=True)
-    birth_date = models.DateField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
@@ -71,13 +71,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     def avatar_url(self):
         if self.profile_picture and hasattr(self.profile_picture, 'url'):
             return self.profile_picture.url
-        return '/static/images/default-avatar.png'
+        return '/static/images/settings/base_profile.png'
 
     def can_invite(self, role):
         if not self.is_active or not role:
             return False
 
-        return self.allowed_invitation.get(self.role) == role
+        allowed_roles = self.allowed_invitation.get(self.role, set())
+        return role in allowed_roles 
+
 
     def save(self, *args, **kwargs):
         if not self.email:
@@ -87,17 +89,27 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         #return self.email
-        return self.full_name
+        return self.email
+
+class PersonelProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='personel_profile')
+    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.full_name} ({self.user.role} - {self.city})"
+    
+
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile')
-    # institution = models.ForeignKey('management.EducationalInstitution', on_delete=models.PROTECT)
-    # city = models.ForeignKey('management.City', on_delete=models.SET_NULL, null=True, blank=True)
+    institution = models.ForeignKey('management.Institution', on_delete=models.PROTECT)
+    city = models.ForeignKey('management.Municipio', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.CharField(max_length=100)
     period = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
-        #return f"Estudante: {self.user.full_name}"
         return self.user.full_name

@@ -1,0 +1,186 @@
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-color-form);
+}
+
+main{
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    width: 520px;
+    background-color: var(--background-color);
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 12px;
+    border-radius: 12px;
+    padding: 30px;
+}
+
+main hr {
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
+    border: 0;
+    border-top: 1px solid #ccc;
+}
+
+.form-header h1{
+    font-size: 1.38em;
+}
+
+.form-header h1,
+.form-group label{
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.form-header p, 
+.form-group label{
+    font-size: 0.9em;
+}
+
+.form-group label{
+    display: flex;
+    flex-direction: row;
+    column-gap: 5px;
+}
+
+.required {
+    color: red;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    row-gap: 18px;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+}
+
+.form-group *{
+    border: none;
+}
+
+.form-input-wrapper{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    width: 460px;
+    column-gap: 10px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.form-input-wrapper:focus-within{
+    border: 1px solid var(--primary-color);
+}
+
+.form-input-wrapper:has(textarea){
+    padding: 12px 16px;
+    align-items: start;
+}
+
+.form-input-wrapper:has(input[type="file"]){
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 15px;
+    height: 165px;
+    border: 2px dashed var(--border-color-secondary);
+}
+
+.form-input-wrapper:has(input[type="file"]):hover{
+    border-color: var(--primary-color);
+}
+
+.form-input-wrapper:has(input[type="file"]) span{
+    width: 32px;
+    height: 32px;
+}
+
+.form-input-wrapper:has(input[type="file"]) div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 0.87em;
+    font-weight: 200;
+}
+
+.form-input-wrapper:has(input[type="file"]) input{
+    position: absolute;
+    opacity: 0;
+    z-index: 10;
+}
+
+.form-input-wrapper span{
+    display: flex;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+}
+
+.form-input-wrapper span svg{
+    color: var(--primary-color);
+    width: 100%;
+    height: 100%;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+    flex: 1; 
+    min-height: 48px;
+    border: none;
+    outline: none;
+}
+
+.form-group input,
+.form-group select{
+    height: 46px;
+}
+
+.form-actions{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.form-actions a{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text-color);
+    width: 225px;
+    height: 44px;
+    border-radius: 8px;
+    border: var(--primary-color) 1px solid;
+    font-size: 0.9em;
+    font-weight: bold;
+    background-color: white;
+}
+
+.form-actions button{
+    color: white;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    width: 225px;
+    height: 44px;
+    border: none;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.form-messages{
+    font-size: 0.9em;
+    color: red;
+}
