@@ -173,11 +173,7 @@
                 <small class="route-mini__stop-label">{{atual_parada.parada.name}}</small>
             </div>
             {%if eta_next_stop_minutes %}
-                {% if eta_next_stop_minutes > 0%}
-                <span class="route-mini__gap"><span class="route-mini__pill">{{eta_next_stop_minutes}} min </span></span>
-                {%else%}
-                    <span class="route-mini__gap"><span class="route-mini__pill">N/A</span></span>
-                {%endif%}  
+                <span class="route-mini__gap"><span class="route-mini__pill">as {{eta_next_stop_minutes}} horas</span></span>
             {%else%}
               <span class="route-mini__gap"><span class="route-mini__pill"></span></span>
             {% endif %}
