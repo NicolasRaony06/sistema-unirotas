@@ -25,10 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = 'django-insecure-yy$id%^x76jwg&15gxlpuy)%evy7a3wc0y0omo!5v@ht=+ky!+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = True
 
 ALLOWED_HOSTS = [
     '.onrender.com', 'localhost', '127.0.0.1'
@@ -88,14 +90,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-DATABASE_URL = os.getenv("DATABASE_URL")
-DATABASES = {
-    "default": dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True,
-    ),
-}
+# DATABASE_URL = os.getenv("DATABASE_URL")
+# DATABASES = {
+#     "default": dj_database_url.config(
+#         default=DATABASE_URL,
+#         conn_max_age=600,
+#         ssl_require=True,
+#     ),
+# }
 
 
 # Password validation
