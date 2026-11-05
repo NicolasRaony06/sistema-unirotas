@@ -1,6 +1,6 @@
 from .models import Notification, NotificationUser, NotificationTrip
 from authentication.models import User
-from operation.models import Viagem
+from operation.models import Viagem, UsuarioDaViagem
 from django.db import transaction
 from django.db.models import QuerySet
 from collections.abc import Iterable
@@ -10,7 +10,7 @@ from django.utils import timezone
 
 def send_notification(title, message, sender, recipient):
     with transaction.atomic():
-        notification = Notification.objects.create(title=title, message=message)
+        notification = Notification.objects.create(title=title, body=message)
 
         if isinstance(recipient, Viagem):
             NotificationTrip.objects.create(
@@ -41,30 +41,68 @@ def send_notification(title, message, sender, recipient):
         return notification
 
 def fetch_notifications(recipient):
-    notifications = Notification.objects.filter(
-        Q(notificationuser__recipient=recipient) | 
-        Q(notificationtrip__trip__usuarios=recipient)
-    ).distinct().order_by("-created_at")[:20]
-    not_seen = Notification.objects.filter(
-        Q(notificationuser__recipient=recipient) | 
-        Q(notificationtrip__trip__usuarios=recipient),
-        seen=None
-    ).distinct().order_by("-created_at").count()
+    if recipient.role == "STUDENT":
+        trip_user = UsuarioDaViagem.objects.filter(estudante=recipient.student_profile, viagem__data__date = timezone.localdate())
+        notifications = Notification.objects.filter(
+            Q(notification_user__recipient=recipient) | 
+            Q(notification_trip__trip__usuarios__in=trip_user)
+        ).distinct().order_by("-created_at")[:20]
+        not_seen = Notification.objects.filter(
+            Q(notification_user__recipient=recipient, notification_user__seen=None) | 
+            Q(notification_trip__trip__usuarios__in=trip_user, notification_trip__seen=None)
+        ).distinct().order_by("-created_at").count()
+    else:
+        notifications = Notification.objects.filter(
+            Q(notification_user__recipient=recipient) 
+        ).distinct().order_by("-created_at")[:20]
+        not_seen = Notification.objects.filter(
+            Q(notification_user__recipient=recipient, notification_user__seen=None)
+        ).distinct().order_by("-created_at").count()
     return notifications, not_seen
 
 def mark_notification_as_seen(recipient):
-    notifications = list(
-        Notification.objects.filter(
-            Q(notificationuser__recipient=recipient) | 
-            Q(notificationtrip__trip__usuarios=recipient),
-            seen__isnull=True
-        ).distinct()
-    )
+    if recipient.role == "STUDENT":
+        trip_user = UsuarioDaViagem.objects.filter(estudante=recipient.student_profile, viagem__data__date = timezone.localdate())
+        notifications = list(
+            Notification.objects.filter(
+                Q(notification_user__recipient=recipient, notification_user__seen=None) | 
+                Q(notification_trip__trip__usuarios__in=trip_user, notification_trip__seen=None),
+            ).distinct()
+        )
+    else:
+        notifications = list(
+            Notification.objects.filter(
+                Q(notification_user__recipient=recipient, notification_user__seen=None)
+            ).distinct()
+        )
+    
     if not notifications:
         return
 
     today = timezone.localdate()
-    for notification in notifications:
-        notification.seen = today
 
-    Notification.objects.bulk_update(notifications, ['seen'])
+    user_notifs_to_update = list(
+        NotificationUser.objects.filter(
+            notification__in=notifications,
+            recipient=recipient,
+            seen__isnull=True
+        )
+    )
+    for nu in user_notifs_to_update:
+        nu.seen = today
+
+    if user_notifs_to_update:
+        NotificationUser.objects.bulk_update(user_notifs_to_update, ['seen'])
+
+    trip_notifs_to_update = list(
+        NotificationTrip.objects.filter(
+            notification__in=notifications,
+            trip__usuarios__in=trip_user if recipient.role == "STUDENT" else [],
+            seen__isnull=True
+        ).distinct()
+    )
+    for nt in trip_notifs_to_update:
+        nt.seen = today
+
+    if trip_notifs_to_update:
+        NotificationTrip.objects.bulk_update(trip_notifs_to_update, ['seen'])

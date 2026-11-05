@@ -91,8 +91,11 @@ def toggle_notification(request):
         request.user.save()
     return redirect('authentication:settings')
 
+from notifications import service
+
 @login_required(login_url=reverse_lazy('authentication:login'))
 def settings(request):
+    print(service.fetch_notifications(request.user))
     if request.user.role == "STUDENT":
         city = request.user.student_profile.city
         instituition = request.user.student_profile.institution.name
@@ -163,19 +166,3 @@ def change_password(request):
     else:
         form = ChangePassword(user=request.user)
     return render(request, "change_password.html", {"form": form}) 
-
-
-
-"""
-ignore função teste para validação manual do registro, antes do merge remove-la de url e da view
-"""
-from . import service
-
-def test(request):
-    email = request.GET.get("email")
-    if not email:
-        return HttpResponse("coloque um email ?email=")
-    higher_role_email = "keven@gmail.com"
-    invite = InviteDTO(higher_role_email, UserRole.MANAGER, email)
-    print(service.generate_elevated_signup_link(invite, request))
-    return HttpResponse("veja o terminal")
