@@ -18,7 +18,7 @@
         <p>{% now "D, d M Y H:i" %}</p>
         <h2>Olá, {{request.user.full_name}}!</h2>
         <p>4 rotas · 2 ônibus · 2 motoristas</p>
-    </section>
+    </section>  
     <section class="metrics">
         {% if request.user.role == 'ADMIN' %}
             <div>
