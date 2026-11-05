@@ -5,6 +5,8 @@ from django.db import transaction
 from django.db.models import QuerySet
 from collections.abc import Iterable
 from django.db.models import Q
+from django.utils import timezone
+
 
 def send_notification(title, message, sender, recipient):
     with transaction.atomic():
@@ -49,3 +51,20 @@ def fetch_notifications(recipient):
         seen=None
     ).distinct().order_by("-created_at").count()
     return notifications, not_seen
+
+def mark_notification_as_seen(recipient):
+    notifications = list(
+        Notification.objects.filter(
+            Q(notificationuser__recipient=recipient) | 
+            Q(notificationtrip__trip__usuarios=recipient),
+            seen__isnull=True
+        ).distinct()
+    )
+    if not notifications:
+        return
+
+    today = timezone.localdate()
+    for notification in notifications:
+        notification.seen = today
+
+    Notification.objects.bulk_update(notifications, ['seen'])
