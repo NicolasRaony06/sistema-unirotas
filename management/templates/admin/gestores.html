@@ -9,39 +9,8 @@
 {% endblock header %}
 
 {% block main_content %}
-    <section class="metrics">
-        <div>
-            <span class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"></path>
-                    <circle cx="12" cy="10" r="2.5"></circle>
-                </svg>
-            </span>
-            <h4>TOTAL DE GESTORES <span>{{total_gestores}}</span></h4>
-            <span class="badge-count">+1 este mês</span>
-        </div>
-        <div>
-            <span class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="6" cy="18" r="3"></circle>
-                    <path d="M9 18h7a4 4 0 0 0 0-8H8a3 3 0 0 1 0-6h7"></path>
-                    <circle cx="18" cy="6" r="3"></circle>
-                </svg>
-            </span>
-            <h4>GESTORES PENDENTES <span>0</span></h4>
-            <span class="badge-count">Sem alteração</span>
-        </div>
-        <div>
-            <span class="icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m3 10 9-5 9 5-9 4z"></path>
-                    <path d="M6 12v4c3 3 9 3 12 0v-4M21 10v6"></path>
-                </svg>
-            </span>
-            <h4>GESTORES INATIVOS <span>{{gestores_inativos}}</span></h4>
-            <span class="badge-count">Sem alteração</span>
-        </div>
-    </section>
+    {% include "partials/_metrics.html" %}
+    
     <section class="dashboard">
         <div class="dashboard-header">
             <h3>Lista de Gestores</h3>
