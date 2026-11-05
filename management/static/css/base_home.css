@@ -87,6 +87,25 @@ body{
     display: flex;
     flex-direction: column;
     row-gap: 5px;
+    overflow-y: auto;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;               
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-nav h2{
