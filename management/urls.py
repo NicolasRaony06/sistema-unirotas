@@ -1,9 +1,11 @@
 from .views import *
 from django.urls import path
+from django.views.generic import RedirectView
 
 app_name = 'management'
 
 urlpatterns = [
+    path('', RedirectView.as_view(pattern_name='management:home', permanent=True)),
     path('invite_user/', invite_user, name="invite_user"),
     path('view_drivers/', view_drivers, name="view_drivers"),
     path('edit_driver/<int:id>', edit_driver, name="edit_driver"),
@@ -24,7 +26,7 @@ urlpatterns = [
     path('deactivate_institution/<int:id>', deactivate_institution, name="deactivate_institution"),
     path('activate_institution/<int:id>', activate_institution, name="activate_institution"), 
     path('edit_institution/<int:id>', edit_institution, name="edit_institution"),
-    path('home/',home, name='home'),
+    path('home/', home, name='home'),
     path('gestores/',gestores,name='gestores'),
     path('municipios/',municipios,name='municipios'),
     #path('convidar-gestor/',convidar_gestor,name='convidar-gestor')
