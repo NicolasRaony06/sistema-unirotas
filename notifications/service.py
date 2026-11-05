@@ -4,6 +4,7 @@ from operation.models import Viagem
 from django.db import transaction
 from django.db.models import QuerySet
 from collections.abc import Iterable
+from django.db.models import Q
 
 def send_notification(title, message, sender, recipient):
     with transaction.atomic():
@@ -37,3 +38,14 @@ def send_notification(title, message, sender, recipient):
         NotificationUser.objects.bulk_create(notification_users)
         return notification
 
+def fetch_notifications(recipient):
+    notifications = Notification.objects.filter(
+        Q(notificationuser__recipient=recipient) | 
+        Q(notificationtrip__trip__usuarios=recipient)
+    ).distinct().order_by("-created_at")[:20]
+    not_seen = Notification.objects.filter(
+        Q(notificationuser__recipient=recipient) | 
+        Q(notificationtrip__trip__usuarios=recipient),
+        seen=None
+    ).distinct().order_by("-created_at").count()
+    return notifications, not_seen
