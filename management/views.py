@@ -279,7 +279,7 @@ def activate_driver(request, id):
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
-        return redirect('management:home')
+        return redirect('management:view_buses')
 
     if request.method == 'POST':
         form = BusForm(request.POST, request.FILES)
