@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'management',
-    'django_extensions',
     'operation',
     'metrics',
 
