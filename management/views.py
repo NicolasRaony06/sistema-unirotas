@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from datetime import datetime
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.db.models import Q
 from .models import *
 from authentication.models import UserRole, PersonelProfile
@@ -250,6 +250,10 @@ def deactivate_driver(request, id):
             user__role=UserRole.DRIVER,
             city=request.user.personel_profile.city
         )
+
+        if driver_profile.city != request.user.personel_profile.city:
+            return HttpResponseForbidden("Acesso negado.")
+
         driver_user = driver_profile.user
         if driver_user.is_active:
             driver_user.is_active = False
@@ -267,6 +271,10 @@ def activate_driver(request, id):
             user__role=UserRole.DRIVER,
             city=request.user.personel_profile.city
         )
+
+        if driver_profile.city != request.user.personel_profile.city:
+            return HttpResponseForbidden("Acesso negado.")
+
         driver_user = driver_profile.user
         if not driver_user.is_active:
             driver_user.is_active = True
@@ -563,7 +571,7 @@ def edit_institution(request, id):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def retirar_municipio(request,id):
+def retirar_municipio(request, id):
     if request.method == 'POST':
         municipio_pai = Municipio.objects.filter(gestor= request.user).first()
         municipio_listado = Municipio.objects.filter(id=id).first()
@@ -575,6 +583,9 @@ def retirar_municipio(request,id):
 def inativar_linha(request, id):
     if request.method == 'POST':
         linha = Linha.objects.filter(id=id).first()
+        if linha.city != request.user.personel_profile.city:
+            return HttpResponseForbidden("Acesso negado.")
+
         if  linha.is_active:
             linha.is_active = False
             linha.save()
@@ -585,6 +596,9 @@ def inativar_linha(request, id):
 def ativar_linha(request, id):
     if request.method == 'POST':
         linha = Linha.objects.filter(id=id).first()
+        if linha.city != request.user.personel_profile.city:
+            return HttpResponseForbidden("Acesso negado.")
+        
         if  linha.is_active == False:
             linha.is_active = True
             linha.save()
@@ -617,7 +631,7 @@ def criar_linha(request):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def criar_rota(request,linha_id):
+def criar_rota(request, linha_id):
     if request.method == 'POST':
         form = RotaForm(request.POST,prefix='Ida')
         form2 = RotaForm(request.POST,prefix='Volta')
@@ -650,7 +664,7 @@ def linhas(request):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def criar_trecho(request,rota_id):
+def criar_trecho(request, rota_id):
     if request.method == 'POST':
         form = TrechoViagemForm(request.POST)
         if form.is_valid():
@@ -703,10 +717,13 @@ def criar_trecho(request,rota_id):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def excluir_trecho(request,id):
+def excluir_trecho(request, id):
     if request.method == 'POST':
         trecho = get_object_or_404(TrechoViagem,id=id)
         linha = trecho.rota.linha
+        if linha.city != request.user.personel_profile.city:
+            return HttpResponseForbidden("Acesso negado.")
+        
         trecho_exclude = TrechoViagem.objects.filter(
         rota__linha=linha,
         parada_inicio=trecho.parada_inicio,
