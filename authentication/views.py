@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from .handlers import *
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import HttpResponse
-
+from .decorators import unloged_required
 # Create your views here.
 
 LOGIN_THRESHOLD = 10
@@ -19,7 +19,7 @@ def _attempts_key(request, email):
     ip = request.META.get("REMOTE_ADDR", "")
     return f"login_attempts_{ip}_{(email or '').lower().strip()}"
 
-
+@unloged_required
 def signin(request):
     if request.method == "POST":
         form_login = LoginForm(request.POST)
@@ -66,6 +66,7 @@ def signin(request):
         
     return render(request, "login.html", {'form_login': form_login})
 
+@unloged_required
 def signup_with_role(request, token):
     try:
         cache_data = get_invitation_data(token)
