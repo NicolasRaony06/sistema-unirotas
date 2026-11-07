@@ -1,4 +1,4 @@
-from .models import Notification, NotificationUser, NotificationTrip
+from .models import Notification, NotificationUser, NotificationTrip, UserSeenNotification
 from authentication.models import User
 from operation.models import Viagem, UsuarioDaViagem
 from django.db import transaction
@@ -48,8 +48,11 @@ def fetch_notifications(recipient):
             Q(notification_trip__trip__usuarios__in=trip_user)
         ).distinct().order_by("-created_at")[:20]
         not_seen = Notification.objects.filter(
-            Q(notification_user__recipient=recipient, notification_user__seen=None) | 
-            Q(notification_trip__trip__usuarios__in=trip_user, notification_trip__seen=None)
+            Q(notification_user__recipient=recipient, notification_user__seen__isnull=True) | 
+            (
+                Q(notification_trip__trip__usuarios__in=trip_user) & 
+                ~Q(notification_trip__user_seen__user=recipient)
+            )
         ).distinct().order_by("-created_at").count()
     else:
         notifications = Notification.objects.filter(
@@ -66,7 +69,10 @@ def mark_notification_as_seen(recipient):
         notifications = list(
             Notification.objects.filter(
                 Q(notification_user__recipient=recipient, notification_user__seen=None) | 
-                Q(notification_trip__trip__usuarios__in=trip_user, notification_trip__seen=None),
+                (
+                    Q(notification_trip__trip__usuarios__in=trip_user) & 
+                    ~Q(notification_trip__user_seen__user=recipient)
+                ),
             ).distinct()
         )
     else:
@@ -98,11 +104,7 @@ def mark_notification_as_seen(recipient):
         NotificationTrip.objects.filter(
             notification__in=notifications,
             trip__usuarios__in=trip_user if recipient.role == "STUDENT" else [],
-            seen__isnull=True
-        ).distinct()
+        ).exclude(user_seen__user=recipient).distinct()
     )
     for nt in trip_notifs_to_update:
-        nt.seen = today
-
-    if trip_notifs_to_update:
-        NotificationTrip.objects.bulk_update(trip_notifs_to_update, ['seen'])
+        UserSeenNotification.objects.update_or_create(user=recipient, notification=nt, defaults={"date_seen": today})

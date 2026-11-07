@@ -95,7 +95,6 @@ from notifications import service
 
 @login_required(login_url=reverse_lazy('authentication:login'))
 def settings(request):
-    print(service.fetch_notifications(request.user))
     if request.user.role == "STUDENT":
         city = request.user.student_profile.city
         instituition = request.user.student_profile.institution.name

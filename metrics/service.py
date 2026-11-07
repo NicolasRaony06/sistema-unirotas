@@ -128,7 +128,7 @@ def get_time_prediction(stop_data: StopDTO, last_prediction=None) -> int:
     time_delta = timedelta(
         seconds=float(time)
     )  # ou minutes=..., dependendo da unidade
-    print()
+
     predict = last_stop.end_time + time_delta if last_prediction is None else last_prediction + time_delta
     return predict #math.ceil(time)
 
