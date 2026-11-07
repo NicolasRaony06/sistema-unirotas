@@ -347,15 +347,15 @@ def index_aluno(request):
     }
     return render(request, 'index_aluno.html', context)
 
-def validate_line_available(linha, direcao):
+from datetime import datetime, time, timedelta
+
+def validate_line_available(linha, direcao, horario_saida):
     now = timezone.localtime()
     date = now.date()
     week_day = now.weekday()
 
     if Linha.dias_da_semana[week_day] not in linha.dias_da_semana:
         return False, "a viagem não é realizada neste dia"
-
-    print(now.date(), Viagem.objects.all())
 
     qs = Viagem.objects.filter(
         rota__linha=linha,
@@ -364,6 +364,15 @@ def validate_line_available(linha, direcao):
     )
     status_ida, err_ida = not qs.filter(rota__direcao__icontains="IDA").exists(), "a viagem realizada para ida ja foi efetuado ou esta em andamento"
     status_volta, err_volta = not qs.filter(rota__direcao__icontains="VOLTA").exists(),  "a viagem realizada para volta ja foi efetuado ou esta em andamento"
+    
+    horario_saida = datetime.strptime(horario_saida, "%H:%M").time()
+    horario_saida = horario_saida.hour * 60 + horario_saida.minute
+    horario_maximo_saida = linha.horario_fim
+    horario_maximo_saida = horario_maximo_saida.hour * 60 + horario_maximo_saida.minute
+    
+    if horario_saida:
+        if horario_maximo_saida < horario_saida:
+            return False, "o seu horario de saida estoura o limite de 30 minutos de tolerancia do horario de volta da linha"
     print(qs.filter(rota__direcao__icontains="IDA").all())
     if direcao.lower() == "ida":
         return status_ida, err_ida
@@ -386,7 +395,7 @@ def alocar_aluno(request):
         horario_saida_aluno = request.POST.get('horario_saida_aluno')
         
         linha = get_object_or_404(Linha, pk=id_linha)
-        available, err = validate_line_available(linha, direcao)
+        available, err = validate_line_available(linha, direcao, horario_saida_aluno)
         if not available:
             messages.error(request, err)
             return redirect('index_aluno')
