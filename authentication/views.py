@@ -84,7 +84,7 @@ def signup_with_role(request, token):
 
     return handle_singup_render_based_on_role(request, invitation_data, cache_data)    
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 @require_POST
 def toggle_notification(request):
     if request.method == 'POST':
@@ -94,7 +94,7 @@ def toggle_notification(request):
 
 from notifications import service
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 def settings(request):
     if request.user.role == "STUDENT":
         city = request.user.student_profile.city
@@ -115,7 +115,7 @@ def settings(request):
         'institution': instituition
         })
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 def my_information(request):
     if request.user.role == "STUDENT":
         city = request.user.student_profile.city
@@ -137,7 +137,7 @@ def my_information(request):
         'change_avatar_form': AvatarForm()
     })
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 @require_POST
 def change_avatar(request):
     form = AvatarForm(request.POST, request.FILES)
@@ -150,7 +150,7 @@ def change_avatar(request):
             old_picture.delete(save=False)
     return redirect("authentication:my_information")
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 def change_password(request):
     if request.method == "POST":
         form = ChangePassword(request.POST, user=request.user)
