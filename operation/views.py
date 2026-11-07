@@ -288,8 +288,8 @@ def lista_linhas(request, indice=0):
 @role_required(UserRole.STUDENT)
 def index_aluno(request):
     estudante = request.user.student_profile
-    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=["aguardando", "em_andamento"]).first()
     id_linha = request.session.get('linha_selecionada_id')
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=["aguardando", "em_andamento"], viagem__rota__linha__pk=id_linha).first()
     if id_linha:
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
@@ -331,8 +331,9 @@ def index_aluno(request):
         else:
             atual_parada = aguardando[0] if len(aguardando) > 0 else None
             proxima_parada = aguardando[1] if len(aguardando) > 1 else None
-
-
+    if inscricao:
+        inscricao = inscricao if inscricao.viagem.rota.linha == linha_selecionada else None
+    
     context = {
         'linha_selecionada': linha_selecionada,
         'inscricao': inscricao,
