@@ -66,7 +66,7 @@ def concluir_parada(request, parada_id):
     proxima = obj_parada.concluir_busstop()
 
     if proxima:
-        messages.success(request, f"Parada concluída! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+        messages.success(request, f"Parada concluída! Próxima Parada sera: {proxima.parada.name}")
     else:
         messages.warning(request, "Parada concluída, mas nenhuma próxima parada foi encontrada.")
 
@@ -97,7 +97,7 @@ def cancelar_parada(request, parada_id):
     proxima = obj_parada.cancelar_busstop()
 
     if proxima:
-        messages.success(request, f"Parada cancelada! Próxima Parada: ID {proxima.pk} ({proxima.parada.name})")
+        messages.success(request, f"Parada cancelada! Próxima Parada sera: ({proxima.parada.name})")
     else:
         messages.warning(request, "Parada cancelada, mas nenhuma próxima parada foi encontrada.")
 
@@ -120,7 +120,7 @@ def concluir_viagem(request, viagem_id):
     proxima = obj_viagem.concluir(request.user)
 
     if proxima:
-        messages.success(request, f"Viagem concluída! Próxima viagem: ID {proxima.pk} ({proxima.data})")
+        messages.success(request, f"Viagem concluída! Próxima viagem sera: ({proxima.data})")
     else:
         messages.warning(request, "Viagem concluída, mas nenhuma próxima viagem foi encontrada.")
     service.set_route_as_done(obj_viagem.rota.linha, obj_viagem.rota)
@@ -503,10 +503,6 @@ def cancelar_inscricao_na_viagem(request):
 @login_required()
 @role_required(UserRole.STUDENT)       
 def alterar_presenca(request):
-    if request.user.role != UserRole.STUDENT:
-        messages.error(request, "Apenas estudantes podem confirmar presenca em uma viagem.")
-        return redirect('index_aluno')
-    
     estudante = request.user.student_profile
     inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=['aguardando', "em_andamento"],
             viagem=request.POST.get("id_viagem")
