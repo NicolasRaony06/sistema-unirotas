@@ -7,17 +7,40 @@ from datetime import datetime
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.db.models import Q
 from .models import *
-from authentication.models import User, UserRole, PersonelProfile
+from authentication.models import StudentProfile, User, UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
 from authentication.data_type import InviteDTO
+from operation.models import Viagem, UsuarioDaViagem
 
 @login_required()
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def home(request):
+    if request.user.role == "ADMIN":
+        last_municipios = request.session.get("last_metric_city", 0)
+        last_gestores = request.session.get("last_metric_manager", 0)
+        last_estudantes = request.session.get("last_metric_student", 0)
+        total_municipios = Municipio.objects.all().all().count()
+        total_gestores = PersonelProfile.objects.filter(user__role="MANAGER").all().count()
+        total_estudantes = StudentProfile.objects.all().count()
+        request.session[f"last_metric_city"] = total_municipios
+        request.session[f"last_metric_manager"] = total_gestores
+        request.session[f"last_metric_student"] = total_estudantes
+        metricas = [[total_municipios, total_municipios - last_municipios], [total_gestores, total_gestores - last_gestores], [total_estudantes, total_estudantes - last_estudantes]]
+    else:
+        total_usuarios = UsuarioDaViagem.objects.filter(viagem__rota__linha__in=Linha.objects.filter(city=request.user.personel_profile.city).all()).all().count()
+        total_onibus = Bus.objects.filter(city=request.user.personel_profile.city).all().count()
+        last_usuarios = request.session.get("last_trip_user", 0)
+        last_onibus = request.session.get("last_metric_bus", 0)
+        operando = Viagem.objects.filter(rota__linha__in=Linha.objects.filter(city=request.user.personel_profile.city), status='em_andamento').count()
+        request.session[f"last_metric_bus"] = Bus.objects.filter(city=request.user.personel_profile.city).count()
+        request.session[f"last_trip_user"] = UsuarioDaViagem.objects.filter(viagem__rota__linha__in=Linha.objects.filter(city=request.user.personel_profile.city).all()).count()
+        metricas = [[total_usuarios, total_usuarios - last_usuarios], [total_onibus, total_onibus - last_onibus], [operando, 0]]
+
     context = {
+        'metricas': metricas,
         'linhas': Linha.objects.all(),
         'motoristas':PersonelProfile.objects.filter(user__role=UserRole.DRIVER).count(),
         'onibus': Bus.objects.all().count(),

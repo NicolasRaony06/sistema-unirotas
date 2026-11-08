@@ -28,8 +28,8 @@
                         <circle cx="12" cy="10" r="2.5"></circle>
                     </svg>
                 </span>
-                <h4>TOTAL DE MUNICÍPIOS <span>{{municipios}}</span></h4>
-                <span class="badge-count">+1 este mês</span>
+                <h4>TOTAL DE MUNICÍPIOS <span>{{metricas.0.0}}</span></h4>
+                <span class="badge-count">{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.0.1}}</span>
             </div>
             <div>
                 <span class="icon-badge">
@@ -39,8 +39,8 @@
                         <circle cx="18" cy="6" r="3"></circle>
                     </svg>
                 </span>
-                <h4>GESTORES <span>4</span></h4>
-                <span class="badge-count">+5 este mês</span>
+                <h4>GESTORES <span>{{metricas.1.0}}</span></h4>
+                <span class="badge-count">{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.1.1}}</span>
             </div>
             <div>
                 <span class="icon-badge">
@@ -49,8 +49,8 @@
                         <path d="M6 12v4c3 3 9 3 12 0v-4M21 10v6"></path>
                     </svg>
                 </span>
-                <h4>ESTUDANTES CADASTRADOS <span>0</span></h4>
-                <span class="badge-count">+1 este mês</span>
+                <h4>ESTUDANTES CADASTRADOS <span>{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.2.0}}</span></h4>
+                <span class="badge-count">{{metricas.2.1}}</span>
             </div>
         {% else %}
             <div>
@@ -62,7 +62,7 @@
                     </svg>
                 </span>
                 <h4>LINHAS <span>{{linhas.count}}</span></h4>
-                <span class="badge-count">1 operando</span>
+                <span class="badge-count">{{metricas.2.0}} operando</span>
             </div>
             <div>
                 <span class="icon-badge">
@@ -72,8 +72,8 @@
                         <path fill="currentColor" d="M7.5 14a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3m9 0a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3"></path>
                     </svg>
                 </span>
-                <h4>ÔNIBUS CADASTRADOS <span>{{onibus}}</span></h4>
-                <span class="badge-count">2 Livres</span>
+                <h4>ÔNIBUS CADASTRADOS <span>{{metricas.1.0}}</span></h4>
+                <span class="badge-count">{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.1.1}}</span>
             </div>
             <div>
                 <span class="icon-badge">
@@ -84,8 +84,8 @@
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                 </span>
-                <h4>CONFIRMADOS HOJE <span>34</span></h4>
-                <span class="badge-count">+18 este mês</span>
+                <h4>CONFIRMADOS HOJE <span>{{metricas.0.0}}</span></h4>
+                <span class="badge-count">{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.0.1}}</span>
             </div>
         {% endif %}
     </section>
@@ -149,12 +149,16 @@
                             {% for linha in request.user.personel_profile.municipio.first.linhas.all %}
                                 <tr>
                                     <td>{{linha.nome}}</td>
-                                    <td>Pau dos Ferros → Mossoró</td>
-                                    <td>Manhã</td>
-                                    <td>João Silva</td>
-                                    <td>28</td>
+                                    <td>{{linha.linha_rota.count}}</td>
+                                    <td>{{linha.periodo}}</td>
+                                    <td>{{linha.motorista.user.full_name}}</td>
+                                    <td>N/A</td> <!--não da para pegar issso de forma consistente -->
                                     <td>
-                                        <span class="badge-status active">Ativo</span>
+                                        {% if linha.is_active %}
+                                            <span class="badge-status active">Ativa</span>
+                                        {% else %}
+                                            <span class="badge-status inactive">Inativa</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% empty %}
