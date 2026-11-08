@@ -4,6 +4,17 @@
     --gray-text: #718096;
     --border-color: #e2e8f0;
     --bg-color: #f4f6f9;
+    --navy-950: #0B1130;
+    --navy-800: #161D45;
+    --blue-500: #3D6BFF;
+    --blue-100: #EAF0FF;
+    --coral-500: #F0483F;
+    --green-600: #2FA84F;
+    --amber-600: #C98A06;
+    --ink-900: #14161F;
+    --grey-500: #8A8FA3;
+    --grey-200: #E7E9F2;
+    --paper: #F3F5FA;
 }
 
 /* Configuração geral e fundo da página */
@@ -21,7 +32,7 @@ body {
 
 .mobile-container {
     width: 100%;
-    max-width: 414px;
+    max-width: 430px;
     height: 100vh;
     max-height: 896px;
     background-color: #f7f9fc;
@@ -192,156 +203,42 @@ header h1 {
     opacity: 0.8;
 }
 
-@media (min-width: 768px) {
-    body {
-        background-color: #dbeafe;
-    }
-
-    .mobile-container {
-        max-width: 85%;
-        width: 85%;
-        height: 95vh;
-        max-height: 95%;
-        border-radius: 24px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        padding: 36px 32px;
-        background-color: #ffffff;
-        align-items: center; /* Centraliza os elementos internos horizontalmente no container desktop */
-    }
-
-    /* Ajustando o header e os blocos para preencherem bem o espaço centralizado do desktop */
-    header {
-        width: 100%;
-    }
-
-    .card-box-profile {
-        max-width: 480px;
-        padding: 24px;
-    }
-
-    .options {
-        width: 100%;
-        max-width: 85%;
-        align-items: center;
-    }
-
-    .logout {
-        max-width: 480px;
-    }
-}
 
 
-/* Card de perfil */
-.card-box-profile {
-    background-color: #03153F;
-    color: #ffffff;
-    border-radius: 0;
-    padding: 20px 16px;
-    display: flex;
-    align-items: center;
-    gap: 30px;
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    
+    /* Centraliza e limita o tamanho da navbar */
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-    box-shadow: none;
-    border-radius: 32px;
+    max-width: 500px; /* Ajuste este valor para ser EXATAMENTE igual ao max-width da sua classe .app */
+    
+    background-color: #ffffff;
+    z-index: 999;
+    
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--grey-200);
 }
-
-/* Foto de perfil */
-.profile-avatar {
-    width: 118px;
-    height: 118px;
-    flex: 0 0 118px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #0057ff;
-    box-sizing: border-box;
-}
-
-/* Área das informações */
-.card-box-info {
-    flex: 1;
-    min-width: 0;
+.bottom-nav a {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-}
-
-.name-email h2 {
-    font-size: 29px;
-    line-height: 1.2;
-    font-weight: 750;
-    margin: 0 0 8px;
-    color: #ffffff;
-}
-
-.name-email h3 {
-    font-size: 22px;
-    line-height: 1.3;
-    font-weight: 400;
-    color: #929fbd;
-    margin: 0;
-    overflow-wrap: anywhere;
-}
-
-/* Cidade e instituição */
-.location-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.city,
-.institution {
-    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    background-color: #1b2e57;
-    color: #ffffff;
-    border-radius: 28px;
-    padding: 8px 18px;
-    font-size: 20px;
-    line-height: 1.2;
-    white-space: nowrap;
+    gap: 4px; /* Espaço entre o SVG e o texto */
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--grey-500); /* Cor cinzenta para os inativos */
+    text-decoration: none;
 }
 
-@media (max-width: 600px) {
-    .card-box-profile {
-        gap: 14px;
-        padding: 16px 12px;
-    }
-
-    .profile-avatar {
-        width: 76px;
-        height: 76px;
-        flex-basis: 76px;
-        border-width: 3px;
-    }
-
-    .card-box-info {
-        gap: 12px;
-    }
-
-    .name-email h2 {
-        font-size: 17px;
-        overflow-wrap: anywhere;
-    }
-
-    .name-email h3 {
-        font-size: 12px;
-    }
-
-    .location-info {
-        gap: 6px;
-    }
-
-    .city,
-    .institution {
-        font-size: 12px;
-        padding: 7px 10px;
-        gap: 6px;
-    }
+/* Cor azul para o link que estiver ativo (se utilizar uma classe para isso) */
+.bottom-nav a.active {
+    color: var(--blue-500);
 }
+
+

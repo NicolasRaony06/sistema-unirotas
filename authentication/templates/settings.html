@@ -10,6 +10,10 @@
 </head>
 <body>
 
+
+    {% if request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
+        {% include "partials/_sidebar.html" %}
+    {%endif%}
     <div class="mobile-container">
         <header>
             <h1>Perfil</h1>
@@ -81,6 +85,8 @@
             </button>
         </form>
     </div>
-
+    {% if request.user.role == "STUDENT" or request.user.role == "DRIVER" %}
+        {% include "_nav_bar.html "%} 
+    {%endif%}
 </body>
 </html>

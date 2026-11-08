@@ -1,0 +1,6 @@
+
+{% if request.user.role == "STUDENT" %}
+    {% include "_nav_bar_aluno.html"%}
+{% else %}
+    {% include "_nav_bar_motorista.html" %}
+{% endif %}
