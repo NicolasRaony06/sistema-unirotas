@@ -112,9 +112,9 @@ class Linha(models.Model):
     @property
     def periodo(self):
         # Define os limites de horário
-        meio_dia = datetime.time(12, 0)
+        meio_dia = datetime.time(11, 30)
         seis_da_tarde = datetime.time(18, 0)
-        seis_da_manha = datetime.time(6, 0)
+        seis_da_manha = datetime.time(5, 30)
 
         if seis_da_manha <= self.horario_inicio < meio_dia:
             return "Manhã"
