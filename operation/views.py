@@ -294,13 +294,34 @@ def index_aluno(request):
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
         linha_selecionada = Linha.objects.all().first()
-        
+
+    onibus = None
     if linha_selecionada:
+        now = timezone.localtime()
+        date = now.date()
+        week_day = now.weekday()
+    
+        avaible_day = Linha.dias_da_semana[week_day] in linha_selecionada.dias_da_semana
         
-        primeira_rota = linha_selecionada.linha_rota.first()
-        if primeira_rota and primeira_rota.onibus:
-            onibus = primeira_rota.onibus
+
+        qs = Viagem.objects.filter(
+                rota__linha=linha_selecionada,
+                status__in=['em_andamento', 'concluida'],
+                data__date = date
+            )
+        status_ida = not qs.filter(rota__direcao__icontains="IDA").exists()
+        status_volta  = not qs.filter(rota__direcao__icontains="VOLTA").exists()
+        direction_avaible = status_ida | status_volta
             
+
+        time_avaible = (now.hour * 60 + now.minute) < (linha_selecionada.horario_fim.hour * 60 + linha_selecionada.horario_fim.minute)
+        if avaible_day and direction_avaible and time_avaible:
+            primeira_rota = linha_selecionada.linha_rota.first()
+            if primeira_rota and primeira_rota.onibus:
+                onibus = primeira_rota.onibus
+        else:
+            linha_selecionada = None
+
     #pegar as paradas das rotas
     viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha= linha_selecionada).order_by('data').first()
 
@@ -313,6 +334,7 @@ def index_aluno(request):
     minutes_next = None
     minutes_last = None
     eta_current_stop = None
+
     if viagem_atual:
         paradas = ViagemParada.objects.filter(viagem=viagem_atual).order_by('id')
         aguardando = list(paradas.filter(status='Aguardando')[:2])
