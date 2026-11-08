@@ -5,85 +5,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - UniRota</title>
-    <link rel="stylesheet" href="{% static 'styles/settings.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-
 
     {% if request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
-        {% include "partials/_sidebar.html" %}
+    <link rel="stylesheet" href="{% static 'styles/admin-manager-settings.css' %}" />
+    {%else%}
+    <link rel="stylesheet" href="{% static "styles/driver-student-settings.css" %}">
+    {% endif %}
+</head>
+<body>
+    <div class="page-content">
+    <main class="app-shell">
+    {% if request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
+            {% include "partials/_sidebar.html" %}
     {%endif%}
-    <div class="mobile-container">
-        <header>
-            <h1>Perfil</h1>
-        </header>
+    
+        <section class="workspace">
 
-        <div class="card-box-profile">
-            {%if profile_picture %}
-                <img src="{{ profile_picture.url }}" alt="Foto de perfil" class="profile-avatar">
-            {% else %}
-                <img src="{% static 'images/settings/base_profile.png' %}" alt="Foto de perfil" class="profile-avatar">
-            {% endif %}
-            <div class="card-box-info">
-                <div class="name-email">
-                    <h2>{{ full_name }}</h2>
-                    <h3>{{ email }}</h3>
-                </div>
-                <div class="location-info">
-                    <div class="city">
-                        <i class="fa-solid fa-map-marker-alt" style="color: #0047ab;"></i>
-                        {{ city }}
-                    </div>
-                    <div class="institution">
-                        <i class="fa-solid fa-graduation-cap" style="color: #0047ab;"></i>
-                        {{ institution }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="options">
-            <a class="option-box" href="{% url 'authentication:my_information' %}">
-                <i class="fa-solid fa-user" style="color: #0047ab;"></i>
-                <div class="option-info">
-                    <h2 class="option-title">Meus dados</h2>
-                    <h3 class="option-details">Nome, Cidade de origem, instituição</h3>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #94a3b8;"></i>
-            </a>
 
-            <a class="option-box" href="{% url 'authentication:change_password' %}">
-                <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
-                <div class="option-info">
-                    <h2 class="option-title">Mudar senha</h2>
-                    <h3 class="option-details">Mudar depois</h3>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #94a3b8;"></i>
-            </a>
 
-                    <div class="option-box">
-                        <i class="fa-solid fa-bell" style="color: #0047ab;"></i>
-                        <div class="option-info">
-                            <h2 class="option-title">Notificação push</h2>
-                            <h3 class="option-details">Chegada, proximidade e atraso</h3>
+            <main>
+                <div class="mobile-container">
+                    <header>
+                        <h1>Perfil</h1>
+                    </header>
+
+                    <div class="card-box-profile">
+                        {%if profile_picture %}
+                            <img src="{{ profile_picture.url }}" alt="Foto de perfil" class="profile-avatar">
+                        {% else %}
+                            <img src="{% static 'images/settings/base_profile.png' %}" alt="Foto de perfil" class="profile-avatar">
+                        {% endif %}
+                        <div class="card-box-info">
+                            <div class="name-email">
+                                <h2>{{ full_name }}</h2>
+                                <h3>{{ email }}</h3>
+                            </div>
+                            <div class="location-info">
+                                <div class="city">
+                                    <i class="fa-solid fa-map-marker-alt" style="color: #0047ab;"></i>
+                                    {{ city }}
+                                </div>
+                                <div class="institution">
+                                    <i class="fa-solid fa-graduation-cap" style="color: #0047ab;"></i>
+                                    {{ institution }}
+                                </div>
+                            </div>
                         </div>
-                        <form method="post" action="{% url 'authentication:toggle_notification' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="toggle-switch {% if request.user.notifications %}active{% endif %}">
-                                <span class="slider"></span>
-                            </button>
-                        </form>
                     </div>
-        </div>
+                    <div class="options">
+                        <a class="option-box" href="{% url 'authentication:my_information' %}">
+                            <i class="fa-solid fa-user" style="color: #0047ab;"></i>
+                            <div class="option-info">
+                                <h2 class="option-title">Meus dados</h2>
+                                <h3 class="option-details">Nome, Cidade de origem, instituição</h3>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color: #94a3b8;"></i>
+                        </a>
+
+                        <a class="option-box" href="{% url 'authentication:change_password' %}">
+                            <i class="fa-solid fa-lock" style="color: #0047ab;"></i>
+                            <div class="option-info">
+                                <h2 class="option-title">Mudar senha</h2>
+                                <h3 class="option-details">Mudar depois</h3>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color: #94a3b8;"></i>
+                        </a>
+
+                                <div class="option-box">
+                                    <i class="fa-solid fa-bell" style="color: #0047ab;"></i>
+                                    <div class="option-info">
+                                        <h2 class="option-title">Notificação push</h2>
+                                        <h3 class="option-details">Chegada, proximidade e atraso</h3>
+                                    </div>
+                                    <form method="post" action="{% url 'authentication:toggle_notification' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="toggle-switch {% if request.user.notifications %}active{% endif %}">
+                                            <span class="slider"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                    </div>
+                    
+                    {% if not  request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
+                    <form method="post" action="{% url 'authentication:logout' %}" class="logout-screen">
+                        {% csrf_token %}
+                        <button type="submit">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                            <span>Sair da conta</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                
+            </main>
+            
+        </section>
         
-        
-        <form method="post" action="{% url 'authentication:logout' %}" class="logout">
-            {% csrf_token %}
-            <button type="submit">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                <span>Sair da conta</span>
-            </button>
-        </form>
+    </main>
+
+    
     </div>
     {% if request.user.role == "STUDENT" or request.user.role == "DRIVER" %}
         {% include "_nav_bar.html "%} 
