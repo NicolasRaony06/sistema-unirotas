@@ -30,7 +30,10 @@ class UserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError("Superuser precisa ter is_superuser=True.")
 
-        return self.create_user(email, password, **extra_fields)
+        user = self.create_user(email, password, **extra_fields)
+
+        PersonelProfile.objects.create(user=user).save()
+        return user
 
 
 class UserRole(models.TextChoices):

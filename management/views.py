@@ -7,7 +7,7 @@ from datetime import datetime
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.db.models import Q
 from .models import *
-from authentication.models import UserRole, PersonelProfile
+from authentication.models import User, UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
@@ -19,9 +19,9 @@ from authentication.data_type import InviteDTO
 def home(request):
     context = {
         'linhas': Linha.objects.all(),
-        'motoristas':User.objects.filter(role=UserRole.DRIVER).count(),
+        'motoristas':PersonelProfile.objects.filter(user__role=UserRole.DRIVER).count(),
         'onibus': Bus.objects.all().count(),
-        'estudantes':User.objects.filter(role=UserRole.STUDENT).count(),
+        'estudantes':PersonelProfile.objects.filter(user__role=UserRole.STUDENT).count(),
         'municipios': Municipio.objects.all().count(),
         'full_name' : request.user.full_name,
         'data': timezone.now(),
@@ -34,9 +34,9 @@ def home(request):
 def gestores(request):
 
     context = {
-    'gestores': User.objects.filter(role=UserRole.MANAGER),
-    'gestores_inativos': User.objects.filter(role = UserRole.MANAGER,is_active=False).count(),
-    'total_gestores' :User.objects.filter(role=UserRole.MANAGER).count(),
+    'gestores': PersonelProfile.objects.filter(user__role=UserRole.MANAGER),
+    'gestores_inativos': PersonelProfile.objects.filter(user__role = UserRole.MANAGER, user__is_active=False).count(),
+    'total_gestores' :PersonelProfile.objects.filter(user__role=UserRole.MANAGER).count(),
     }
 
     return render(request,'admin/gestores.html',context)
@@ -51,8 +51,8 @@ def municipios(request):
         'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
         'municipios' : Municipio.objects.all(),
         'tot_municipios' : Municipio.objects.all().count(),
-        'gestores' : User.objects.filter(role=UserRole.MANAGER),
-        'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
+        'gestores' : PersonelProfile.objects.filter(user__role=UserRole.MANAGER),
+        'gestores_ativos' : PersonelProfile.objects.filter(user__role=UserRole.MANAGER, user__is_active=True),
         }
 
         return render(request,'admin/municipios.html',context)
@@ -90,11 +90,11 @@ def adicionar_municipio(request):
                 municipio.ofertado_pelo_sistema = False
                 municipio.save()
 
-                municipio_gestor = Municipio.objects.filter(gestor=request.user).first()
+                municipio_gestor = Municipio.objects.filter(gestor=request.user.personel_profile).first()
                 municipio_gestor.municipios_relacionados.add(municipio)
                 return redirect('management:localizacoes')
         else:
-            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            return render(request, 'cadastro_municipio.html', {'form': form, 'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
@@ -152,7 +152,7 @@ def desabilitar_mun(request,id):
 @role_required(allowed_roles=UserRole.MANAGER)
 def localizacoes(request):
    
-    municipio_base = Municipio.objects.filter(gestor = request.user).first()
+    municipio_base = Municipio.objects.filter(gestor__user = request.user).first()
     
     if not municipio_base: 
         return render(request, 'manager/localizacoes.html', {
@@ -173,18 +173,19 @@ def localizacoes(request):
 @role_required(allowed_roles=UserRole.ADMIN)
 def deactive_manager(request,id):
     if request.method == 'POST':
-        manager = User.objects.filter(role=UserRole.MANAGER ,id=id).first()
-        manager.is_active = False
-        manager.save()
+        manager = PersonelProfile.objects.filter(user__role=UserRole.MANAGER , user__pk=id).first()
+        print(manager)
+        manager.user.is_active = False
+        manager.user.save()
     return redirect('management:gestores')
 
 @login_required()
 @role_required(allowed_roles=UserRole.ADMIN)
 def activate_manager(request,id):
     if request.method == 'POST':
-        manager = User.objects.filter(role=UserRole.MANAGER, id=id).first()
-        manager.is_active = True
-        manager.save()
+        manager = PersonelProfile.objects.filter(user__role=UserRole.MANAGER, user__pk=id).first()
+        manager.user.is_active = True
+        manager.user.save()
     return redirect('management:gestores')
 
 @login_required()
@@ -570,12 +571,16 @@ def edit_institution(request, id):
     return render(request, 'manager/edit_institution.html', {'form': form})
 
 @login_required()
-@role_required(allowed_roles=UserRole.MANAGER)
+@role_required(allowed_roles=[UserRole.MANAGER, UserRole.ADMIN])
 def retirar_municipio(request, id):
     if request.method == 'POST':
-        municipio_pai = Municipio.objects.filter(gestor= request.user).first()
-        municipio_listado = Municipio.objects.filter(id=id).first()
-        municipio_pai.municipios_relacionados.remove(municipio_listado)
+        if request.user.role == UserRole.MANAGER:
+            municipio_pai = Municipio.objects.filter(gestor= request.user.personel_profile).first()
+            municipio_listado = Municipio.objects.filter(id=id).first()
+            municipio_pai.municipios_relacionados.remove(municipio_listado)
+        else:
+            Municipio.objects.filter(id=id).first().delete()
+            return redirect('management:municipios')
     return redirect('management:localizacoes')
 
 @login_required()
@@ -623,7 +628,7 @@ def criar_linha(request):
 
     cidades_relacionadas = []
     cidades_relacionadas = request.user.personel_profile.city.municipios_relacionados.all()
-    motoristas = User.objects.filter(role=UserRole.DRIVER,personel_profile__city=request.user.personel_profile.city,is_active=True,)
+    motoristas = PersonelProfile.objects.filter(user__role=UserRole.DRIVER, city=request.user.personel_profile.city, user__is_active=True,)
     instituicoes = Institution.objects.filter(city__in=cidades_relacionadas)
     contexto = {'form': form,'instituicoes':instituicoes,'motoristas':motoristas}
     

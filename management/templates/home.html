@@ -112,7 +112,7 @@
                                 <tr>
                                     <td>{{linha.nome}}</td>
                                     <td>{{linha.periodo}}</td>
-                                    <td>{{linha.motorista}}</td>
+                                    <td>{{linha.motorista.user}}</td>
                                     <td>{{linha.instituicoes_ofertadas.count}}</td>
                                     <td>
                                         {% if linha.is_active %}
@@ -130,7 +130,7 @@
                 </div>
             {% elif request.user.role == 'MANAGER' %}
                 <div class="dashboard-header">
-                    <h3>Rotas de {{request.user.municipio.first.nome}}</h3>
+                    <h3>Rotas de {{request.user.personel_profile.municipio.first.nome}}</h3>
                     <a href="#rotas" class="see-more">Ver todas →</a>
                 </div>
                 <div class="dashboard-table-secondary">
@@ -146,7 +146,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for linha in request.user.municipio.first.linhas.all %}
+                            {% for linha in request.user.personel_profile.municipio.first.linhas.all %}
                                 <tr>
                                     <td>{{linha.nome}}</td>
                                     <td>Pau dos Ferros → Mossoró</td>

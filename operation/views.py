@@ -18,10 +18,10 @@ from authentication.decorators import role_required
 @login_required()
 @role_required(UserRole.DRIVER)
 def lista_viagens(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user).order_by('rota__linha__horario_inicio').first()
+    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user.personel_profile).order_by('rota__linha__horario_inicio').first()
 
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user).order_by('data').first()
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user.personel_profile).order_by('data').first()
 
     paradas_atual = []
     paradas_atual_quantidade = 0
@@ -58,7 +58,7 @@ def concluir_parada(request, parada_id):
             return HttpResponseForbidden("Acesso negado.")
         if not estudante.moderador:
             return HttpResponseForbidden("Acesso negado.")
-    elif request.user != obj_parada.viagem.rota.linha.motorista:
+    elif request.user.personel_profile != obj_parada.viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
 
     service.set_last_stop_metrics(LastStopDTO(line=obj_parada.viagem.rota.linha, route=obj_parada.viagem.rota, current_stop=obj_parada.parada))
@@ -90,7 +90,7 @@ def cancelar_parada(request, parada_id):
             return HttpResponseForbidden("Acesso negado.")
         if not estudante.moderador:
             return HttpResponseForbidden("Acesso negado.")
-    elif request.user != obj_parada.viagem.rota.linha.motorista:
+    elif request.user.personel_profile != obj_parada.viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
     service.cancel_stop_metric(obj_parada.parada, obj_parada.viagem.rota)
@@ -114,10 +114,10 @@ def cancelar_parada(request, parada_id):
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
     
-    if request.user != obj_viagem.viagem.rota.linha.motorista:
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
-    proxima = obj_viagem.concluir(request.user)
+    proxima = obj_viagem.concluir(request.user.personel_profile)
 
     if proxima:
         messages.success(request, f"Viagem concluída! Próxima viagem sera: ({proxima.data})")
@@ -130,7 +130,7 @@ def concluir_viagem(request, viagem_id):
 @role_required(UserRole.DRIVER)
 def comecar_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    if request.user != obj_viagem.rota.linha.motorista:
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     obj_viagem.comecar()
     return redirect('lista_viagens')
@@ -148,7 +148,7 @@ def lista_alunos(request, viagem_id):
             return HttpResponseForbidden("Acesso negado.")
         if not estudante.moderador:
             return HttpResponseForbidden("Acesso negado.")
-    elif request.user != obj_viagem.rota.linha.motorista:
+    elif request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).order_by('id')
@@ -176,7 +176,7 @@ def lista_alunos_moderador(request, viagem_id):
             return HttpResponseForbidden("Acesso negado.")
         if not estudante.moderador:
             return HttpResponseForbidden("Acesso negado.")
-    elif request.user != obj_viagem.rota.linha.motorista:
+    elif request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem).order_by('id')
@@ -200,7 +200,7 @@ def lista_alunos_moderador(request, viagem_id):
 def lista_moderadores(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
 
-    if request.user != obj_viagem.rota.linha.motorista:
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
 
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem, presente=True).order_by('id')
@@ -217,7 +217,7 @@ def definir_moderador(request, usuario_viagem_id):
     aluno_clicado = get_object_or_404(UsuarioDaViagem, pk=usuario_viagem_id)
     viagem = aluno_clicado.viagem
     
-    if request.user != viagem.rota.linha.motorista:
+    if request.user.personel_profile != viagem.rota.linha.motorista:
             return HttpResponseForbidden("Acesso negado.")
     
     if aluno_clicado.moderador:
