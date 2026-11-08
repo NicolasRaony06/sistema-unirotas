@@ -23,6 +23,7 @@ def _attempts_key(request, email):
 def signin(request):
     if request.method == "POST":
         form_login = LoginForm(request.POST)
+        print()
         if form_login.is_valid():
             data = form_login.cleaned_data
             chave = _attempts_key(request, data.get("email"))
@@ -35,10 +36,14 @@ def signin(request):
                 username=data.get("email"), 
                 password=data.get("password")
             )
-            
+
             if valid_user is not None:
                 cache.delete(chave)
                 login(request, valid_user)
+
+                if request.POST.get("remember") != "on":
+                    request.session.set_expiry(0)
+                    request.session.modified = True
 
                 next_url = request.GET.get('next')
                 role = valid_user.role
