@@ -29,6 +29,7 @@
             {% csrf_token %}
             {% block form_content %}{% endblock form_content %}
         </form>
+        {% block extra_forms %}{% endblock extra_forms %}
     </main>
 {% endblock content %}
 
