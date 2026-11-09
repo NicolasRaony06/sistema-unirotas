@@ -21,6 +21,7 @@ urlpatterns = [
     path('edit_bus/<int:id>/', edit_bus, name="edit_bus"),
     path('deactivate_bus/<int:id>/', deactivate_bus, name="deactivate_bus"),
     path('activate_bus/<int:id>/', activate_bus, name="activate_bus"),
+    path('delete_bus/<int:id>/', delete_bus, name="delete_bus"),
     # Bus stop management
     path('register_bus_stop/', register_bus_stop, name="register_bus_stop"),
     path('view_bus_stops/', view_bus_stops, name="view_bus_stops"),
