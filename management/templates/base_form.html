@@ -31,10 +31,14 @@
         </form>
         {% block extra_forms %}{% endblock extra_forms %}
         <dialog class="form-popup" id="formPopup">
-            <h2>Confirmar exlusão</h2>
-            <p>Você tem certeza que deseja excluir?</p>
-            <button id="cancel">Não</button>
-            <button id="confirm">Sim</button>
+            <div class="form-popup-content">
+                <h2>Confirmar exlusão</h2>
+                <p>Você tem certeza que deseja excluir?</p>
+                <div class="form-popup-actions">
+                    <button id="cancel">Não</button>
+                    <button id="confirm">Sim</button>
+                </div>
+            </div> 
         </dialog>
     </main>
 {% endblock content %}

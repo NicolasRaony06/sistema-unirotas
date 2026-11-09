@@ -187,3 +187,48 @@ form{
     color: red;
 }
 
+.form-popup{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0; 
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.form-popup-content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    padding: 15px;
+    
+}
+
+.form-popup-actions {
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+}
+
+.form-popup-actions button {
+    flex: 1;
+    height: 44px;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.form-popup-actions #cancel {
+    background-color: #d64b3c;
+}
+
+.form-popup-actions #confirm {
+    background-color: #047857;
+}
