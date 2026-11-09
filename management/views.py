@@ -6,7 +6,7 @@ from django.urls import reverse_lazy, reverse
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, RestrictedError
 from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
@@ -368,7 +368,7 @@ def delete_bus(request, id):
         try:
             bus.delete()
             messages.success(request, "Ônibus deletado com sucesso.")
-        except ProtectedError:
+        except (ProtectedError, RestrictedError):
             messages.error(request, "Não foi possível excluir: existem registros vinculados a este ônibus.")
 
     return redirect('management:view_buses')
