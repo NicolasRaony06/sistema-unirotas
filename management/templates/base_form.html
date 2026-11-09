@@ -30,8 +30,18 @@
             {% block form_content %}{% endblock form_content %}
         </form>
         {% block extra_forms %}{% endblock extra_forms %}
+        <dialog class="form-popup" id="formPopup">
+            <h2>Confirmar exlusão</h2>
+            <p>Você tem certeza que deseja excluir?</p>
+            <button id="cancel">Não</button>
+            <button id="confirm">Sim</button>
+        </dialog>
     </main>
 {% endblock content %}
+
+{% block extra_js %}
+    <script src="{% static "js/script_form_popup.js" %}"></script>
+{% endblock extra_js %}
 
 
         
