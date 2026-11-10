@@ -15,7 +15,14 @@ class Municipio(models.Model):
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
-    gestor = models.ForeignKey(User,null=True,on_delete=models.SET_NULL,related_name='municipio',blank=True,limit_choices_to={'role': 'MANAGER'})
+    gestor = models.OneToOneField(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='municipio',
+        blank=True,
+        limit_choices_to={'role': 'MANAGER'}
+    )
 
     def __str__(self):
         return self.nome
