@@ -51,6 +51,13 @@ def lista_viagens(request):
 def concluir_parada(request, parada_id):
     obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
 
+    obj_viagem = obj_parada.viagem
+    
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        return HttpResponseForbidden("Acesso negado.")
+
     #checagem para ver se o usuario que pediu essa requisição tem as permissões necessaria
     if request.user.role == UserRole.STUDENT:
         estudante = obj_parada.viagem.usuarios.filter(estudante=request.user.student_profile).first()
@@ -82,6 +89,13 @@ def concluir_parada(request, parada_id):
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def cancelar_parada(request, parada_id):
     obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
+    
+    obj_viagem = obj_parada.viagem
+
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        return HttpResponseForbidden("Acesso negado.")
 
     #checagem para ver se o usuario que pediu essa requisição tem as permissões necessaria
     if request.user.role == UserRole.STUDENT:
@@ -114,6 +128,11 @@ def cancelar_parada(request, parada_id):
 def concluir_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
     
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        return HttpResponseForbidden("Acesso negado.")
+    
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
@@ -130,6 +149,11 @@ def concluir_viagem(request, viagem_id):
 @role_required(UserRole.DRIVER)
 def comecar_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        return HttpResponseForbidden("Acesso negado.")
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     obj_viagem.comecar()
@@ -141,7 +165,13 @@ def comecar_viagem(request, viagem_id):
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def lista_alunos(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    
+
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        print("entrou no obj_viagem.data")
+        return HttpResponseForbidden("Acesso negado.")
+    print("passou pelo ovj_viagem.data")
     if request.user.role == UserRole.STUDENT:
         estudante = obj_viagem.usuarios.filter(estudante=request.user.student_profile).first()
         if not estudante:
@@ -169,6 +199,12 @@ def lista_alunos(request, viagem_id):
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def lista_alunos_moderador(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    
+    now = timezone.localtime()
+    date = now.date()
+    if obj_viagem.data.date() != date:
+        print("papapa")
+        return HttpResponseForbidden("Acesso negado.")
     
     if request.user.role == UserRole.STUDENT:
         estudante = obj_viagem.usuarios.filter(estudante=request.user.student_profile).first()
@@ -199,12 +235,14 @@ def lista_alunos_moderador(request, viagem_id):
 @role_required(UserRole.DRIVER)
 def lista_moderadores(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-
-    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
+    
+    now = timezone.localtime()
+    date = now.date()
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista or obj_viagem.data.date() != date:
         return HttpResponseForbidden("Acesso negado.")
 
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem, presente=True).order_by('id')
-    total_moderadores = UsuarioDaViagem.objects.filter(moderador=True, presente=True).count()
+    total_moderadores = UsuarioDaViagem.objects.filter(viagem=obj_viagem, moderador=True, presente=True).count()
     return render(request, 'lista_moderadores.html', {
         'alunos': alunos,
         'viagens': obj_viagem, 
@@ -217,7 +255,9 @@ def definir_moderador(request, usuario_viagem_id):
     aluno_clicado = get_object_or_404(UsuarioDaViagem, pk=usuario_viagem_id)
     viagem = aluno_clicado.viagem
     
-    if request.user.personel_profile != viagem.rota.linha.motorista:
+    now = timezone.localtime()
+    date = now.date()
+    if request.user.personel_profile != viagem.rota.linha.motorista or viagem.data.date() != date:
             return HttpResponseForbidden("Acesso negado.")
     
     if aluno_clicado.moderador:
@@ -247,14 +287,15 @@ def lista_linhas(request, indice=0):
 
     proximo_indice = (indice + 1) % len(linhas)
 
-    moderacao = UsuarioDaViagem.objects.filter(estudante=request.user.student_profile, moderador=True).first()
     
-    #pegar as paradas das rotas
-    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha=linha_atual).order_by('data').first()
-
+    #pegar as paradas das rotas (depois fazer isso pegar as paradas de busstop e somente quando materializar a viagem elas virarem parada_viagem)
+    now = timezone.localtime()
+    date = now.date()
+    viagem_atual = Viagem.objects.filter( status='em_andamento', rota__linha=linha_atual, data__date=date).order_by('data').first()
+    moderacao = UsuarioDaViagem.objects.filter(viagem=viagem_atual, estudante=request.user.student_profile, moderador=True).first()
+    
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha=linha_atual).order_by('data').first()
-    
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha=linha_atual, data__date=date).order_by('data').first()
     paradas_atual = []
     paradas_atual_quantidade = 0
     paradas_atual_feitas = 0
@@ -288,8 +329,10 @@ def lista_linhas(request, indice=0):
 @role_required(UserRole.STUDENT)
 def index_aluno(request):
     estudante = request.user.student_profile
+    now = timezone.localtime()
+    date = now.date()
     id_linha = request.session.get('linha_selecionada_id')
-    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=["aguardando", "em_andamento"], viagem__rota__linha__pk=id_linha).first()
+    inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=["aguardando", "em_andamento"], viagem__rota__linha__pk=id_linha, viagem__data__date = date).first()
     if id_linha:
         linha_selecionada = Linha.objects.filter(pk=id_linha).first()
     else:
@@ -297,8 +340,6 @@ def index_aluno(request):
 
     onibus = None
     if linha_selecionada:
-        now = timezone.localtime()
-        date = now.date()
         week_day = now.weekday()
     
         avaible_day = Linha.dias_da_semana[week_day] in linha_selecionada.dias_da_semana
@@ -395,7 +436,7 @@ def validate_line_available(linha, direcao, horario_saida):
     if horario_saida:
         if horario_maximo_saida < horario_saida:
             return False, "o seu horario de saida estoura o limite de 30 minutos de tolerancia do horario de volta da linha"
-    print(qs.filter(rota__direcao__icontains="IDA").all())
+
     if direcao.lower() == "ida":
         return status_ida, err_ida
     elif direcao.lower() == "volta":
@@ -508,12 +549,15 @@ def alocar_aluno(request):
 @role_required(UserRole.STUDENT)     
 def cancelar_inscricao_na_viagem(request):
     estudante = request.user.student_profile
-    
+
+    now = timezone.localtime()
+    date = now.date()
     inscricoes = UsuarioDaViagem.objects.filter(
         estudante=estudante,
         viagem__status__in=['aguardando', "em_andamento"],
         #viagem = request.POST.get("id_viagem")
-        viagem__rota__linha = request.POST.get("id_linha")
+        viagem__rota__linha = request.POST.get("id_linha"),
+        viagem__data__date = date
     )
 
     if not inscricoes.exists():
@@ -535,8 +579,10 @@ def cancelar_inscricao_na_viagem(request):
 @role_required(UserRole.STUDENT)       
 def alterar_presenca(request):
     estudante = request.user.student_profile
+    now = timezone.localtime()
+    date = now.date()
     inscricao = UsuarioDaViagem.objects.filter(estudante=estudante, viagem__status__in=['aguardando', "em_andamento"],
-            viagem=request.POST.get("id_viagem")
+            viagem=request.POST.get("id_viagem"), viagem__data__date = date
             ).first()
 
     if not inscricao:
