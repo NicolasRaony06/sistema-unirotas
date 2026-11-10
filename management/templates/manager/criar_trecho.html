@@ -102,7 +102,7 @@
                         <select name="parada_inicio">
                             <option>Selecionar parada</option>
                             {% for parada in paradas %}
-                            <option value="{{parada.id}}">{{parada.name}}</option>
+                            <option value="{{parada.id}}">{{parada}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -111,7 +111,7 @@
                         <select name="parada_fim">
                             <option>Selecionar parada</option>
                             {% for parada in paradas %}
-                            <option value="{{parada.id}}">{{parada.name}}</option>
+                            <option value="{{parada.id}}">{{parada}}</option>
                             {% endfor %}
                         </select>
                     </div>

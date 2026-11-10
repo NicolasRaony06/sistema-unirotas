@@ -12,13 +12,14 @@ from multiselectfield import MultiSelectField
 # Create your models here.
 class Municipio(models.Model):
     nome = models.CharField(max_length=100)
+    estado = models.CharField(max_length=10)
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
     gestor = models.ForeignKey(PersonelProfile, null=True,on_delete=models.SET_NULL,related_name='municipio',blank=True,limit_choices_to={'user__role': 'MANAGER'})
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.estado.upper()})"
     
     # def clean(self):
     #     if self.gestor and self.gestor.role != UserRole.MANAGER:
@@ -78,7 +79,7 @@ class BusStop(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.city})"
+        return f"{self.name} - {self.city}"
 
 class Institution(models.Model):
     name = models.CharField(max_length=150)
@@ -99,7 +100,7 @@ class Institution(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.city})"
+        return f"{self.name} - {self.city}"
 
 class Linha(models.Model):
     nome = models.CharField(max_length=100)

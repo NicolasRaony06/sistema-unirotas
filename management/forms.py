@@ -85,6 +85,7 @@ class TrechoViagemForm(forms.ModelForm):
     class Meta:
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
+
 class InviteUserForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         'placeholder': 'motorista@example.com'
