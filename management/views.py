@@ -381,7 +381,7 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:home')
+            return redirect('management:view_bus_stops')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
