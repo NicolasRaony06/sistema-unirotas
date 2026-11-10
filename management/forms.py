@@ -1,7 +1,7 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
 
-from authentication.models import UserRole
+from authentication.models import UserRole, User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -27,6 +27,13 @@ class MunicipioForm(forms.ModelForm):
     class Meta:
         model = Municipio
         fields = ['nome', 'codigo_ibge','gestor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        managers = self.fields['gestor'].queryset
+
+        self.fields['gestor'].queryset = managers.filter(municipio=None)
 
 class BusStopForm(forms.ModelForm):
     class Meta:
