@@ -125,8 +125,49 @@
     </section>
 
     {% else %}
+        {% for rota in lista_rotas %}
+            <section class="route-card">
+                <div class="route-card__row">
+                    <!-- Ícone Ônibus -->
+                    <div class="route-card__icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 27 24" fill="currentColor">
+                            <path d="M13.5 0C19.8 0 24 1.65 24 3.75V4.5V6C24.8297 6 25.5 6.67031 25.5 7.5V10.5C25.5 11.3297 24.8297 12 24 12V19.5C24 20.3297 23.3297 21 22.5 21V22.5C22.5 23.3297 21.8297 24 21 24H19.5C18.6703 24 18 23.3297 18 22.5V21H9V22.5C9 23.3297 8.32969 24 7.5 24H6C5.17031 24 4.5 23.3297 4.5 22.5V21C3.67031 21 3 20.3297 3 19.5V12C2.17031 12 1.5 11.3297 1.5 10.5V7.5C1.5 6.67031 2.17031 6 3 6V4.5V3.75C3 1.65 7.2 0 13.5 0Z"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Coluna Esquerda: ETA -->
+                    <div class="route-card__main">
+                        <span class="route-card__label">linha: {{rota.linha.nome}}</span>
+                        <span class="route-card__arrival-label">direção: {{rota.direcao}}</span>
+                        <span class="route-card__arrival-label">inicio do percurso:</span>
+                        <strong class="route-card__time">{%if rota.direcao == "IDA" %}{{rota.linha.horario_inicio}} {% else %}{{rota.linha.horario_fim}}{%endif%}</strong>
+                        <span class="route-card__sub">{{rota.onibus}}</span>
+                    </div>
 
-    
+                    <!-- ÚNICA LINHA BRANCA DIVISÓRIA -->
+                    <div class="route-card__divider"></div>
+
+                    <!-- Coluna Direita: Destino -->
+                    <div class="route-card__dest">
+                        <span class="route-card__label">Destino</span>
+                        <strong class="route-card__dest-name">{% for instituition in rota.linha.instituicoes_ofertadas.all%} {{instituition}} {%endfor%}</strong>
+                        <span class="route-card__sub">{{rota.linha.city}}</span>
+                    </div>
+                </div>
+
+                <!-- Botão Detalhes da Rota -->
+                <a href="{% url 'iniciar_percurso_motorista' rota.pk %}" class="btn-route-details">
+                    <span>iniciar percurso</span>
+                    <span class="btn-route-details__circle" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0046cd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path>
+                        </svg>
+                    </span>
+                </a>
+            </section>
+        {% endfor %}
     <p class="empty">Nenhuma rota disponível no momento.</p>
     {% endif %}
 {% endblock %}
