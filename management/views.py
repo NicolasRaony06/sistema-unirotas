@@ -67,7 +67,9 @@ def criar_municipio(request):
 
         if form.is_valid():
             municipio = form.save(commit=False)
-            municipio.ofertado_pelo_sistema = True
+
+            if municipio.gestor:
+                municipio.ofertado_pelo_sistema = True
             municipio.save()
 
             messages.success(request, "Município cadastrado com sucesso.")
