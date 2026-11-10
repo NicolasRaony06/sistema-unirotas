@@ -3,7 +3,7 @@ import math
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from operation.models import Viagem, UsuarioDaViagem, Linha, ViagemParada
-from management.models import TrechoViagem
+from management.models import TrechoViagem, Rota
 from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
@@ -18,11 +18,13 @@ from authentication.decorators import role_required
 @login_required()
 @role_required(UserRole.DRIVER)
 def lista_viagens(request):
-    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user.personel_profile).order_by('rota__linha__horario_inicio').first()
-
+    now = timezone.localtime()
+    date = now.date()
+    viagem_atual = Viagem.objects.filter(status='em_andamento', rota__linha__motorista=request.user.personel_profile, data__date=date).order_by('rota__linha__horario_inicio').first()
+    
     if not viagem_atual:
-        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user.personel_profile).order_by('data').first()
-
+        viagem_atual = Viagem.objects.filter(status='aguardando', rota__linha__motorista=request.user.personel_profile, data__date=date).first()
+    print(viagem_atual)
     paradas_atual = []
     paradas_atual_quantidade = 0
     paradas_atual_feitas = 0
@@ -36,6 +38,8 @@ def lista_viagens(request):
         proxima_parada = paradas_atual.filter(status='Aguardando').first()
         moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
 
+    lista_rotas = Rota.objects.filter(linha__motorista=request.user.personel_profile).all()
+
     context = {
         'viagem': viagem_atual,
         'moderador': moderador,
@@ -43,20 +47,16 @@ def lista_viagens(request):
         'paradas_quantidade': paradas_atual_quantidade,
         'concluidos': paradas_atual_feitas,
         'proxima_parada': proxima_parada,
+        'lista_rotas': lista_rotas,
     }
     return render(request, 'lista_viagens.html', context)
 
 @login_required()
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def concluir_parada(request, parada_id):
-    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
-
-    obj_viagem = obj_parada.viagem
-    
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        return HttpResponseForbidden("Acesso negado.")
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id, viagem__data__date=date)
 
     #checagem para ver se o usuario que pediu essa requisição tem as permissões necessaria
     if request.user.role == UserRole.STUDENT:
@@ -88,14 +88,9 @@ def concluir_parada(request, parada_id):
 @login_required()
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def cancelar_parada(request, parada_id):
-    obj_parada = get_object_or_404(ViagemParada, pk=parada_id)
-    
-    obj_viagem = obj_parada.viagem
-
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        return HttpResponseForbidden("Acesso negado.")
+    obj_parada = get_object_or_404(ViagemParada, pk=parada_id, viagem__data__date = date)
 
     #checagem para ver se o usuario que pediu essa requisição tem as permissões necessaria
     if request.user.role == UserRole.STUDENT:
@@ -126,13 +121,10 @@ def cancelar_parada(request, parada_id):
 @login_required()
 @role_required(UserRole.DRIVER)
 def concluir_viagem(request, viagem_id):
-    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        return HttpResponseForbidden("Acesso negado.")
-    
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
+
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
     
@@ -148,13 +140,12 @@ def concluir_viagem(request, viagem_id):
 @login_required()
 @role_required(UserRole.DRIVER)
 def comecar_viagem(request, viagem_id):
-    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        return HttpResponseForbidden("Acesso negado.")
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
+    
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
+        print("ou aqui")
         return HttpResponseForbidden("Acesso negado.")
     obj_viagem.comecar()
     return redirect('lista_viagens')
@@ -164,14 +155,10 @@ def comecar_viagem(request, viagem_id):
 @login_required()
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def lista_alunos(request, viagem_id):
-    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        print("entrou no obj_viagem.data")
-        return HttpResponseForbidden("Acesso negado.")
-    print("passou pelo ovj_viagem.data")
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
+
     if request.user.role == UserRole.STUDENT:
         estudante = obj_viagem.usuarios.filter(estudante=request.user.student_profile).first()
         if not estudante:
@@ -198,14 +185,10 @@ def lista_alunos(request, viagem_id):
 @login_required()
 @role_required([UserRole.DRIVER, UserRole.STUDENT])
 def lista_alunos_moderador(request, viagem_id):
-    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    
     now = timezone.localtime()
     date = now.date()
-    if obj_viagem.data.date() != date:
-        print("papapa")
-        return HttpResponseForbidden("Acesso negado.")
-    
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
+
     if request.user.role == UserRole.STUDENT:
         estudante = obj_viagem.usuarios.filter(estudante=request.user.student_profile).first()
         if not estudante:
@@ -234,11 +217,12 @@ def lista_alunos_moderador(request, viagem_id):
 @login_required()
 @role_required(UserRole.DRIVER)
 def lista_moderadores(request, viagem_id):
-    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
-    
     now = timezone.localtime()
     date = now.date()
-    if request.user.personel_profile != obj_viagem.rota.linha.motorista or obj_viagem.data.date() != date:
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date = date)
+    
+    
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
         return HttpResponseForbidden("Acesso negado.")
 
     alunos = UsuarioDaViagem.objects.filter(viagem=obj_viagem, presente=True).order_by('id')
@@ -252,12 +236,13 @@ def lista_moderadores(request, viagem_id):
 @login_required()
 @role_required(UserRole.DRIVER)
 def definir_moderador(request, usuario_viagem_id):
-    aluno_clicado = get_object_or_404(UsuarioDaViagem, pk=usuario_viagem_id)
-    viagem = aluno_clicado.viagem
-    
     now = timezone.localtime()
     date = now.date()
-    if request.user.personel_profile != viagem.rota.linha.motorista or viagem.data.date() != date:
+    aluno_clicado = get_object_or_404(UsuarioDaViagem, pk=usuario_viagem_id, data__date=date)
+    viagem = aluno_clicado.viagem
+    
+    
+    if request.user.personel_profile != viagem.rota.linha.motorista:
             return HttpResponseForbidden("Acesso negado.")
     
     if aluno_clicado.moderador:
