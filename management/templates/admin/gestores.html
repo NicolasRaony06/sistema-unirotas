@@ -28,12 +28,12 @@
                 <tbody>
                     {% for gestor in gestores %}
                         <tr>
-                            <td>{{gestor.full_name}}</td>
+                            <td>{{gestor.user.full_name}}</td>
                             <td>
-                                {{gestor.email}}{% if gestor.telefone %} · {{ gestor.telefone }}{% endif %}
+                                {{gestor.user.email}}{% if gestor.telefone %} · {{ gestor.telefone }}{% endif %}
                             </td>
                             <td>
-                                {% if gestor.is_active %}
+                                {% if gestor.user.is_active %}
                                     <span class="badge-status active">Ativo</span>
                                 {% else %}
                                     <span class="badge-status inactive">Inativo</span>
@@ -48,8 +48,8 @@
                                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                                         </svg>
                                     </a>
-                                    {% if gestor.is_active == False %}
-                                        <form action="{% url 'management:active-manager' gestor.id  %}" method="post">
+                                    {% if gestor.user.is_active == False %}
+                                        <form action="{% url 'management:active-manager' gestor.user.id  %}" method="post">
                                             {% csrf_token %}
                                             <button type="submit" aria-label="Pausar">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@
                                             </button>
                                         </form>
                                     {% else %}
-                                        <form action="{% url 'management:deactive-manager' gestor.id    %}" method="post">
+                                        <form action="{% url 'management:deactive-manager' gestor.user.id    %}" method="post">
                                             {% csrf_token %}
                                             <button type="submit" aria-label="Pausar">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

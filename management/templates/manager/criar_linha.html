@@ -63,7 +63,7 @@
                         <option value="">Selecionar</option>
                         {% for motorista in motoristas %}
                         
-                        <option value="{{ motorista.id }}">{{ motorista.full_name }}</option>
+                        <option value="{{ motorista.id }}">{{ motorista.user.full_name }}</option>
                         {% endfor %}
                     </select>
                 </div>

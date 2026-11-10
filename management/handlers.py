@@ -1,5 +1,5 @@
 from .models import Municipio
-from authentication.models import User
+from authentication.models import PersonelProfile
 
 
 def atualizar_gestor(codigo_ibge,email_gestor=None):
@@ -10,18 +10,18 @@ def atualizar_gestor(codigo_ibge,email_gestor=None):
     if email_gestor :
         #se houver gestor antes o personel_profile dele perde também a referencia a cidade
         if municipio.gestor:
-            municipio.gestor.personel_profile.city = None
-            municipio.gestor.personel_profile.save()
+            municipio.gestor.city = None
+            municipio.gestor.save()
 
-        gestor = User.objects.filter(email=email_gestor).first()
+        gestor = PersonelProfile.objects.filter(user__email=email_gestor).first()
         municipio.gestor = gestor
-        gestor.personel_profile.city = municipio
-        gestor.personel_profile.save()
+        gestor.city = municipio
+        gestor.save()
     else:
         gestor = municipio.gestor
         municipio.gestor = None
-        gestor.personel_profile.city = None
-        gestor.personel_profile.save()       
+        gestor.city = None
+        gestor.save()       
     municipio.save()
 
     return municipio

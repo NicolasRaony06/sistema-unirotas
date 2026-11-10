@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 from django.core.validators import MinValueValidator, RegexValidator
-from authentication.models import User , UserRole
+from authentication.models import PersonelProfile , UserRole
 import re
 from django.db.models import Q, F
 import datetime
@@ -15,7 +15,7 @@ class Municipio(models.Model):
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
-    gestor = models.ForeignKey(User,null=True,on_delete=models.SET_NULL,related_name='municipio',blank=True,limit_choices_to={'role': 'MANAGER'})
+    gestor = models.ForeignKey(PersonelProfile, null=True,on_delete=models.SET_NULL,related_name='municipio',blank=True,limit_choices_to={'user__role': 'MANAGER'})
 
     def __str__(self):
         return self.nome
@@ -105,16 +105,16 @@ class Linha(models.Model):
     nome = models.CharField(max_length=100)
     instituicoes_ofertadas = models.ManyToManyField(Institution)
     city = models.ForeignKey(Municipio,on_delete=models.PROTECT,related_name='linhas')
-    motorista = models.ForeignKey(User,on_delete=models.PROTECT,limit_choices_to={'role': 'DRIVER'} )
+    motorista = models.ForeignKey(PersonelProfile,on_delete=models.PROTECT,limit_choices_to={'user__role': 'DRIVER'} )
     horario_inicio = models.TimeField()
     horario_fim = models.TimeField()    
 
     @property
     def periodo(self):
         # Define os limites de horário
-        meio_dia = datetime.time(12, 0)
+        meio_dia = datetime.time(11, 30)
         seis_da_tarde = datetime.time(18, 0)
-        seis_da_manha = datetime.time(6, 0)
+        seis_da_manha = datetime.time(5, 30)
 
         if seis_da_manha <= self.horario_inicio < meio_dia:
             return "Manhã"

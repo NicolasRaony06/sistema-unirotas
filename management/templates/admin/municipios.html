@@ -70,7 +70,7 @@
                 <select name="email_gestor" id="manager_email">
                     <option value=""disabled selected>Selecionar Gestor</option>
                     {% for gestor in gestores_ativos %}
-                        <option value="{{gestor.email}}">{{ gestor.full_name }}</option>
+                        <option value="{{gestor.user.email}}">{{ gestor.user.full_name }}</option>
                     {% endfor %}
                 </select>
                 <label for="ibge_code">Município</label>
