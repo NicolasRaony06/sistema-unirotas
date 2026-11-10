@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
+from django.db.models import ProtectedError, RestrictedError
 from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
@@ -354,6 +355,24 @@ def activate_bus(request, id):
             bus.save()
             #messages.success(request, f"Ônibus {bus.name} ativado com sucesso.")
     return redirect('management:view_buses')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def delete_bus(request, id):
+    if request.method == 'POST':
+        bus = get_object_or_404(
+            Bus,
+            id=id,
+            city=request.user.personel_profile.city
+        )
+        try:
+            bus.delete()
+            messages.success(request, "Ônibus deletado com sucesso.")
+        except (ProtectedError, RestrictedError):
+            messages.error(request, "Não foi possível excluir: existem registros vinculados a este ônibus.")
+
+    return redirect('management:view_buses')
+
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
