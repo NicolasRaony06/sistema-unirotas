@@ -67,13 +67,11 @@ def criar_municipio(request):
 
         if form.is_valid():
             municipio = form.save(commit=False)
-            
-            if request.user.role == UserRole.ADMIN:
-                municipio.ofertado_pelo_sistema = True
-                municipio.save()
-                return redirect('management:municipios')
-        else:
-            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            municipio.ofertado_pelo_sistema = True
+            municipio.save()
+
+            messages.success(request, "Município cadastrado com sucesso.")
+            return redirect('management:municipios')
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
@@ -93,9 +91,8 @@ def adicionar_municipio(request):
 
                 municipio_gestor = Municipio.objects.filter(gestor=request.user).first()
                 municipio_gestor.municipios_relacionados.add(municipio)
+                messages.success(request, "Município cadastrado com sucesso.")    
                 return redirect('management:localizacoes')
-        else:
-            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
