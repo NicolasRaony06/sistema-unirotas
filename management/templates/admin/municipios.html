@@ -68,20 +68,26 @@
             <form action="{% url "management:associar-gestor" %}" method="post">
                 {% csrf_token %}
                 <h4>Associar gestor + município</h4>
-                <label for="manager_email">Gestor</label>
-                <select name="email_gestor" id="manager_email">
+                <label for="{{associate_city_manager_form.manager.id_for_label}}">Gestor</label>
+                {{associate_city_manager_form.manager}}
+                {% comment %} <select name="manager_id" id="manager_id">
                     <option value=""disabled selected>Selecionar Gestor</option>
-                    {% for gestor in gestores_ativos %}
-                        <option value="{{gestor.email}}">{{ gestor.full_name }}</option>
+                    {% for gestor in gestores %}
+                        {% if gestor.municipio   %}
+                            <option value="{{ gestor.id }}">{{ gestor.full_name }}</option>
+                        {% endif %}
                     {% endfor %}
-                </select>
-                <label for="ibge_code">Município</label>
-                <select id="ibge_code" name="codigo_ibge" required>
+                </select> {% endcomment %}
+                <label for="{{associate_city_manager_form.city.id_for_label}}">Município</label>
+                {{associate_city_manager_form.city}}
+                {% comment %} <select id="ibge_code" name="ibge_code" required>
                     <option value="" disabled selected>Selecionar Município</option>
-                    {% for municipio in municipios_ofertados %}
-                        <option value="{{ municipio.codigo_ibge }}">{{ municipio.nome }}</option>
+                    {% for municipio in municipios %}
+                        {% if not municipio.ofertado_pelo_sistema %}
+                            <option value="{{ municipio.codigo_ibge }}">{{ municipio.nome }}</option>
+                        {% endif %}
                     {% endfor %}
-                </select>
+                </select> {% endcomment %}
                 <button type="submit" class="register-button secondary">Vincular à gestor</button>
             </form>
         </section>
