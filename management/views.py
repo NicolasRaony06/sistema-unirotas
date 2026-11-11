@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Q
-from django.db.models import ProtectedError, RestrictedError
+from django.db.models import Q, ProtectedError, RestrictedError
+from django.db import transaction
 from .models import *
 from authentication.models import UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link
@@ -103,20 +103,31 @@ def adicionar_municipio(request):
 @role_required(allowed_roles=UserRole.ADMIN)
 def associar_gestor(request):
     if request.method == 'POST':
-        city = get_object_or_404(
-            Municipio,
-            id=request.POST.get('ibge_code')
-        )
-        manager = get_object_or_404(
-            User,
-            id=request.POST.get('manager_id')
-        )
+        form = AssociateCityManager(request.POST)
+        if form.is_valid():
+            city = get_object_or_404(
+                Municipio,
+                id=form.cleaned_data['city']
+            )
+            manager = get_object_or_404(
+                User,
+                id=form.cleaned_data['manager']
+            )
+            city.gestor = manager
+            city.ofertado_pelo_sistema = True
+            manager.personel_profile.city = city
 
-        
-        
-        # atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
-        return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
-    
+            try:
+                with transaction.atomic():
+                    city.save()
+                    manager.personel_profile.save()
+                messages.success(request, "Gestor associado a município com sucesso.")
+                return redirect('management:municipios')
+            except Exception as error:
+                messages.error(request, f"Erro ao associar gestor: {str(error)}")
+                return redirect('management:municipios')
+
+        messages.error(request, "Não foi possível associar gestor a município.")    
     return redirect('management:municipios')
 
 
