@@ -45,15 +45,15 @@ def gestores(request):
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
 def municipios(request):
-        
         context = {
-        'linhas': Linha.objects.filter(is_active=True),
-        'total_onibus' : Bus.objects.all().count(),
-        'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
-        'municipios' : Municipio.objects.all(),
-        'tot_municipios' : Municipio.objects.all().count(),
-        'gestores' : User.objects.filter(role=UserRole.MANAGER),
-        'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
+            'linhas': Linha.objects.filter(is_active=True),
+            'total_onibus' : Bus.objects.all().count(),
+            'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
+            'municipios' : Municipio.objects.all(),
+            'tot_municipios' : Municipio.objects.all().count(),
+            'gestores' : User.objects.filter(role=UserRole.MANAGER),
+            'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
+            'associate_city_manager_form': AssociateCityManager()
         }
 
         return render(request,'admin/municipios.html',context)
@@ -103,16 +103,18 @@ def adicionar_municipio(request):
 @role_required(allowed_roles=UserRole.ADMIN)
 def associar_gestor(request):
     if request.method == 'POST':
-        codigo_ibge = request.POST.get('codigo_ibge')
-        email_gestor = request.POST.get('email_gestor')
-        
-        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
-        email_buscado = User.objects.filter(role=UserRole.MANAGER,email=email_gestor).first()
+        city = get_object_or_404(
+            Municipio,
+            id=request.POST.get('ibge_code')
+        )
+        manager = get_object_or_404(
+            User,
+            id=request.POST.get('manager_id')
+        )
 
-        if municipio_buscado is None or email_buscado is None:
-            return HttpResponse("Dados não encontrados")
         
-        atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
+        
+        # atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
         return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
     
     return redirect('management:municipios')

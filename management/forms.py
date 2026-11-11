@@ -92,6 +92,7 @@ class TrechoViagemForm(forms.ModelForm):
     class Meta:
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
+
 class InviteUserForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         'placeholder': 'motorista@example.com'
@@ -126,3 +127,17 @@ class InviteUserForm(forms.Form):
                 )
 
         return cleaned_data
+
+class AssociateCityManager(forms.Form):
+    manager = forms.ChoiceField(choices=(), widget=forms.Select())
+    city = forms.ChoiceField(choices=(), widget=forms.Select())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        managers = User.objects.filter(municipio=None, role=UserRole.MANAGER).values_list('id', 'email')
+        cities = Municipio.objects.filter(ofertado_pelo_sistema=False, gestor=None).values_list('id', 'nome')
+
+        self.fields['manager'].choices = [('', 'Selecionar Gestor')] + list(managers)
+        self.fields['city'].choices = [('', 'Selecionar Município')] + list(cities)
+
