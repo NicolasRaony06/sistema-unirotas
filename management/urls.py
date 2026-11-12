@@ -10,6 +10,9 @@ urlpatterns = [
     path('home/', home, name='home'),
     # Invite user
     path('invite_user/', invite_user, name="invite_user"),
+    path('invite_student/', invite_student, name="invite_student"),
+    # Student management
+    path('view_students/', view_students, name="view_students"),
     # Driver management
     path('view_drivers/', view_drivers, name="view_drivers"),
     path('edit_driver/<int:id>/', edit_driver, name="edit_driver"),
