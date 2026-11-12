@@ -93,27 +93,13 @@ class TrechoViagemForm(forms.ModelForm):
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
 
-class InviteUserForm(forms.Form):
+class BaseInviteForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'placeholder': 'motorista@example.com'
+            'placeholder': 'email@example.com'
     }))
     confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'placeholder': 'motorista@example.com'
+        'placeholder': 'email@example.com'
     }))
-    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select())
-    institution = forms.ChoiceField(choices=(), widget=forms.Select())
-
-    def __init__(self, *args, **kwargs):
-        institutions_id = kwargs.pop('institutions_id', None)
-        super().__init__(*args, **kwargs)
-
-        if institutions_id:
-            institutions = Institution.objects.filter(
-                id__in=institutions_id, 
-                is_active=True
-            ).values_list('id', 'name', 'city__nome')
-
-            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
 
     def clean(self):
         cleaned_data = super().clean()
@@ -125,8 +111,30 @@ class InviteUserForm(forms.Form):
                 self.add_error(
                     'confirm_email', 'A confirmação de email não corresponde ao email digitado.'
                 )
-
         return cleaned_data
+
+class InviteDriverForm(BaseInviteForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.field['email'].widget.attrs['placeholder'] = 'motorista@example.com'
+        self.field['confirm_email'].widget.attrs['placeholder'] = 'motorista@example.com'
+    
+class InviteStudentForm(BaseInviteForm):
+    institution = forms.ChoiceField(choices=(), widget=forms.Select())
+
+    def __init__(self, *args, **kwargs):
+        institutions_id = kwargs.pop('institutions_id', None)
+        super().__init__(*args, **kwargs)
+        self.field['email'].widget.attrs['placeholder'] = 'estudante@example.com'
+        self.field['confirm_email'].widget.attrs['placeholder'] = 'estudante@example.com'
+
+        if institutions_id:
+            institutions = Institution.objects.filter(
+                id__in=institutions_id, 
+                is_active=True
+            ).values_list('id', 'name', 'city__nome')
+
+            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
 
 class AssociateCityManager(forms.Form):
     manager = forms.ChoiceField(choices=(), widget=forms.Select())
