@@ -26,14 +26,11 @@
                 </span>
                 <div class="dashboard-card-info">
                     <div>
-                        <p>{{student.user.email}}</p>
-                        {% if student.user.is_active %}
-                            <span class="badge-status active">Ativo</span>
-                        {% else %}
-                            <span class="badge-status inactive">Inativo</span>
-                        {% endif %}
+                        <p>{{student.institution}}</p>
+                        <span class="badge-status active">{{student.course}}</span>
                     </div>
                     <h4>{{student.user.full_name}}</h4>
+                    <p>{{student.user.email}}</p>
                 </div>
                 <div class="dashboard-card-actions">
                     <a href="#">
