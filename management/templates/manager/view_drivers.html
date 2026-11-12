@@ -13,7 +13,7 @@
         <div class="dashboard-header">
             <h3>Lista de Motoristas</h3>
             <span class="badge-count">{{drivers.count}} registros</span>
-            <a href="{% url "management:invite_user" %}" class="register-button">+ Novo Motorista</a>
+            <a href="{% url "management:invite_driver" %}" class="register-button">+ Novo Motorista</a>
         </div>
         {% for driver in drivers %}
             <div class="dashboard-card">
