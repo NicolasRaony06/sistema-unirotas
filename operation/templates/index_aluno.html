@@ -62,46 +62,59 @@
     </section>
 
     <section class="presence-card">
-        <h3>Vai viajar hoje?</h3>
 
             {% if inscricao %}
-                <!-- CASO O ALUNO JÁ ESTEJA INSCRITO -->
-                <p>Inscrito, confirme que você está presente.</p>
+        
+                {% if inscricao.presente %}
+                    <div class="presence-header presence-header--success">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        <h3>Presença confirmada</h3>
+                    </div>
+                    <p>Sua vaga está garantida para esta viagem.</p>
+                {% else %}
+                    <h3>Vai viajar hoje?</h3>
+                    <p>Inscrito, confirme que você está presente.</p>
+                {% endif %}
+                
                 <p class="presence-info">
-                    Horário: <strong>{{ inscricao.horario_saida_aluno|default:"--" }}</strong>
+                    <span>Horário: <strong>{{ inscricao.horario_saida_aluno|default:"--" }}</strong></span>
                     <span class="presence-info__dot" aria-hidden="true">•</span>
-                    Direção: <strong>{{ inscricao.get_direcao_display|default:inscricao.direcao|title }}</strong>
+                    <span>Direção: <strong>{{ inscricao.get_direcao_display|default:inscricao.direcao|title }}</strong></span>
                 </p>
 
-                <form method="post" action="{% url 'alterar_presenca' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
-                    {% if inscricao.presente %}
-                        <button type="submit" class="btn btn--danger btn--full">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                            Cancelar presença
+                {% if inscricao.presente %}
+                    <form method="post" action="{% url 'alterar_presenca' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
+                        <button type="submit" class="btn btn--tonal-blue btn--full">
+                            Desfazer presença
                         </button>
-                        
-                    {% else %}
-                        <button type="submit" class="btn btn--solid btn--full btn--spaced">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'alterar_presenca' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
+                        <button type="submit" class="btn btn--solid btn--full">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>
                             Confirmar presença
                         </button>
-                    {% endif %}
-                </form>
+                    </form>
+                {% endif %}
 
-                <form method="post" action="{% url 'cancelar_inscricao_na_viagem' %}">
+            
+                <form method="post" action="{% url 'cancelar_inscricao_na_viagem' %}" onsubmit="return confirm('Cancelar sua inscrição nesta viagem?');">
                     {% csrf_token %}
                     <input type="hidden" name="id_linha" value="{{ linha_selecionada.id }}">
                     <input type="hidden" name="id_viagem" value="{{ inscricao.viagem.id }}">
-                    <button type="submit" class="btn btn--danger btn--full">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    <button type="submit" class="btn btn--text-danger btn--full">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         Cancelar inscrição
                     </button>
                 </form>
 
             {% else %}
-            <!-- CASO O ALUNO AINDA NÃO ESTEJA INSCRITO -->
+
+            
             <p>Confirme sua inscrição para esta rota.</p>
 
             <form method="post" action="{% url 'alocar_aluno' %}">
