@@ -9,7 +9,7 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='management:home', permanent=True)),
     path('home/', home, name='home'),
     # Invite user
-    path('invite_user/', invite_user, name="invite_user"),
+    path('invite_driver/', invite_driver, name="invite_driver"),
     path('invite_student/', invite_student, name="invite_student"),
     # Student management
     path('view_students/', view_students, name="view_students"),
