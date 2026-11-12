@@ -200,29 +200,22 @@ def activate_manager(request,id):
         manager.save()
     return redirect('management:gestores')
 
-@login_required(login_url=reverse_lazy('authentication:login'))
+@login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def invite_user(request):
+def invite_driver(request):
     user = request.user
-    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
-        'institutions', 
-        flat=True
-    )
 
     if request.method == 'POST':
-        form = InviteUserForm(request.POST, institutions_id=institutions_id)
+        form = InviteDriverForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get('email')
-            role=form.cleaned_data.get('role')
-
            
             link = generate_elevated_signup_link(
                 InviteDTO(
                     higher_role_email=user.email,
-                    role=form.cleaned_data.get('role'),
+                    role=UserRole.DRIVER,
                     email=email,
                     city_id = request.user.personel_profile.city,
-                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
                 ),
                 request=request
             )
@@ -231,12 +224,12 @@ def invite_user(request):
 
             if link:
                 messages.success(request, f'Convite enviado com sucesso para {email}.')
-                return redirect("management:home")
+                return redirect("management:view_drivers")
             else:
                 messages.error(request, f"Não foi possível enviar o convite para {email}.")
     else:
-        form = InviteUserForm(institutions_id=institutions_id)
-    return render(request, "manager/invite_user.html", {'form': form})
+        form = InviteDriverForm()
+    return render(request, "manager/invite_driver.html", {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -463,7 +456,6 @@ def deactivate_bus_stop(request, id):
 
     return redirect('management:view_bus_stops')
 
-
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
 def activate_bus_stop(request, id):
@@ -490,7 +482,38 @@ def activate_bus_stop(request, id):
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
 def invite_student(request):
-    pass
+    user = request.user
+    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
+        'institutions', 
+        flat=True
+    )
+
+    if request.method == 'POST':
+        form = InviteStudentForm(request.POST, institutions_id=institutions_id)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+           
+            link = generate_elevated_signup_link(
+                InviteDTO(
+                    higher_role_email=user.email,
+                    role=UserRole.STUDENT,
+                    email=email,
+                    city_id = request.user.personel_profile.city,
+                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
+                ),
+                request=request
+            )
+
+            print(link)
+
+            if link:
+                messages.success(request, f'Convite enviado com sucesso para {email}.')
+                return redirect("management:view_students")
+            else:
+                messages.error(request, f"Não foi possível enviar o convite para {email}.")
+    else:
+        form = InviteStudentForm(institutions_id=institutions_id)
+    return render(request, "manager/invite_student.html", {'form': form})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
