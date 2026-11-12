@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Q, ProtectedError, RestrictedError
 from django.db import transaction
 from .models import *
-from authentication.models import UserRole, PersonelProfile
+from authentication.models import UserRole, PersonelProfile, StudentProfile
 from authentication.service import generate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
@@ -487,6 +487,17 @@ def activate_bus_stop(request, id):
 
     #return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def invite_student(request):
+    pass
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_students(request):
+    students = StudentProfile.objects.filter(city=request.user.personel_profile.city)
+
+    return render(request, 'manager/view_students.html', {'students': students})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
