@@ -49,7 +49,7 @@
             <span class="form-messages">{{error}}</span>
         {% endfor %}
     </div>
-    <div class="form-group" style="display: none">
+    <div class="form-group">
         <label for="{{form.institution.id_for_label}}">Instituição 
             {% if form.institution.field.required %}
                 <span class="required">*</span>
@@ -75,7 +75,3 @@
         <button type="submit">Enviar convite</button>
     </div>
 {% endblock form_content %}
-
-{% block extra_js %}
-    <script src="{% static "js/script_invite_user.js" %}"></script>
-{% endblock extra_js %}

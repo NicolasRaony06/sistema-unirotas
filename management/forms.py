@@ -116,8 +116,8 @@ class BaseInviteForm(forms.Form):
 class InviteDriverForm(BaseInviteForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.field['email'].widget.attrs['placeholder'] = 'motorista@example.com'
-        self.field['confirm_email'].widget.attrs['placeholder'] = 'motorista@example.com'
+        self.fields['email'].widget.attrs['placeholder'] = 'motorista@example.com'
+        self.fields['confirm_email'].widget.attrs['placeholder'] = 'motorista@example.com'
     
 class InviteStudentForm(BaseInviteForm):
     institution = forms.ChoiceField(choices=(), widget=forms.Select())
@@ -125,8 +125,8 @@ class InviteStudentForm(BaseInviteForm):
     def __init__(self, *args, **kwargs):
         institutions_id = kwargs.pop('institutions_id', None)
         super().__init__(*args, **kwargs)
-        self.field['email'].widget.attrs['placeholder'] = 'estudante@example.com'
-        self.field['confirm_email'].widget.attrs['placeholder'] = 'estudante@example.com'
+        self.fields['email'].widget.attrs['placeholder'] = 'estudante@example.com'
+        self.fields['confirm_email'].widget.attrs['placeholder'] = 'estudante@example.com'
 
         if institutions_id:
             institutions = Institution.objects.filter(
