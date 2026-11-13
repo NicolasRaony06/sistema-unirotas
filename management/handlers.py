@@ -44,13 +44,12 @@ def generate_qrcode(link):
         return None
             
     qr = qrcode.make(link)
-    buffer = io.BytesIO()
-    qr.save(buffer, format='png')
 
-    img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
-    qrcode_base64 = f"data:image/png;base64,{img_str}"
+    with io.BytesIO() as buffer:
+        qr.save(buffer, format='png')
+        img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    return qrcode_base64
+    return f"data:image/png;base64,{img_str}"
 
 
 
