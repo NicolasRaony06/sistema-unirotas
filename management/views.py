@@ -9,7 +9,7 @@ from django.db.models import Q, ProtectedError, RestrictedError
 from django.db import transaction
 from .models import *
 from authentication.models import UserRole, PersonelProfile, StudentProfile
-from authentication.service import generate_elevated_signup_link
+from authentication.service import recreate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
@@ -210,7 +210,7 @@ def invite_driver(request):
         if form.is_valid():
             email = form.cleaned_data.get('email')
            
-            link = generate_elevated_signup_link(
+            link = recreate_elevated_signup_link(
                 InviteDTO(
                     higher_role_email=user.email,
                     role=UserRole.DRIVER,
@@ -220,9 +220,8 @@ def invite_driver(request):
                 request=request
             )
 
-            print(link)
-
             if link:
+                request.session['qrcode_link'] = link
                 messages.success(request, f'Convite enviado com sucesso para {email}.')
                 return redirect("management:view_drivers")
             else:
@@ -239,7 +238,16 @@ def view_drivers(request):
         city=request.user.personel_profile.city
     )
 
-    return render(request, 'manager/view_drivers.html', {'drivers': drivers})
+    qrcode_link = request.session.pop("qrcode_link", None)
+    qrcode_img = generate_qrcode(qrcode_link) if qrcode_link else None
+
+    context = {
+        'drivers': drivers,
+        'qrcode_img': qrcode_img,
+        'qrcode_link': qrcode_link
+    }
+
+    return render(request, 'manager/view_drivers.html', context)
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -378,7 +386,6 @@ def delete_bus(request, id):
 
     return redirect('management:view_buses')
 
-
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
 def register_bus_stop(request):
@@ -493,7 +500,7 @@ def invite_student(request):
         if form.is_valid():
             email = form.cleaned_data.get('email')
            
-            link = generate_elevated_signup_link(
+            link = recreate_elevated_signup_link(
                 InviteDTO(
                     higher_role_email=user.email,
                     role=UserRole.STUDENT,
@@ -504,9 +511,8 @@ def invite_student(request):
                 request=request
             )
 
-            print(link)
-
             if link:
+                request.session['qrcode_link'] = link
                 messages.success(request, f'Convite enviado com sucesso para {email}.')
                 return redirect("management:view_students")
             else:
@@ -520,7 +526,16 @@ def invite_student(request):
 def view_students(request):
     students = StudentProfile.objects.filter(city=request.user.personel_profile.city)
 
-    return render(request, 'manager/view_students.html', {'students': students})
+    qrcode_link = request.session.pop("qrcode_link", None)
+    qrcode_img = generate_qrcode(qrcode_link) if qrcode_link else None
+
+    context = {
+            'students': students,
+            'qrcode_img': qrcode_img,
+            'qrcode_link': qrcode_link
+        }
+
+    return render(request, 'manager/view_students.html', context)
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
