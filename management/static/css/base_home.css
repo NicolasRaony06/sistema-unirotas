@@ -727,3 +727,74 @@ main{
     margin: 10px 0;
 }
 
+
+.qrcode-popup{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0; 
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.qrcode-popup-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 10px;
+    padding: 15px;
+    
+}
+
+.qrcode-popup-content #cancel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    width: 22px;
+    height: 22px;
+    font-size: 1.1em;
+    border: none;
+    padding: 5px;
+    color: red;
+    background-color: transparent;
+    font-weight: bold;
+}
+
+.qrcode-popup-content #cancel:hover,
+.qrcode-invite-link button:hover {
+    background-color: var(--background-color-secondary);
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px rgb(82, 82, 82);
+}
+
+.qrcode-popup-content img {
+    width: 100%;
+}
+
+.qrcode-invite-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    line-height: 1;
+    column-gap: 5px;
+}
+
+.qrcode-invite-link button {
+    width: 20px;
+    height: 20px;
+    border: none;
+    padding: 2px;
+}
+
+.qrcode-invite-link svg {
+    color: var(--primary-color);
+    width: 100%;
+    height: 100%;
+}
+
