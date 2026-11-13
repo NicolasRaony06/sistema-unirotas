@@ -1,3 +1,8 @@
+import qrcode
+import io
+import base64
+from django.contrib import messages
+
 # from .models import Municipio
 # from authentication.models import User
 
@@ -33,4 +38,20 @@ def can_manage_model(manager_city, model_instance):
     ).values_list('id', flat=True)
 
     return model_instance.city.id in related_cities or model_instance.city == manager_city
+
+def generate_qrcode(link):
+    if not link:
+        return None
+            
+    qr = qrcode.make(link)
+    buffer = io.BytesIO()
+    qr.save(buffer, format='png')
+
+    img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    qrcode_base64 = f"data:image/png;base64,{img_str}"
+
+    return qrcode_base64
+
+
+
 
