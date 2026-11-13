@@ -72,4 +72,11 @@
             <p class="dashboard-message">Nenhum estudante cadastrado</p>
         {% endfor %}
     </section>
+    {% if qrcode_link %}
+        {% include "partials/_qrcode_popup.html" %}
+    {% endif %}
 {% endblock main_content %}
+
+{% block extra_js %}
+        <script src="{% static "js/script_qrcode_popup.js" %}"></script>
+{% endblock extra_js %}
