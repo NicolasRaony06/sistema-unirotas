@@ -1,0 +1,32 @@
+{% extends "base_form.html" %}
+{% load static %}
+
+{% block title %}Convidar usuário{% endblock title %}
+
+{% block header %}
+    <h1>Editar gestor</h1>
+    <p>Mude a região em que ele esta associado</p>
+{% endblock header %}
+
+{% block form_content %}
+    <div class="form-group">
+        <div class="form-input-wrapper">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor" fill-rule="evenodd"
+                            d="M21 5.5v14h2V21H1v-1.5h2V4.32l3.75-2.19l3.75 2.19V12h3V5.5zM19.5 7H15v5h3v7.5h1.5zm-9 6.5v6h6v-6zM6.75 3.87L4.5 5.18V19.5H9V5.18zM6 9V7h1.5v2zm0 1.5v2h1.5v-2zM6 16v-2h1.5v2zm12-7.5h-1.5v2H18zm-6 8V15h3v1.5z"
+                            clip-rule="evenodd" />
+                </svg>
+            </span>
+            {{form.city}}
+        </div>
+        {% for error in form.city.errors %}
+            <span class="form-messages">{{error}}</span>
+        {% endfor %}
+    </div>
+    <div class="form-actions">
+        <a href="{% url "management:home" %}">Cancelar</a>
+        <button type="submit">Concluir</button>
+    </div>
+{% endblock form_content %}

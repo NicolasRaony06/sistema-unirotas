@@ -1,7 +1,7 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
 
-from authentication.models import UserRole
+from authentication.models import PersonelProfile, UserRole
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -120,3 +120,50 @@ class InviteUserForm(forms.Form):
                 )
 
         return cleaned_data
+
+class InviteManagerForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'placeholder': 'gestor@example.com'
+    }))
+    confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
+        'placeholder': 'gestor@example.com'
+    }))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        confirm_email = cleaned_data.get('confirm_email')
+
+        if email and confirm_email:
+            if email != confirm_email:
+                self.add_error(
+                    'confirm_email', 'A confirmação de email não corresponde ao email digitado.'
+                )
+
+        return cleaned_data
+
+class EditManager(forms.ModelForm):
+    class Meta:
+        model = PersonelProfile
+        fields = ["city"]
+        labels = {
+            "city": "Selecione uma nova região para o gestor",
+        }
+        widgets = {
+            "city": forms.Select(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["city"].empty_label = "Nenhuma região"
+
+    # def __init__(self, *args, **kwargs):
+    #         city = kwargs.pop('city', None)
+    #         super().__init__(*args, **kwargs)
+    
+    #         if city:
+    #             related_cities = city.municipios_relacionados.values_list('id', flat=True)
+                
+    #             self.fields['city'].queryset = Municipio.objects.filter(
+    #                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
+    

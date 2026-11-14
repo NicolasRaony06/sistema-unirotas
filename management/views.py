@@ -14,6 +14,7 @@ from .forms import *
 from .handlers import *
 from authentication.data_type import InviteDTO
 from operation.models import Viagem, UsuarioDaViagem
+from django.db import transaction
 
 @login_required()
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
@@ -764,6 +765,62 @@ def excluir_trecho(request, id):
     return redirect('management:criar-trecho',rota_id=id)
     #return render(request,'manager/criar_trecho.html')
 
+@login_required()
+@role_required(UserRole.ADMIN)
+def invite_manager(request):
+    user = request.user
+
+    if request.method == 'POST':
+        form = InviteManagerForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            role=UserRole.MANAGER
+
+           
+            link = generate_elevated_signup_link(
+                InviteDTO(
+                    higher_role_email=user.email,
+                    role=role,
+                    email=email,
+                    city_id = None
+                ),
+                request=request
+            )
+
+            print(link)
+
+            if link:
+                messages.success(request, f'Convite enviado com sucesso para {email}.')
+                return redirect("management:home")
+            else:
+                messages.error(request, f"Não foi possível enviar o convite para {email}.")
+    else:
+        form = InviteManagerForm()
+    return render(request, "admin/invite_manager.html", {'form': form})
+
+
+@login_required()
+@role_required(UserRole.ADMIN)
+def edit_manager(request, manager_id):
+    manager = get_object_or_404(PersonelProfile, pk=manager_id, user__role=UserRole.MANAGER)
+    old_city = Municipio.objects.filter(gestor=manager).first()
+    if request.method == "POST":
+        form = EditManager(request.POST, instance=manager)
+        if form.is_valid():
+            with transaction.atomic():
+                new_city = form.cleaned_data.get("city")
+                if old_city != new_city and old_city:
+                    old_city.gestor = None
+                    old_city.save()
+                if new_city:
+                    new_city.gestor = manager
+                    new_city.save()
+                form.save()
+            return redirect("management:gestores")
+        return render(request, "admin/edit_manager", {"form": form})
+    else:
+        form = EditManager(instance=manager)
+    return render(request, "admin/edit_manager.html", {"form": form})
 
 # @login_required()
 # def adicionar_municipio(request):
