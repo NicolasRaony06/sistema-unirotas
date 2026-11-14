@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.db.models import Q
 from .models import *
 from authentication.models import StudentProfile, User, UserRole, PersonelProfile
-from authentication.service import generate_elevated_signup_link
+from authentication.service import generate_elevated_signup_link, recreate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
@@ -777,7 +777,7 @@ def invite_manager(request):
             role=UserRole.MANAGER
 
            
-            link = generate_elevated_signup_link(
+            link = recreate_elevated_signup_link(
                 InviteDTO(
                     higher_role_email=user.email,
                     role=role,
@@ -797,7 +797,6 @@ def invite_manager(request):
     else:
         form = InviteManagerForm()
     return render(request, "admin/invite_manager.html", {'form': form})
-
 
 @login_required()
 @role_required(UserRole.ADMIN)
@@ -821,6 +820,7 @@ def edit_manager(request, manager_id):
     else:
         form = EditManager(instance=manager)
     return render(request, "admin/edit_manager.html", {"form": form})
+
 
 # @login_required()
 # def adicionar_municipio(request):
