@@ -6,13 +6,15 @@ from authentication.models import PersonelProfile , UserRole
 import re
 from django.db.models import Q, F
 import datetime
+from pyUFbr.baseuf import ufbr
+from django.core.exceptions import ValidationError
 
 from multiselectfield import MultiSelectField
 
 # Create your models here.
 class Municipio(models.Model):
-    nome = models.CharField(max_length=100)
-    estado = models.CharField(max_length=10)
+    nome = models.CharField(max_length=100, blank=True)
+    estado = models.CharField(max_length=10, blank=True)
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
@@ -20,6 +22,22 @@ class Municipio(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.estado.upper()})"
+
+    def clean(self, *args, **kwargs):
+        codigo_municipio = self.codigo_ibge if self.codigo_ibge.endswith(".0") else self.codigo_ibge + ".0"
+        codigo_uf = self.codigo_ibge[:2]
+        estado = ufbr._ufs.get(codigo_uf)
+        if not estado:
+            raise ValidationError("por favor digite um codigo ibge valido")
+        self.estado = estado["sigla"]
+        if not self.estado:
+            raise ValidationError("por favor digite um codigo ibge valido")
+        
+        self.nome = dict(ufbr._ufs.get(codigo_uf)["municipios"]).get(codigo_municipio)
+    
+        if self.nome and self.estado:
+            return super(*args, **kwargs).clean()
+        raise ValidationError("por favor digite um codigo ibge valido")
     
     # def clean(self):
     #     if self.gestor and self.gestor.role != UserRole.MANAGER:
