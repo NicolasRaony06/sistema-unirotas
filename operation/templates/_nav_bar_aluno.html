@@ -7,7 +7,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8v3a3 3 0 003 3h6a3 3 0 013 3v0"/></svg>
         Rotas
     </a>
-    <a href="#" class="{% if active == 'notifications' %}active{% endif %}">
+    <a href="{% url 'notifications:view' %}" class="{% if active == 'notifications' %}active{% endif %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a6 6 0 00-6 6v4l-2 4h16l-2-4V8a6 6 0 00-6-6z"/><path d="M9 19a3 3 0 006 0"/></svg>
         Notificações
     </a>

@@ -75,6 +75,7 @@ def mark_notification_as_seen(recipient):
                 ),
             ).distinct()
         )
+        print(notifications)
     else:
         notifications = list(
             Notification.objects.filter(
