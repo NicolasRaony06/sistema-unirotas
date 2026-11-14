@@ -1,7 +1,6 @@
 const popup = document.getElementById("formPopup")
 const openPopup = document.getElementById("formDeleteBtn")
 const closePopup = document.getElementById("cancel")
-const confirmDeletion = document.getElementById("confirm")
 
 openPopup.addEventListener('click', () => {
     popup.showModal()
@@ -9,8 +8,4 @@ openPopup.addEventListener('click', () => {
 
 closePopup.addEventListener('click', () => {
     popup.close()
-})
-
-confirmDeletion.addEventListener('click', () => {
-    document.getElementById("formDelete").submit()
 })

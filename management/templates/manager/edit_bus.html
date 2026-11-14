@@ -121,14 +121,10 @@
     <div class="form-actions">
         <a href="{% url "management:view_buses" %}">Cancelar</a>
         <button type="submit">Editar ônibus</button>
+        <span style="display:none">{% block form_popup_url %}{% url "management:delete_bus" form.instance.id %}{% endblock form_popup_url %}</span>
         <button type="button" style="background-color: #d64b3c" id="formDeleteBtn">
             Excluir
         </button>
     </div>
 {% endblock form_content %}
-{% block extra_forms %}
-    <form action="{% url "management:delete_bus" form.instance.id %}" method="post" id='formDelete' style="display:none;">
-        {% csrf_token %}
-    </form>
-{% endblock extra_forms %}
 
