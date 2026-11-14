@@ -34,10 +34,11 @@
             <div class="form-popup-content">
                 <h2>Confirmar exlusão</h2>
                 <p>Você tem certeza que deseja excluir?</p>
-                <div class="form-popup-actions">
-                    <button id="cancel">Não</button>
-                    <button id="confirm">Sim</button>
-                </div>
+                <form action="{% block form_popup_url %}{% endblock form_popup_url %}" method="post">
+                    {% csrf_token %}
+                    <button type="button" id="cancel">Cancelar</button>
+                    <button type="submit" id="confirm">Confirmar</button>
+                </form>
             </div> 
         </dialog>
     </main>
