@@ -290,6 +290,22 @@ def activate_driver(request, id):
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
+def delete_driver(request, id):
+    if request.method == 'POST':
+        driver = get_object_or_404(
+            User,
+            id=id
+        )
+        try:
+            driver.delete()
+            messages.success(request, "Motorista deletado com sucesso.")
+        except (ProtectedError, RestrictedError):
+            messages.error(request, "Não foi possível excluir: existem registros vinculados a este motorista.")
+
+    return redirect('management:view_drivers')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")

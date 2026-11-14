@@ -18,6 +18,7 @@ urlpatterns = [
     path('edit_driver/<int:id>/', edit_driver, name="edit_driver"),
     path('deactivate_driver/<int:id>/', deactivate_driver, name="deactivate_driver"),
     path('activate_driver/<int:id>/', activate_driver, name="activate_driver"),
+    path('delete_driver/<int:id>/', delete_driver, name="delete_driver"),
     # Bus management
     path('register_bus/', register_bus, name="register_bus"),
     path('view_buses/', view_buses, name="view_buses"),
