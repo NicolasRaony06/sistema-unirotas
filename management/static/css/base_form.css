@@ -209,13 +209,13 @@ form{
     
 }
 
-.form-popup-actions {
+.form-popup-content form {
     display: flex;
     flex-direction: row;
     column-gap: 10px;
 }
 
-.form-popup-actions button {
+.form-popup-content form button {
     flex: 1;
     height: 44px;
     color: white;
@@ -225,10 +225,10 @@ form{
     font-weight: bold;
 }
 
-.form-popup-actions #cancel {
+.form-popup-content form #cancel {
     background-color: #d64b3c;
 }
 
-.form-popup-actions #confirm {
+.form-popup-content form #confirm {
     background-color: #047857;
 }
