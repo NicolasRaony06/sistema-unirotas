@@ -112,7 +112,7 @@ class Linha(models.Model):
     nome = models.CharField(max_length=100)
     instituicoes_ofertadas = models.ManyToManyField(Institution)
     city = models.ForeignKey(Municipio,on_delete=models.PROTECT,related_name='linhas')
-    motorista = models.ForeignKey(User,on_delete=models.PROTECT,limit_choices_to={'role': 'DRIVER'} )
+    motorista = models.ForeignKey(User,on_delete=models.SET_NULL,limit_choices_to={'role': 'DRIVER'}, null=True)
     horario_inicio = models.TimeField()
     horario_fim = models.TimeField()    
 
