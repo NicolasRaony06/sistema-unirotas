@@ -1,40 +1,4 @@
 {% load static %}
-{% comment %}
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-    <form method="POST" action="">
-        {% csrf_token %}
-
-        <!-- Opção 1: Renderizar automático (com parágrafos) -->
-        {{ form.as_p }}
-        {{ form.as_p }}
-        <!-- Ou Opção 2: Renderizar campo por campo (mais controle visual) -->
-        <!--
-    <div>
-        {{ form.nome.label_tag }}
-        {{ form.nome }}
-    </div>
-    <div>
-        {{ form.email.label_tag }}
-        {{ form.email }}
-    </div>
-    -->
-
-        <button type="submit">Enviar</button>
-    </form>
-</body>
-
-</html> {% endcomment %}
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -77,8 +41,9 @@
                         <div class="form-group no-margin">
                             <label>Ônibus associado</label>
                             <select name="Ida-onibus">
-                                {% for onibus in onibus%}
                                 <option value="">Selecionar</option>
+                                {% for onibus in onibus%}
+                                
 
                                 <option value="{{onibus.id}}">{{onibus}}</option>
 
@@ -108,8 +73,9 @@
                         <div class="form-group no-margin">
                             <label>Ônibus associado</label>
                             <select name="Volta-onibus">
-                                {% for onibus in onibus%}
                                 <option value="">Selecionar</option>
+                                {% for onibus in onibus%}
+                                
                                 <option value="{{onibus.id}}">{{onibus}}</option>
 
                                 {% endfor %}

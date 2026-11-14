@@ -5,15 +5,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dados da Linha - UniRota</title>
+    <title>Nova Linha - UniRota</title>
     <link rel="stylesheet" href="{% static 'styles/criar_linha.css' %}">
 </head>
 
 <body>
-    <div class="main-card">
-        <!-- SEÇÃO 1: DADOS DA LINHA -->
-        <form method="POST">
-            {% csrf_token %}
+    <form method="POST" id="form-linha">
+        {% csrf_token %}
+
+        <!-- ===================== 1 DADOS DA LINHA ===================== -->
+        <div class="main-card">
             <div>
                 <div class="section-header">
                     <h2 class="section-title">Dados da Linha</h2>
@@ -23,114 +24,354 @@
                 <div class="grid-2">
                     <div class="form-group no-margin">
                         <label>Nome da linha</label>
-                        <input type="text" name="nome" placeholder="Ex: Linha 01 - Centro/UFERSA">
-                    </div>
-                    {% comment %} <div class="form-group no-margin">
-                        <label>Município</label>
-                        <select name="city" id="city">
-                            {% for municipio in request.user.municipio.first.municipios_relacionados.all%}
-                            <option value={{municipio.id}}>{{municipio}}</option>
+                        <input type="text" name="linha-nome" placeholder="Ex: Linha 01 - Centro/UFERSA">
+                        {% if linha_form.nome.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.nome.errors %}
+                            <p>{{ erro }}</p>
                             {% endfor %}
-                        </select>
-                    </div> {% endcomment %}
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Instituições ofertadas</label>
-                    
-                    {% comment %} <span class="tag-blue">UFERSA</span>
-                    <span class="tag-blue">FACEP</span>
-                    <span class="tag-blue">UERN</span>
-                    <button type="button" class="btn-text" style="margin-left: 8px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Adicionar
-                    </button> {% endcomment %}
-                    <select name="instituicoes_ofertadas" multiple class="multi-select">
+                    <select name="linha-instituicoes_ofertadas" multiple class="multi-select">
                         {% for instituicao in instituicoes %}
                         <option value="{{ instituicao.id }}">{{ instituicao }}</option>
                         {% endfor %}
                     </select>
-
+                        {% if linha_form.instituicoes_ofertadas.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.instituicoes_ofertadas.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                 </div>
 
                 <div class="form-group">
                     <label>Motorista</label>
-                    <select name="motorista">
+                    <select name="linha-motorista">
                         <option value="">Selecionar</option>
                         {% for motorista in motoristas %}
-                        
                         <option value="{{ motorista.id }}">{{ motorista.full_name }}</option>
                         {% endfor %}
                     </select>
+                        {% if linha_form.motorista.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.motorista.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group no-margin">
                         <label>Horário de início</label>
-                        <input type="time" name="horario_inicio">
+                        <input type="time" name="linha-horario_inicio">
                     </div>
                     <div class="form-group no-margin">
                         <label>Horário de fim</label>
-                        <input type="time" name="horario_fim">
+                        <input type="time" name="linha-horario_fim">
                     </div>
+                        {% if linha_form.horario_inicio.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.horario_inicio.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if linha_form.horario_fim.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.horario_fim.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                 </div>
 
                 <div class="form-group no-margin">
                     <label>Dias da semana ofertados</label>
-                    {% comment %} <div class="weekdays">
-                        <select name="dias_ofertados" id="id_dias_ofertados" multiple
-                            style="width: 300px; height: 120px;">
-                            <option value="SEG">Segunda-feira</option>
-                            <option value="TER">Terça-feira</option>
-                            <option value="QUA">Quarta-feira</option>
-                            <option value="QUI">Quinta-feira</option>
-                            <option value="SEX">Sexta-feira</option>
-                            <option value="SAB">Sábado</option>
-                            <option value="DOM">Domingo</option>
-                        </select>
-                    </div> {% endcomment %}
                     <div class="weekdays">
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="SEG">
+                            <input type="checkbox" name="linha-dias_ofertados" value="SEG">
                             <span class="day-circle">Seg</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="TER">
+                            <input type="checkbox" name="linha-dias_ofertados" value="TER">
                             <span class="day-circle">Ter</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="QUA">
+                            <input type="checkbox" name="linha-dias_ofertados" value="QUA">
                             <span class="day-circle">Qua</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="QUI">
+                            <input type="checkbox" name="linha-dias_ofertados" value="QUI">
                             <span class="day-circle">Qui</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="SEX">
+                            <input type="checkbox" name="linha-dias_ofertados" value="SEX">
                             <span class="day-circle">Sex</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="SAB">
+                            <input type="checkbox" name="linha-dias_ofertados" value="SAB">
                             <span class="day-circle">Sab</span>
                         </label>
                         <label class="day-circle-option">
-                            <input type="checkbox" name="dias_ofertados" value="DOM">
+                            <input type="checkbox" name="linha-dias_ofertados" value="DOM">
                             <span class="day-circle">Dom</span>
                         </label>
                     </div>
+                        {% if linha_form.dias_ofertados.errors %}
+                        <div class="erro-geral">
+                            {% for erro in linha_form.dias_ofertados.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                 </div>
-                
-                <div class="form-actions">
+            </div>
+
+            <hr>
+            <!-- ===================== 2) ROTAS DA LINHA ===================== -->
+
+            <div class="section-header section-header-flex">
+                <div>
+                    <h2 class="section-title">Rotas da Linha</h2>
+                    <p class="section-subtitle">Cada rota representa uma direção de operação: Ida ou Volta.</p>
+                </div>
+            </div>
+
+            <div class="route-direction-block">
+                <h4 class="route-box-title">Rota de ida</h4>
+
+                <div class="form-row-3 route-form-grid">
+                    <div class="form-group no-margin">
+                        <label>Nome da rota</label>
+                        <input type="text" name="Ida-nome" placeholder="Ex: Centro → UFERSA">
+                    </div>
+
+
+                    <div class="form-group no-margin">
+                        <label>Direção</label>
+                        <select name="Ida-direcao">
+                            <option value="">Selecionar</option>
+                            <option value="IDA">Ida</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group no-margin">
+                        <label>Ônibus associado</label>
+                        <select name="Ida-onibus">
+                            <option value="">Selecionar</option>
+                            {% for onibus in onibus %}
+                            <option value="{{ onibus.id }}">{{ onibus }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+                                    {% if rota_form.nome.errors %}
+                        <div class="erro-geral">
+                            {% for erro in rota_form.nome.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+            <div class="route-direction-block">
+                <h4 class="route-box-title">Rota de volta</h4>
+
+                <div class="form-row-3 route-form-grid">
+                    <div class="form-group no-margin">
+                        <label>Nome da rota</label>
+                        <input type="text" name="Volta-nome" placeholder="Ex: UFERSA → Centro">
+                    </div>
+
+                    <div class="form-group no-margin">
+                        <label>Direção</label>
+                        <select name="Volta-direcao">
+                            <option value="">Selecionar</option>
+                            <option value="VOLTA">Volta</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group no-margin">
+                        <label>Ônibus associado</label>
+                        <select name="Volta-onibus">
+                            <option value="">Selecionar</option>
+                            {% for onibus in onibus %}
+                            <option value="{{ onibus.id }}">{{ onibus }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div>
+
+                <div class="section-header">
+                    <h2 class="section-title">Paradas e Trechos</h2>
+                    <p class="section-subtitle">Defina a ordem e a distância das paradas associadas.</p>
+                </div>
+
+                <div class="table-container">
+                    <table class="table-trechos">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 24px;">ORDEM</th>
+                                <th>PARADA DE INÍCIO</th>
+                                <th>PARADA DE FIM</th>
+                                <th>DISTÂNCIA</th>
+                                <th style="padding-right: 24px; text-align: right;">AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-trechos">
+                            <tr id="linha-vazia">
+                                <td colspan="5">
+                                    <p class="empty-message">Nenhum trecho criado</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Esses campos NÃO têm "name": servem só para montar a linha da tabela -->
+                <div class="form-row-5">
+                    <div class="form-group no-margin">
+                        <label>Ordem</label>
+                        <input type="text" id="novo-ordem">
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Parada de início</label>
+                        <select id="novo-inicio">
+                            <option value="">Selecionar parada</option>
+                            {% for parada in paradas %}
+                            <option value="{{ parada.id }}">{{ parada.name }} - {{ parada.city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Parada de fim</label>
+                        <select id="novo-fim">
+                            <option value="">Selecionar parada</option>
+                            {% for parada in paradas %}
+                            <option value="{{ parada.id }}">{{ parada.name }} - {{ parada.city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group no-margin">
+                        <label>Distância (km)</label>
+                        <input id="novo-distancia" type="text" placeholder="0,0 km">
+                    </div>
+                    <button type="button" id="btn-add-trecho" class="btn btn-primary" style="height: 44px;">+ Adicionar
+                        trecho</button>
+                </div>
+
+                <div class="form-actions route-actions">
                     <a href="{% url 'management:linhas' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" name="linha" class="btn btn-primary">Continuar</button>
+                    <button type="submit" class="btn btn-primary">Salvar linha</button>
                 </div>
-        </form>
-    </div>
+
+            </div>
+
+
+
+    </form>
+    <template id="test">
+        <tr>
+            <td style="padding-left: 24px;">
+                <div class="order-circle" data-ordem></div>
+                <input type="hidden" name="trecho_ordem">
+                <input type="hidden" name="trecho_parada_inicio">
+                <input type="hidden" name="trecho_parada_fim">
+                <input type="hidden" name="trecho_distancia_km">
+            </td>
+            <td>
+                <div class="pin-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+
+                    <span data-inicio></span>
+                </div>
+            </td>
+            <td>
+                <div class="pin-text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span data-fim></span>
+                </div>
+            </td>
+            <td data-distancia></td>
+            <td style="padding-right: 24px;">
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button type="button" class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                    </button>
+                    <button type="button" class="btn-icon" data-remover>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </template>
+
+
+    <script>
+        const tr_msg = document.querySelector('#linha-vazia')
+        const tbody = document.querySelector('#tbody-trechos');
+        const template = document.querySelector('#test');
+        const btn = document.querySelector('#btn-add-trecho');
+
+        btn.addEventListener('click', e => {
+
+            const ord = document.querySelector('#novo-ordem').value
+
+            const ini = document.querySelector('#novo-inicio').value
+            const ini_select = document.querySelector('#novo-inicio')
+
+            const fm = document.querySelector('#novo-fim').value
+            const fm_select = document.querySelector('#novo-fim')
+
+            const dist = document.querySelector('#novo-distancia').value
+
+
+            const clone = template.content.cloneNode(true);
+
+            const ordem = clone.querySelector('[data-ordem]').textContent = ord;
+            const input_ordem = clone.querySelector('[name="trecho_ordem"]').value = ord;
+
+
+            const inicio = clone.querySelector('[data-inicio]').textContent = ini_select.options[ini_select.selectedIndex].text;
+            const input_inicio = clone.querySelector('[name="trecho_parada_inicio"]').value = ini;
+
+            const fim = clone.querySelector('[data-fim]').textContent = fm_select.options[fm_select.selectedIndex].text;
+            const input_fim = clone.querySelector('[name="trecho_parada_fim"]').value = fm;
+
+
+            const distancia = clone.querySelector('[data-distancia]').textContent = dist;
+            const input_distancia = clone.querySelector('[name="trecho_distancia_km"]').value = dist;
+
+
+            tbody.append(clone);
+            if (Boolean(tr_msg)) {
+                tr_msg.remove();
+            }
+        })
+    </script>
+
 </body>
 
 </html>

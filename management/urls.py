@@ -41,8 +41,8 @@ urlpatterns = [
     path('linhas',linhas,name='linhas'),
     path('ativar-linha/<int:id>', ativar_linha,name='ativar-linha'),
     path('inativar-linha/<int:id>', inativar_linha,name='inativar-linha'),
-    path('criar-rota/<int:linha_id>', criar_rota,name='criar-rota'),
-    path('criar-trecho/<int:rota_id>',criar_trecho,name='criar-trecho'),
+    #path('criar-rota/<int:linha_id>', criar_rota,name='criar-rota'),
+    #path('criar-trecho/<int:rota_id>',criar_trecho,name='criar-trecho'),
     path('excluir-trecho/<int:id>', excluir_trecho,name='excluir-trecho'),
     # path('adicionar-municipio',adicionar_municipio,name='adicionar-municipio'),
 

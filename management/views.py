@@ -13,6 +13,8 @@ from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
 from authentication.data_type import InviteDTO
+from django.db import transaction
+from django.forms import inlineformset_factory
 
 @login_required
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
@@ -598,50 +600,80 @@ def ativar_linha(request, id):
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
 def criar_linha(request):
+    list_forms = []
     if request.method == 'POST':
-        form = LinhaForm(request.POST)
-        if not form.is_valid():
-            print("ERROS DO FORMULÁRIO:", form.errors)
-        if form.is_valid():
-            a = form.save(commit=False)
-            a.city = request.user.personel_profile.city
-            a.save()
-            form.save_m2m()
-           #  return redirect('management:view_institutions')
-            return redirect('management:criar-rota',linha_id=a.id)
+        linha_form = LinhaForm(request.POST,prefix='linha')
+        rota_form = RotaForm(request.POST,prefix='Ida')
+        rota_voltaform = RotaForm(request.POST,prefix='Volta')
+
+        if not linha_form.is_valid():
+            print("ERROS DO FORMULÁRIO:", linha_form.errors)
+        
+        if (linha_form.is_valid() and rota_form.is_valid()) and (not rota_voltaform.has_changed() or rota_voltaform.is_valid()):
+
+            with transaction.atomic():
+                linha = linha_form.save(commit=False)
+                linha.city = request.user.personel_profile.city
+                linha.save()
+                linha_form.save_m2m()
+
+                Ida = rota_form.save(commit=False)
+                Ida.linha = linha
+                Ida.save()
+
+                if rota_voltaform.has_changed():
+                    Volta = rota_voltaform.save(commit=False)
+                    Volta.linha = linha
+                    Volta.save()
+
+            ordens = request.POST.getlist('trecho_ordem')
+            inicios = request.POST.getlist('trecho_parada_inicio')
+            fins = request.POST.getlist('trecho_parada_fim')
+            distancias = request.POST.getlist('trecho_distancia_km')
+
+            if not ordens or not inicios or not fins or not distancias:
+                pass
+
+            for ordem, inicio, fim, distancia in zip(ordens, inicios, fins, distancias):
+
+                trecho = TrechoViagem.objects.create(
+                    rota=Ida,
+                    ordem=ordem,
+                    parada_inicio_id=inicio,
+                    parada_fim_id=fim,
+                    distancia_km=distancia,
+                )
+
+                trecho_form = TrechoViagemForm(trecho)
+                if trecho_form.is_valid():
+                
+                    if Volta is not None:
+                        t_existentes = TrechoViagem.objects.filter(rota=Volta)
+                        for t in t_existentes:
+                            t.ordem += 1
+                            t.save()
+                        trecho_volta = trecho
+                        trecho_volta.pk = None
+                        trecho_volta.id = None
+                        trecho_volta.rota = Volta
+                        trecho_volta.inverter()
+
+            return redirect('management:linhas')
     else:
-        form = LinhaForm()
+        linha_form = LinhaForm(prefix='linha')
+        rota_form = RotaForm(prefix='Ida')
+        rota_voltaform = RotaForm(prefix='Volta')
 
     cidades_relacionadas = []
     cidades_relacionadas = request.user.personel_profile.city.municipios_relacionados.all()
     motoristas = User.objects.filter(role=UserRole.DRIVER,personel_profile__city=request.user.personel_profile.city,is_active=True,)
     instituicoes = Institution.objects.filter(city__in=cidades_relacionadas)
-    contexto = {'form': form,'instituicoes':instituicoes,'motoristas':motoristas}
-    
+    onibus = Bus.objects.filter(city=request.user.personel_profile.city)
+    paradas = BusStop.objects.filter(city__in=cidades_relacionadas)
+    contexto = {'linha_form': linha_form,'rota_form':rota_form,'instituicoes':instituicoes,'rota_voltaform':rota_voltaform,'motoristas':motoristas,'onibus':onibus,'paradas':paradas}
     return render(request, 'manager/criar_linha.html', contexto)
 
-@login_required
-@role_required(allowed_roles=UserRole.MANAGER)
-def criar_rota(request,linha_id):
-    if request.method == 'POST':
-        form = RotaForm(request.POST,prefix='Ida')
-        form2 = RotaForm(request.POST,prefix='Volta')
-        if form.is_valid() :
-            Ida = form.save(commit=False)
-            linha = get_object_or_404(Linha,id=linha_id)
-            Ida.linha = linha
-            Ida.save()
-        if form2.has_changed() and form2.is_valid():
-            Volta = form2.save(commit=False)
-            Volta.linha = linha
-            Volta.save()
-        return redirect('management:criar-trecho',rota_id=Ida.id)
-    else:
-        form = RotaForm(prefix='Ida')
-        form2 = RotaForm(prefix='Volta')
 
-    onibus = Bus.objects.filter(city=request.user.personel_profile.city)
-    return render(request,'manager/criar_rota.html',{'form':form, 'form2': form2,'onibus':onibus})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -653,58 +685,6 @@ def linhas(request):
     return render(request,'manager/linhas.html',context)
 
 
-@login_required
-@role_required(allowed_roles=UserRole.MANAGER)
-def criar_trecho(request,rota_id):
-    if request.method == 'POST':
-        form = TrechoViagemForm(request.POST)
-        if form.is_valid():
-            trecho = form.save(commit=False)
-            rota = get_object_or_404(Rota, id=rota_id)
-            trecho.rota = rota
-            trecho.save()
-
-            linha = rota.linha
-            rota_volta = Rota.objects.filter(linha=linha, direcao="VOLTA").first()
-
-            if rota_volta is not None:
-                t_existentes = TrechoViagem.objects.filter(rota=rota_volta)
-                for t in t_existentes:
-                    t.ordem += 1
-                    t.save()
-                trecho_volta = TrechoViagem.objects.filter(id = trecho.id).first()
-                trecho_volta.pk = None
-                trecho_volta.id = None
-                trecho_volta.rota = rota_volta
-                trecho_volta.inverter()
-
-    # if request.method == 'POST':
-    #     form = TrechoViagemForm(request.POST)
-    #     if form.is_valid():
-    #         trecho = form.save(commit=False)
-    #         rota = get_object_or_404(Rota,id=rota_id)
-    #         trecho.rota = rota
-    #         trecho.save()
-
-
-    #         trecho.pk = None
-    #         trecho.id = None
-
-    #         linha = rota.linha
-    #         rota_volta = Rota.objects.filter(linha=linha,direcao="VOLTA").first()
-    #         if rota_volta is not None:
-    #             trecho2 = form.save(commit=False)
-    #             trecho2.rota = rota_volta
-    #             trecho2.save()
-          
-            return redirect('management:criar-trecho',rota_id=rota.id)
-    else:
-        form = TrechoViagemForm()
-    trechos = TrechoViagem.objects.filter(rota__id=rota_id)
-    cidades_relacionadas = []
-    cidades_relacionadas = request.user.personel_profile.city.municipios_relacionados.all()
-    paradas = BusStop.objects.filter(city__in=cidades_relacionadas)
-    return render(request,'manager/criar_trecho.html',{'form':form,'trechos':trechos,'paradas':paradas})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)

@@ -203,6 +203,23 @@ body {
     margin-bottom: 0;
 }
 
+.erro-geral {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px 2px 3px 10px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+}
+
+.erro-geral p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #be123c;
+}
+
 label {
     font-size: 14px;
     font-weight: 700;
