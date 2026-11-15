@@ -9,25 +9,7 @@
 {% endblock header %}
 
 {% block form_content %}
-    <div class="form-group">
-        <label for="{{form.nome.id_for_label}}">Nome do Município 
-            {% if form.nome.field.required %}
-                <span class="required">*</span>
-            {% endif %}
-        </label>
-        <div class="form-input-wrapper">
-            <span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                    <circle cx="12" cy="10" r="3" />
-                </svg>
-            </span>
-            {{form.nome}}
-        </div>
-        {% for error in form.nome.errors %}
-            <span class="form-messages">{{error}}</span>
-        {% endfor %}
-    </div>
+    
     <div class="form-group">
         <label for="{{form.codigo_ibge.id_for_label}}">Código IBGE 
             {% if form.codigo_ibge.field.required %}
@@ -49,6 +31,7 @@
             <span class="form-messages">{{error}}</span>
         {% endfor %}
     </div>
+    {% if request.user.role == "ADMIN" %}
     <div class="form-group">
         <label for="{{form.gestor.id_for_label}}">Associar Gestor 
             {% if form.gestor.field.required %}
@@ -70,6 +53,7 @@
             <span class="form-messages">{{error}}</span>
         {% endfor %}
     </div>
+    {% endif %}
     <div class="form-actions">
         {% if request.user.role == 'ADMIN' %}
             <a href="{% url "management:municipios" %}">Cancelar</a>
