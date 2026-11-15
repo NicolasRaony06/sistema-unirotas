@@ -77,11 +77,14 @@
                                 </div>
                             </td>
                         </tr>
-                    {% empty %}
-                        <p class="dashboard-message">Nenhum gestor cadastrado</p>
+
                     {% endfor %}
                 </tbody>
+
             </table>
+                            {% if not gestores %} 
+                <p class="dashboard-message">Nenhum gestor cadastrado</p>
+                {% endif %}
         </div>
     </section>
 {% endblock main_content %}

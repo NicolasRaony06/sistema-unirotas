@@ -57,12 +57,9 @@
                     <select name="linha-motorista">
                         <option value="">Selecionar</option>
                         {% for motorista in motoristas %}
-<<<<<<< HEAD
-                        
+
                         <option value="{{ motorista.id }}">{{ motorista.user.full_name }}</option>
-=======
-                        <option value="{{ motorista.id }}">{{ motorista.full_name }}</option>
->>>>>>> 059d110ae951e639c0592637fadd0b55381bd8fc
+
                         {% endfor %}
                     </select>
                         {% if linha_form.motorista.errors %}

@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniRota: Nenhum município vinculado</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: "Poppins", Arial, sans-serif;
+            color: #2f475c;
+            background: #bfdbfe;
+            text-align: center;
+        }
+
+        main {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .logo {
+            display: block;
+            width: 400px;
+            max-width: 60%;
+            height: auto;
+            margin: 0 auto 16px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .logout { margin-top: 28px; }
+
+        .logout button {
+            font-size: 0.875rem;
+            color: #2f475c;
+            background: none;
+            border: 0;
+            padding: 4px;
+            text-decoration: underline;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .logout button:hover { color: #0d52d6; }
+
+
+    </style>
+</head>
+<body>
+    <main>
+        <img class="logo" src="{% static 'images/home/Logo.png' %}" alt="UniRota, transporte universitário">
+
+        <h1>Nenhum município vinculado</h1>
+        <p>Entre em contato com o administrador para ter um município associado à sua conta.</p>
+
+        <form class="logout" method="post" action="{% url 'authentication:logout' %}">
+            {% csrf_token %}
+            <button type="submit">Sair da conta</button>
+        </form>
+    </main>
+</body>
+</html>

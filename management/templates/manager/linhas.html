@@ -5,7 +5,7 @@
 
 {% block header %}
     <h1>Linhas</h1>
-    <p>Gerencie as linhas municipais de {{request.user.municipio.first.nome}}</p>
+    <p>Gerencie as linhas municipais de {{request.user.personel_profile.city}}</p>
 {% endblock header %}
 
 {% block main_content %}
@@ -73,7 +73,8 @@
                 </div>
             </div>
         {% empty %}
-            <p class="dashboard-empty">Nenhuma linha cadastrada</p>
+        
+            <p class="dashboard-message">Nenhuma linha cadastrada</p>
         {% endfor %}
     </section>
 {% endblock main_content %}

@@ -20,6 +20,7 @@ from django.forms import inlineformset_factory
 @login_required()
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def home(request):
+
     if request.user.role == "ADMIN":
         last_municipios = request.session.get("last_metric_city", 0)
         last_gestores = request.session.get("last_metric_manager", 0)
@@ -32,6 +33,9 @@ def home(request):
         request.session[f"last_metric_student"] = total_estudantes
         metricas = [[total_municipios, total_municipios - last_municipios], [total_gestores, total_gestores - last_gestores], [total_estudantes, total_estudantes - last_estudantes]]
     else:
+        if  request.user.personel_profile.city is None:
+            return render(request, 'manager/index.html')
+        
         total_usuarios = UsuarioDaViagem.objects.filter(viagem__rota__linha__in=Linha.objects.filter(city=request.user.personel_profile.city).all()).all().count()
         total_onibus = Bus.objects.filter(city=request.user.personel_profile.city).all().count()
         last_usuarios = request.session.get("last_trip_user", 0)
@@ -397,7 +401,7 @@ def register_bus_stop(request):
         if form.is_valid():
             form.save()
             messages.success(request, f"Parada de ônibus foi cadastrada com sucesso.")
-            return redirect('management:register_bus_stop')
+            return redirect('management:view_bus_stops')
         messages.error(request, "Não foi possível cadastrar a parada de ônibus.")
     else:
         form = BusStopForm(city=request.user.personel_profile.city)
@@ -681,10 +685,8 @@ def criar_linha(request):
                     distancia_km=distancia,
                 )
 
-                trecho_form = TrechoViagemForm(trecho)
-                if trecho_form.is_valid():
                 
-                    if Volta is not None:
+                if Volta is not None:
                         t_existentes = TrechoViagem.objects.filter(rota=Volta)
                         for t in t_existentes:
                             t.ordem += 1
