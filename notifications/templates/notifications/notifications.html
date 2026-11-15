@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - UniRota</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% if request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
+    <link rel="stylesheet" href="{% static 'styles/notifications_personel.css' %}" />
+    {%else%}
+    <link rel="stylesheet" href="{% static "styles/notifications_student.css" %}">
+    {% endif %}
+</head>
+<body>
+    <div class="page-content">
+    <main class="app-shell">
+    {% if request.user.role == "ADMIN" or request.user.role == "MANAGER"%}
+            {% include "partials/_sidebar.html" %}
+    {%endif%}
+    
+        <section class="workspace">
+
+
+
+            <main>
+                <div class="mobile-container">
+                    <header>
+                        <h1>Notificação</h1>
+                    </header>
+                    <form method="post" action="{% url "notifications:mark_as_seen" %}">
+                        {% csrf_token %}
+                        <button type="submit"> marcar tudo como lido</button>
+                    </form>
+                    {% for notification in notifications%}
+                        <div class="notifications">
+                            <div class="notification-flex-row">
+                                <span class="decoration">
+                                    {% if notification.notification.notification_type == "DEFAULT" %}
+                                        <i class="fa-regular fa-flag" style="color: #FFFFFF;"></i>
+                                    {% elif notification.notification.notification_type == "NOTICE" %}
+                                        <i class='fas fa-bus' style="color: #FFFFFF;"></i>
+                                    {% elif notification.notification.notification_type == "ALERT" %}
+                                        <i class="fa-solid fa-circle-exclamation" style="color: #FFFFFF;"></i>
+                                    {%endif%}
+                                </span>
+                                
+                                <div class="body">
+                                    
+                                    <h2 class="title">
+                                        <b>{{notification.notification.title}}</b>
+                                    </h2>
+                                    <p class="description">
+                                        {{notification.notification.body}}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <span class="status">
+                                    <p class="tempo">{{notification.notification.sent_at}}</p>
+                                    {% if not notification.seen and request.user not in notification.trip_user_seen %}
+                                    <i class="fa-solid fa-circle-dot" style="color: #3730a3; background-color: #3730a3; border-radius: 100%;"></i>
+                                    {%endif%}
+                            </span>
+                        </div>
+                    {% empty %}
+                        sem notificações ainda
+                    {%endfor%}
+                </div>
+                
+            </main>
+            
+        </section>
+        
+    </main>
+
+    
+    </div>
+    {% if request.user.role == "STUDENT" or request.user.role == "DRIVER" %}
+        {% include "_nav_bar.html "%} 
+    {%endif%}
+</body>
+</html>

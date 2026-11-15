@@ -23,7 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include("authentication.urls")),
     path('management/',include("management.urls")),
-    path('operation/', include("operation.urls"))
+    path('operation/', include("operation.urls")),
+    path('notifications/', include('notifications.urls'))
 ]
 
 if settings.DEBUG:
