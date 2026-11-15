@@ -62,7 +62,7 @@
                 <p class="dashboard-message">Nenhum município encontrado</p>
             {% endfor %}
         </section>
-        <section class="dashboard-form">
+        {% comment %} <section class="dashboard-form">
             <form action="{% url "management:associar-gestor" %}" method="post">
                 {% csrf_token %}
                 <h4>Associar gestor + município</h4>
@@ -77,11 +77,11 @@
                 <select id="ibge_code" name="codigo_ibge" required>
                     <option value="" disabled selected>Selecionar Município</option>
                     {% for municipio in municipios_ofertados %}
-                        <option value="{{ municipio.codigo_ibge }}">{{ municipio.nome }}</option>
+                        <option value="{{ municipio.codigo_ibge }}">{{ municipio.nome }} - {{ municipio.estado }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit" class="register-button secondary">Vincular à gestor</button>
             </form>
-        </section>
+        </section> {% endcomment %}
     </div>
 {% endblock main_content %}

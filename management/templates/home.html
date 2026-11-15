@@ -39,7 +39,7 @@
                         <circle cx="18" cy="6" r="3"></circle>
                     </svg>
                 </span>
-                <h4>GESTORES <span>{{metricas.1.0}}</span></h4>
+                <h4>TOTAL DE GESTORES <span>{{metricas.1.0}}</span></h4>
                 <span class="badge-count">{% if metricas.0.1 > 0 %}+{%endif%}{{metricas.1.1}}</span>
             </div>
             <div>
@@ -90,7 +90,7 @@
         {% endif %}
     </section>
     <div class="dashboards">
-        <section class="dashboard">
+        <section class="dashboard dashboard-linhas-recentes">
             {% if request.user.role == 'ADMIN' %}
                 <div class="dashboard-header">
                     <h3>Linhas Recentes</h3>
@@ -122,15 +122,16 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                            {% empty %}
-                                <p class="dashboard-message">Nenhuma linha encontrada</p>
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% if not linhas %}
+                         <p class="dashboard-message">Nenhuma linha encontrada</p>
+                    {% endif %}
                 </div>
             {% elif request.user.role == 'MANAGER' %}
                 <div class="dashboard-header">
-                    <h3>Rotas de {{request.user.personel_profile.municipio.first.nome}}</h3>
+                    <h3>Linhas de {{request.user.personel_profile.municipio.first.nome}}</h3>
                     <a href="#rotas" class="see-more">Ver todas →</a>
                 </div>
                 <div class="dashboard-table-secondary">
@@ -161,11 +162,13 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                            {% empty %}
-                                <p class="dashboard-message">Nenhuma rota encontrada</p>
+                        
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% if not request.user.personel_profile.municipio.first.linhas.all %}
+                      <p class="dashboard-message">Nenhuma linha encontrada</p>
+                    {% endif %}
                 </div>
             {% endif %}
         </section>
