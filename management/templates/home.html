@@ -55,22 +55,24 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                            {% empty %}
-                                <p class="dashboard-message">Nenhuma linha encontrada</p>
+                              
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% if not linhas %}
+                      <p class="dashboard-message">Nenhuma linha encontrada</p>
+                    {% endif %}
                 </div>
             {% elif request.user.role == 'MANAGER' %}
                 <div class="dashboard-header">
-                    <h3>Rotas de {{request.user.municipio.first.nome}}</h3>
+                    <h3>Linhas de {{request.user.municipio.nome}}</h3>
                     <a href="#rotas" class="see-more">Ver todas →</a>
                 </div>
                 <div class="dashboard-table-secondary">
                     <table>
                         <thead>
                             <tr>
-                                <th>Código</th>
+                                <th>Nome</th>
                                 <th>Rota</th>
                                 <th>Turno</th>
                                 <th>Motorista</th>
@@ -90,11 +92,13 @@
                                         <span class="badge-status active">Ativo</span>
                                     </td>
                                 </tr>
-                            {% empty %}
-                                <p class="dashboard-message">Nenhuma rota encontrada</p>
                             {% endfor %}
+                            
                         </tbody>
                     </table>
+                    {% if not request.user.municipio.first.linhas.all %}
+                     <p class="dashboard-message">Nenhuma rota encontrada</p>
+                     {% endif %}
                 </div>
             {% endif %}
         </section>
