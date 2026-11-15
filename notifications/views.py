@@ -11,7 +11,7 @@ def notifications(request):
     cleaned_not = []
     for notification in notifications:
         not_obj = notification.notification_user.filter(recipient=request.user).first() if notification.notification_user.filter(recipient=request.user).first() else notification.notification_trip.filter(trip__usuarios__estudante__user=request.user).first()
-        cleaned_not.append(not_obj)
+        cleaned_not.append([not_obj, notification.is_seen(request.user)])
     return render(request, "notifications/notifications.html", {"notifications": cleaned_not, "now": timezone.now()})
 
 @login_required()

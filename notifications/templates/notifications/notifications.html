@@ -26,47 +26,60 @@
 
             <main>
                 <div class="mobile-container">
-                    <header>
-                        <h1>Notificação</h1>
-                    </header>
-                    <form method="post" action="{% url "notifications:mark_as_seen" %}">
-                        {% csrf_token %}
-                        <button type="submit"> marcar tudo como lido</button>
-                    </form>
-                    {% for notification in notifications%}
-                        <div class="notifications">
-                            <div class="notification-flex-row">
-                                <span class="decoration">
-                                    {% if notification.notification.notification_type == "DEFAULT" %}
-                                        <i class="fa-regular fa-flag" style="color: #FFFFFF;"></i>
-                                    {% elif notification.notification.notification_type == "NOTICE" %}
-                                        <i class='fas fa-bus' style="color: #FFFFFF;"></i>
-                                    {% elif notification.notification.notification_type == "ALERT" %}
-                                        <i class="fa-solid fa-circle-exclamation" style="color: #FFFFFF;"></i>
-                                    {%endif%}
-                                </span>
-                                
-                                <div class="body">
-                                    
-                                    <h2 class="title">
-                                        <b>{{notification.notification.title}}</b>
-                                    </h2>
-                                    <p class="description">
-                                        {{notification.notification.body}}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <span class="status">
-                                    <p class="tempo">{{notification.notification.sent_at}}</p>
-                                    {% if not notification.seen and request.user not in notification.trip_user_seen %}
-                                    <i class="fa-solid fa-circle-dot" style="color: #3730a3; background-color: #3730a3; border-radius: 100%;"></i>
-                                    {%endif%}
-                            </span>
+                    <header class="notifications-header-ref">
+                        <h1>Notificações</h1>
+                        <div class="notifications-actions-ref">
+                            <form method="post" action="{% url "notifications:mark_as_seen" %}">
+                                {% csrf_token %}
+                                <button type="submit" class="action-icon-btn" title="Marcar tudo como lido">
+                                    <i class="fa-solid fa-eye" aria-hidden="true"> </i>
+                                </button>
+                            </form>
+                            <button type="button" class="filter-btn-ref">
+                                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                                <span>Filtrar</span>
+                            </button>
                         </div>
-                    {% empty %}
-                        sem notificações ainda
-                    {%endfor%}
+                    </header>
+
+                    <div class="notifications-list-ref">
+                        {% for notification, seen in notifications%}
+                            <div class="notifications">
+                                <div class="notification-flex-row">
+                                    <span class="decoration">
+                                        {% if notification.notification.notification_type == "DEFAULT" %}
+                                            <i class="fa-regular fa-flag" style="color: #FFFFFF;"></i>
+                                        {% elif notification.notification.notification_type == "NOTICE" %}
+                                            <i class='fas fa-bus' style="color: #FFFFFF;"></i>
+                                        {% elif notification.notification.notification_type == "ALERT" %}
+                                            <i class="fa-solid fa-circle-exclamation" style="color: #FFFFFF;"></i>
+                                        {%endif%}
+                                    </span>
+                                    
+                                    <div class="body">
+                                        <h2 class="title">
+                                            <b>{{notification.notification.title}}</b>
+                                        </h2>
+                                        <p class="description">
+                                            {{notification.notification.body}}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <span class="status">
+                                        <p class="tempo">{{notification.notification.sent_at}}</p>
+                                        {% if not seen%}
+                                        <i class="fa-solid fa-circle-dot" style="color: #3730a3; background-color: #3730a3; border-radius: 100%;"></i>
+                                        {%endif%}
+                                </span>
+                            </div>
+                        {% empty %}
+                            <div class="notifications-empty-ref">
+                                <i class="fa-regular fa-bell-slash"></i>
+                                <p>Nenhuma notificação por enquanto</p>
+                            </div>
+                        {%endfor%}
+                    </div>
                 </div>
                 
             </main>

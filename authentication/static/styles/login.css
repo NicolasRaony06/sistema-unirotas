@@ -16,7 +16,9 @@ body {
     align-items: center;
     min-height: 100vh;
 }
-
+.mobile-container {
+    padding: 20px 16px !important;
+}
 .mobile-container {
     width: 100%;
     max-width: 414px;

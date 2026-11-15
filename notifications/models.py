@@ -32,11 +32,11 @@ class Notification(models.Model):
     def trip_user_seen(self):
         return self.notification_trip.all()
 
-    def __str__(self):
-        return User.objects.filter(
-    seen_trip_notification__notification__notification=self
-).distinct()
-
+    def is_seen(self, recipient):
+        not_trip = NotificationTrip.objects.filter(notification=self, user_seen__user__in=[recipient]).exists()
+        not_user = NotificationUser.objects.filter(notification=self, seen__isnull=False).exists()
+        return not_trip or not_user
+    
 class NotificationUser(models.Model):
     seen = models.DateTimeField(null=True, blank=True)
     sender = models.ForeignKey("authentication.User", related_name="notications_sent", on_delete=models.CASCADE)
@@ -58,3 +58,6 @@ class UserSeenNotification(models.Model):
     date_seen = models.DateField(null=True, blank=True)
     class Meta:
         unique_together = ('user', 'notification')
+
+    def __str__(self):
+        return f"{self.user}, {self.notification}"

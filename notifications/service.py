@@ -70,8 +70,8 @@ def mark_notification_as_seen(recipient):
             Notification.objects.filter(
                 Q(notification_user__recipient=recipient, notification_user__seen=None) | 
                 (
-                    Q(notification_trip__trip__usuarios__in=trip_user) & 
-                    ~Q(notification_trip__user_seen__user=recipient)
+                    Q(notification_trip__trip__usuarios__in=trip_user) #& 
+                    #~Q(notification_trip__user_seen__user=recipient)
                 ),
             ).distinct()
         )
@@ -100,12 +100,13 @@ def mark_notification_as_seen(recipient):
 
     if user_notifs_to_update:
         NotificationUser.objects.bulk_update(user_notifs_to_update, ['seen'])
-
+    trip_usuario = trip_user if recipient.role == "STUDENT" else []
     trip_notifs_to_update = list(
         NotificationTrip.objects.filter(
             notification__in=notifications,
-            trip__usuarios__in=trip_user if recipient.role == "STUDENT" else [],
-        ).exclude(user_seen__user=recipient).distinct()
+            trip__usuarios__in= trip_usuario,
+        ).distinct()
     )
+
     for nt in trip_notifs_to_update:
         UserSeenNotification.objects.update_or_create(user=recipient, notification=nt, defaults={"date_seen": today})

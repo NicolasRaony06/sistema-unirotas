@@ -574,3 +574,134 @@ form{
     margin-left: auto;
     justify-content: end;
 }
+
+
+
+/* Estilos complementares para igualar à referência dentro do mobile-container */
+.mobile-container {
+    padding: 20px 16px !important;
+}
+
+.notifications-header-ref {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding-top: 4px;
+}
+
+.notifications-header-ref h1 {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: var(--navy-950, #0B1130) !important;
+    margin: 0 !important;
+    text-align: center;
+}
+
+.notifications-actions-ref {
+    position: fixed;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notifications-actions-ref form {
+    margin: 0 !important;
+}
+
+.action-icon-btn, .filter-btn-ref {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    height: 36px;
+    color: var(--primary-dark, #1a202c);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.action-icon-btn {
+    width: 36px;
+    padding: 0;
+}
+
+.filter-btn-ref {
+    padding: 0 12px;
+    gap: 6px;
+}
+
+.notifications-list-ref {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 70px;
+    width: auto;
+    align-items: end;
+    margin-right: 10%;
+}
+
+/* Ajustes finos nos cards existentes */
+.mobile-container .notifications {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    background-color: #ffffff;
+    margin: 0 !important;
+    padding: 14px;
+    height: auto !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px !important;
+}
+
+.mobile-container .decoration i {
+    background-color: #003FC0 !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+    border-radius: 50% !important;
+}
+
+.mobile-container .notification-flex-row {
+    gap: 12px;
+}
+
+.mobile-container .title {
+    font-size: 14px !important;
+    color: var(--navy-950, #0B1130);
+    margin: 0 0 4px 0 !important;
+}
+
+.mobile-container .description {
+    font-size: 12px !important;
+    color: var(--gray-text, #718096) !important;
+    margin: 0 !important;
+}
+
+.mobile-container .status {
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 6px;
+    margin: 0 !important;
+}
+
+.mobile-container .tempo {
+    font-size: 11px;
+    color: var(--gray-text, #718096);
+    margin: 0 !important;
+    white-space: nowrap;
+}
+
+.mobile-container .status i {
+    margin: 0 !important;
+    width: 8px;
+    height: 8px;
+    font-size: 0;
+}

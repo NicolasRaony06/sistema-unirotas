@@ -15,6 +15,22 @@
 
     --font-main: Arial, sans-serif;
     --font-code: 'Fira Code', monospace;
+    --primary-blue: #0047ab;
+    --primary-dark: #1a202c;
+    --gray-text: #718096;
+    --border-color: #e2e8f0;
+    --bg-color: #f4f6f9;
+    --navy-950: #0B1130;
+    --navy-800: #161D45;
+    --blue-500: #3D6BFF;
+    --blue-100: #EAF0FF;
+    --coral-500: #F0483F;
+    --green-600: #2FA84F;
+    --amber-600: #C98A06;
+    --ink-900: #14161F;
+    --grey-500: #8A8FA3;
+    --grey-200: #E7E9F2;
+    --paper: #F3F5FA;
 }
 
 * {
