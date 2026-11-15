@@ -38,7 +38,10 @@ def lista_viagens(request):
         proxima_parada = paradas_atual.filter(status='Aguardando').first()
         moderador = UsuarioDaViagem.objects.filter(viagem=viagem_atual, moderador=True).first()
 
-    lista_rotas = Rota.objects.filter(linha__motorista=request.user.personel_profile).all()
+    dia = Linha.dias_da_semana[timezone.localtime().weekday()]
+    now = timezone.localtime()
+    date = now.date()
+    lista_rotas = Rota.objects.filter(linha__motorista=request.user.personel_profile, linha__dias_ofertados__contains=dia[0], linha__horario_fim__gte = timezone.localtime()).exclude(viagens__data__date=date).all()
 
     context = {
         'viagem': viagem_atual,
@@ -585,5 +588,31 @@ def alterar_presenca(request):
             inscricao.save()
             messages.success(request, "Presença confirmada com sucesso.")
             return redirect('index_aluno')
+
+@login_required()
+@role_required(UserRole.DRIVER)
+def iniciar_percurso_motorista(request, route_id):
+    route = get_object_or_404(Rota, pk=route_id, linha__motorista=request.user.personel_profile)
+    now = timezone.localtime()
+    inicio = now.replace(
+    hour=0, minute=0, second=0, microsecond=0
+    )
+    fim = inicio + timedelta(days=1)
     
-        
+    if Viagem.objects.filter(rota=route,
+                                                   status__in=['concluida'],
+                                                   data__lt=fim,
+                                                   data__gte=inicio
+                                                    ).count():
+        return HttpResponseForbidden("Viagem ja realizada, não é possivel executar a mesma rota duas vezes em um mesmo dia")
+    
+    viagem = Viagem.objects.filter(rota=route,
+                                                   status__in=['em_andamento', 'aguardando'],
+                                                   data__lt=fim,
+                                                   data__gte=inicio
+                                                    ).first()
+    if not viagem:
+        hour = route.linha.horario_inicio if route.direcao == "IDA" else route.linha.horario_fim
+        viagem = Viagem.objects.create(rota=route, status="em_andamento", data=now.replace(hour=hour.hour, minute=hour.minute, second=0))
+
+    return redirect("lista_viagens")
