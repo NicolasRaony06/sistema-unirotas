@@ -1008,3 +1008,147 @@ input[type='time']::-webkit-calendar-picker-indicator{
 .btn-voltar:active {
     transform: scale(0.95); 
 }
+
+
+.trip-box {
+    background-color: #0f172a; /* Tom escuro elegante do UniRota */
+    border-radius: 16px;
+    padding: 20px;
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 16px; /* Ideal para listas de divs */
+}
+
+.trip-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 12px;
+}
+
+.trip-badge-icon {
+    background: #2563eb;
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.trip-titles {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.trip-line-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.trip-bus-info {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.trip-direction-badge {
+    background: rgba(37, 99, 235, 0.15);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.trip-body {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+}
+
+.trip-time-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 110px;
+}
+
+.trip-section-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.trip-main-time {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1;
+}
+
+.trip-vertical-divider {
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.trip-dest-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.trip-institutions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.trip-institution-item {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.trip-city-sub {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.trip-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: transparent;
+    border: 2px solid #2563eb;
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.trip-action-btn:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.trip-action-icon {
+    display: flex;
+    align-items: center;
+    color: inherit;
+}

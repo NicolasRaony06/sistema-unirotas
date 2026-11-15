@@ -589,6 +589,7 @@ form{
     justify-content: center;
     margin-bottom: 20px;
     padding-top: 4px;
+    padding-bottom: 12px;
 }
 
 .notifications-header-ref h1 {
@@ -656,7 +657,7 @@ form{
     margin: 0 !important;
     padding: 14px;
     height: auto !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 16px !important;
 }
@@ -704,4 +705,21 @@ form{
     width: 8px;
     height: 8px;
     font-size: 0;
+}
+
+.notifications-empty-ref {
+    display: flex;
+    flex-direction: column; /* Empilha o ícone e o texto verticalmente */
+    align-items: center;    /* Centraliza na horizontal */
+    justify-content: center; /* Centraliza na vertical */
+    text-align: center;     /* Garante que qualquer texto interno fique centralizado */
+    padding: 40px 20px;     /* Um respiro interno opcional */
+    min-height: 200px;      /* Altura mínima para a centralização vertical funcionar bem */
+    padding-left: 15vw;
+}
+
+.notifications-empty-ref i {
+    font-size: 2.5rem;      /* Ajuste o tamanho do ícone se precisar */
+    margin-bottom: 12px;    /* Espaço entre o ícone e o texto abaixo */
+    color: #6b7280;         /* Cor sutil para estado vazio (ex: cinza) */
 }
