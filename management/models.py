@@ -109,7 +109,7 @@ class Institution(models.Model):
         return f"{self.name} ({self.city})"
 
 class Linha(models.Model):
-    nome = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100,unique=True)
     instituicoes_ofertadas = models.ManyToManyField(Institution)
     city = models.ForeignKey(Municipio,on_delete=models.PROTECT,related_name='linhas')
     motorista = models.ForeignKey(User,on_delete=models.SET_NULL,limit_choices_to={'role': 'DRIVER'}, null=True)
