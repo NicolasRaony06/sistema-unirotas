@@ -44,16 +44,14 @@ urlpatterns = [
     path('change_avatar/', change_avatar, name="change_avatar"),
     path('change_password/', change_password, name="change_password"),
 
-    path('password_reset/', auth_views.PasswordResetView.as_view(
-        template_name='registration/password_reset_form.html',
-        success_url=reverse_lazy('authentication:password_reset_done')
+    path('password_reset/', ResetPasswordFirst.as_view(
     ), name='password_reset'),
 
-    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+    path('password_reset/done/', ResetDone.as_view(
         template_name='registration/password_reset_done.html'
     ), name='password_reset_done'),
 
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+    path('reset/<uidb64>/<token>/', ConfirmReset.as_view(
         template_name='registration/password_reset_confirm.html',
         success_url=reverse_lazy('authentication:password_reset_complete')
     ), name='password_reset_confirm'),

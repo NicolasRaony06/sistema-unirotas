@@ -1,3 +1,5 @@
+import base64
+
 from .models import User, UserRole, StudentProfile, PersonelProfile
 from .forms import StudentProfileForm, UserRegistrationForm
 from django.shortcuts import render, redirect
@@ -100,3 +102,9 @@ def handle_singup_render_based_on_role(request, invitation_data, cache_data):
             pointer_key = f"invitation_pointer_{invitation_data.higher_role_email}_{invitation_data.email}"
             cache.delete(pointer_key)
     return rend
+
+
+def get_uid(pk):
+    pk = str(pk)
+    encoded = base64.b64encode(bytearray(pk, "utf-8"))
+    return str(encoded).replace("'", "").replace("=", "")[1::]

@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
+from django.core.cache import cache
 from .models import StudentProfile
 from django.core.exceptions import ValidationError
 import re
@@ -178,3 +179,34 @@ class ChangePassword(forms.Form, Validation):
             except ValidationError as e:
                 self.add_error('new_password1', e.messages)
         return cleaned
+
+
+
+
+from django.contrib.auth.forms import PasswordResetForm
+
+class ResetPasswordForm(PasswordResetForm):
+    
+    def send_mail(self,*args, **kwargs):
+        pass
+
+
+class ConfirmPerson(forms.Form):
+    email = forms.EmailField(
+                widget=forms.EmailInput(attrs={
+                    'class': 'form-control',
+                    'placeholder': 'seu@email.com'}
+                    ), label = "email")
+    code = forms.CharField(max_length=6, min_length=6, required=True
+                , label = "000000")
+
+    def clean(self):
+        cleaned_data = super().clean() 
+        key = f"{cleaned_data.get("email")}-verification_code"
+        code = cache.get(key, None)
+        if not code:
+            self.add_error("email", "verifique se o seu email esta digitado corretamente, caso não encontre erro tente seguir o fluxo de esqueci-senha novamente")    
+        if cleaned_data.get("code") != code:
+            self.add_error("code", "codigo incorreto")
+
+        return cleaned_data

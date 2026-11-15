@@ -1,5 +1,9 @@
+import random
+
 from django.shortcuts import render, redirect
-from .forms import LoginForm, ChangePassword, AvatarForm
+
+from notifications.models import NotficationsType, Notification, NotificationUser
+from .forms import ConfirmPerson, LoginForm, ChangePassword, AvatarForm, ResetPasswordForm
 from .models import User
 from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.core.cache import cache
@@ -10,6 +14,7 @@ from .handlers import *
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import HttpResponse
 from .decorators import unloged_required
+from django.contrib.auth import views as auth_views
 # Create your views here.
 
 LOGIN_THRESHOLD = 10
@@ -171,3 +176,65 @@ def change_password(request):
     else:
         form = ChangePassword(user=request.user)
     return render(request, "change_password.html", {"form": form}) 
+
+class ResetPasswordFirst(auth_views.PasswordResetView):
+    template_name='registration/password_reset_form.html'
+    success_url=reverse_lazy('authentication:password_reset_done')
+    form_class = ResetPasswordForm
+
+    def form_valid(self, form):
+        opts = {
+            "use_https": self.request.is_secure(),
+            "token_generator": self.token_generator,
+            "request": self.request,
+        }
+        user = User.objects.filter(email=form.cleaned_data.get("email"), is_active=True).first()
+        if hasattr(user, "personel_profile"):
+            entity = user.personel_profile
+        else:
+            entity = user.student_profile
+        token = opts["token_generator"].make_token(user)
+        uid = get_uid(user.pk)
+        link = reverse_lazy("authentication:password_reset_confirm", kwargs={"uidb64":uid, "token": token})
+        link = self.request.build_absolute_uri(link)
+        if user.role in [UserRole.DRIVER, UserRole.STUDENT]:
+            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, entity.city.gestor.user, NotficationsType.ALERT)
+        else:
+            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, User.objects.filter(role=UserRole.ADMIN).all(), NotficationsType.ALERT)
+        self.request.session["foreget_password_email"] = user.email
+        form.save(**opts)
+
+        return super().form_valid(form)
+
+from django.core.cache import cache
+class ResetDone(auth_views.PasswordResetDoneView):
+    template_name='registration/password_reset_done.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        numero_formatado = [random.randint(0, 9) for i in range(0, 6)].__str__().replace(" ","").replace(",", "").replace("[", "").replace("]", "")
+        context["verificador"] = numero_formatado
+        email:str = self.request.session.get("foreget_password_email")
+        if email:
+            cache.set(f"{email.strip()}-verification_code", numero_formatado, 86400)
+        else:
+            return redirect("password_reset")
+        return context
+
+class ConfirmReset(auth_views.PasswordResetConfirmView):
+    template_name='registration/password_reset_confirm.html'
+    success_url=reverse_lazy('authentication:password_reset_complete')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form_validation"] = ConfirmPerson
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ConfirmPerson(self.request.POST)
+        if form.is_valid():
+            cache.delete(f"{form.cleaned_data.get('email')}-verification_code")
+            return super().post(request, *args, **kwargs)
+        context = self.get_context_data()
+        context["form_validation"] = form
+        return render(self.request, self.template_name, context)

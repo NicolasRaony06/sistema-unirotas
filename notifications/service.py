@@ -1,4 +1,4 @@
-from .models import Notification, NotificationUser, NotificationTrip, UserSeenNotification
+from .models import NotficationsType, Notification, NotificationUser, NotificationTrip, UserSeenNotification
 from authentication.models import User
 from operation.models import Viagem, UsuarioDaViagem
 from django.db import transaction
@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 
-def send_notification(title, message, sender, recipient):
+def send_notification(title, message, sender, recipient, not_type=NotficationsType.DEFAULT):
     with transaction.atomic():
         notification = Notification.objects.create(title=title, body=message)
 
