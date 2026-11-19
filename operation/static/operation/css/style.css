@@ -15,6 +15,7 @@
     --danger-600: #D93025;
     --danger-100: #FDE9EA;
     --blue-600: #2F55E0;
+    --coral-600: #C9332B;
 }
 
 * { box-sizing: border-box; }
@@ -105,14 +106,9 @@ body {
 .btn--outline:hover { background: var(--blue-100); }
 .btn--outline:focus-visible { outline: 3px solid var(--blue-100); outline-offset: 2px; }
 .btn--danger { background: var(--coral-500); color: #fff; }
-.btn--danger-ghost {
-    background: transparent;
-    color: var(--danger-600);
-    font-weight: 600;
-    padding: 8px 10px;
-}
-.btn--danger-ghost:hover { background: var(--danger-100); }
-.btn--danger-ghost:focus-visible { outline: 3px solid var(--danger-100); outline-offset: 2px; }
+.btn--danger:hover { background: var(--coral-600); }
+.btn--danger:focus-visible { outline: 3px solid var(--danger-100); outline-offset: 2px; }
+.btn--danger:active { transform: translateY(1px); }
 .btn--done { background: #232B58; color: #A9B0D6; }
 .btn--full { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn--block { text-decoration: none; }
@@ -1238,4 +1234,62 @@ input[type='time']::-webkit-calendar-picker-indicator{
     color: #dc2626;
     border: none;
 
+}
+/* ===== Menu de três pontinhos do route-card ===== */
+.route-card__menu {
+    margin-left: -4px;    
+    position: relative;
+    flex-shrink: 0;
+}
+
+.route-card__menu summary {
+    list-style: none;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.route-card__menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.route-card__menu summary:hover,
+.route-card__menu[open] summary {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.route-card__dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 160px;
+    background: #1a2250;
+    border: 1px solid #2f3a73;
+    border-radius: 10px;
+    padding: 4px;
+    z-index: 20;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.route-card__dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #ff7a72;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.route-card__dropdown a:hover {
+    background: rgba(255, 122, 114, 0.12);
 }

@@ -31,6 +31,11 @@ class Viagem(models.Model):
         self.status = 'em_andamento'
         self.momento_iniciado = timezone.now()
         self.save()
+        
+    def cancelar(self):
+        self.status = 'aguardando'
+        self.momento_iniciado = None
+        self.save()
 
     def concluir(self, motorista):
         self.status = 'concluida'
