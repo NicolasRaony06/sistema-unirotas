@@ -15,6 +15,11 @@
             <span class="badge-count">{{buses.count}} registros</span>
             <a href="{% url "management:register_bus" %}" class="register-button">+ Novo Ônibus</a>
         </div>
+        <form method="get">
+            {{ filter.form.as_p }}
+            <button type="submit">Filtrar</button>
+            <a href="{% url 'management:view_buses' %}">Limpar filtros</a>
+        </form>
         {% for bus in buses %}
             <div class="dashboard-card">
                 <span class="dashboard-card-icon">
@@ -75,7 +80,11 @@
                 </div>
             </div>
         {% empty %}
-            <p class="dashboard-message">Não há ônibus cadastrados</p>
+            {% if request.GET %}
+                <p class="dashboard-message">Nenhum ônibus encontrado para os filtros informados.</p>
+            {% else %}
+                <p class="dashboard-message">Não há ônibus cadastrados</p>
+            {% endif %}
         {% endfor %}
     </section>
 {% endblock main_content %}
