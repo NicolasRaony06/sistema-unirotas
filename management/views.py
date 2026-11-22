@@ -13,6 +13,7 @@ from authentication.service import recreate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
+from .filters import *
 from authentication.data_type import InviteDTO
 from django.db import transaction
 from django.forms import inlineformset_factory
@@ -334,7 +335,9 @@ def register_bus(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_buses(request):
     buses = Bus.objects.filter(city=request.user.personel_profile.city)
-    return render(request, "manager/view_buses.html", {'buses': buses})
+    bus_filter = BusFilter(request.GET, queryset=buses)
+
+    return render(request, "manager/view_buses.html", {'buses': bus_filter.qs, 'filter': bus_filter})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
