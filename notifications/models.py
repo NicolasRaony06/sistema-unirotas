@@ -6,9 +6,10 @@ from django.utils import timezone
 from authentication.models import User
 
 class NotficationsType(models.TextChoices):
-    DEFAULT = 'DEFAULT', 'Default'
-    NOTICE = 'NOTICE', 'Notice'
-    ALERT = 'ALERT', 'Alert'
+    PASSWORD_RESET = 'PASSWORD_RESET', 'Password_Reset' #precisa ser criado ainda, mas sendo bem sincero não vejo motivos pra ser criado nesse integrador
+    TRIP_STARTED = "TRIP_STARTED", "Trip_Started"
+    INVITE_CONSUMED = "INVITE_CONSUMED", "Invite_Consumed"
+    DEFAULT = "DEFAULT", "Default"
 
 # Create your models here.
 class Notification(models.Model):

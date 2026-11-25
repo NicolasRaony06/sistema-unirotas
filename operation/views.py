@@ -8,13 +8,14 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from authentication.models import UserRole
+from authentication.models import User, UserRole
 from django.db import IntegrityError
 from metrics import service
 from metrics.data_type import LastStopDTO, RouteDTO
 #Viagem
 from authentication.decorators import role_required
-
+from notifications import service as notifications_service
+from notifications.models import NotficationsType
 @login_required()
 @role_required(UserRole.DRIVER)
 def lista_viagens(request):
@@ -146,9 +147,9 @@ def comecar_viagem(request, viagem_id):
     now = timezone.localtime()
     date = now.date()
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
-    
+    recipients = User.objects.filter(student_profile__viagens__viagem=obj_viagem).all()
+    notifications_service.send_notification(f"viagem iniciada pelo motorista {request.user.full_name} para linha {obj_viagem.rota.linha.nome.upper().strip("LINHA").strip("ROTA")}", f"a viagem foi iniciada", request.user, recipients, NotficationsType.TRIP_STARTED)
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
-        print("ou aqui")
         return HttpResponseForbidden("Acesso negado.")
     obj_viagem.comecar()
     return redirect('lista_viagens')

@@ -43,6 +43,11 @@ def extend_validation(invitation_data:InviteDTO):
     if invitation_data.institution_id is None:
         raise ValueError("este convite não é valido pois para o cadastro do estudante é necessario informar uma instituição valida")
 
+
+from notifications import service
+from notifications.models import NotficationsType, Notification, NotificationUser
+
+
 def handle_student_signup(request, invitation_data:InviteDTO):
     if request.method == 'POST':
         form_student = StudentProfileForm(request.POST)
@@ -53,6 +58,7 @@ def handle_student_signup(request, invitation_data:InviteDTO):
                     user = form_account.save(commit=False)
                     user.email = invitation_data.email
                     user.save()
+                    service.send_notification(f"usuario {user.full_name} foi registrado com sucesso", f"o usuario realizou o cadastro com sucesso com o cargo de {user.role}", user, User.objects.filter(email=invitation_data.higher_role_email).first(), NotficationsType.INVITE_CONSUMED)
                     data = form_student.cleaned_data
                     StudentProfile.objects.create(
                         user=user,
@@ -80,6 +86,7 @@ def handle_manager_driver_signup(request, invitation_data):
                     user.email = invitation_data.email
                     user.role = invitation_data.role
                     user.save()
+                    service.send_notification(f"usuario {user.full_name} foi registrado com sucesso", f"o usuario realizou o cadastro com sucesso com o cargo de {user.role}", user, User.objects.filter(email=invitation_data.higher_role_email).first(), NotficationsType.INVITE_CONSUMED)
                     PersonelProfile.objects.create(user=user, city=invitation_data.city_id)
                     return redirect("authentication:login"), True
             except Exception as e:

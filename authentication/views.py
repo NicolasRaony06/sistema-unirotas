@@ -198,9 +198,9 @@ class ResetPasswordFirst(auth_views.PasswordResetView):
         link = reverse_lazy("authentication:password_reset_confirm", kwargs={"uidb64":uid, "token": token})
         link = self.request.build_absolute_uri(link)
         if user.role in [UserRole.DRIVER, UserRole.STUDENT]:
-            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, entity.city.gestor.user, NotficationsType.ALERT)
+            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, entity.city.gestor.user, NotficationsType.PASSWORD_RESET)
         else:
-            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, User.objects.filter(role=UserRole.ADMIN).all(), NotficationsType.ALERT)
+            service.send_notification(f"o usuario {user.full_name} esqueceu a senha", f"o usuario esqueceu a senha e é preciso que voce entre em contato enviando o link: {link} para o email: {user.email}", user, User.objects.filter(role=UserRole.ADMIN).all(), NotficationsType.PASSWORD_RESET)
         self.request.session["foreget_password_email"] = user.email
         form.save(**opts)
 
