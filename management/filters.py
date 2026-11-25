@@ -1,5 +1,5 @@
 import django_filters
-from .models import Bus
+from .models import Bus, BusStop, Municipio 
 
 class BusFilter(django_filters.FilterSet):
     STATUS_CHOICES = (
@@ -22,4 +22,26 @@ class BusFilter(django_filters.FilterSet):
     
     class Meta:
         model = Bus
+        fields = []
+
+class BusStopFilter(django_filters.FilterSet):
+    STATUS_CHOICES = (
+        (True, 'Ativo'),
+        (False, 'Inativo')
+    )
+
+    name = django_filters.CharFilter(lookup_expr='icontains', label="Nome")
+    is_active = django_filters.ChoiceFilter(
+        choices = STATUS_CHOICES,
+        label='Status',
+        empty_label ='Todos'
+    )
+    city = django_filters.ModelChoiceFilter(
+        queryset=Municipio.objects.none(),
+        label='Município',
+        empty_label='Todos'
+    )
+
+    class Meta:
+        model = BusStop
         fields = []

@@ -425,19 +425,16 @@ def register_bus_stop(request):
 @role_required(allowed_roles=UserRole.MANAGER)
 def view_bus_stops(request):
     city = request.user.personel_profile.city
-
-    # related_cities = []
-    # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
-    # if not filter_ocult_related_cities: 
-    #     
-
     related_cities = city.municipios_relacionados.all()
 
     bus_stops = BusStop.objects.filter(
-        Q(city__in=related_cities)
+        city__in=related_cities
     ).select_related('city').distinct()
 
-    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
+    bus_stops_filter = BusStopFilter(request.GET, queryset=bus_stops)
+    bus_stops_filter.filters['city'].queryset = related_cities
+
+    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops_filter.qs, 'filter': bus_stops_filter})
 
 @login_required
 @role_required(allowed_roles=UserRole.MANAGER)
