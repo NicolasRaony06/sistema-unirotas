@@ -410,6 +410,7 @@ def index_aluno(request):
 
 from datetime import datetime, time, timedelta
 
+
 def validate_line_available(linha, direcao, horario_saida):
     now = timezone.localtime()
     date = now.date()
