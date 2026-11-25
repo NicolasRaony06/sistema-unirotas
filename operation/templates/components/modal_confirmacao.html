@@ -1,0 +1,32 @@
+{% load static %}
+
+<!-- Modal Global de Confirmação -->
+<div id="app-modal-backdrop" class="app-modal-backdrop">
+    <div class="app-modal app-modal--danger">
+        
+        <button type="button" class="app-modal__close" onclick="fecharModal()">✕</button>
+
+        <div class="app-modal__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+        </div>
+
+        <h3 class="app-modal__title" id="app-modal-title">Título</h3>
+        <p class="app-modal__message" id="app-modal-message">Mensagem</p>
+
+        <div class="app-modal__actions">
+            <a href="#" class="app-modal__btn app-modal__btn--confirm" id="app-modal-confirm" style="text-decoration: none; box-sizing: border-box;">
+                Confirmar
+            </a>
+
+            <button type="button" class="app-modal__btn app-modal__btn--cancel" id="app-modal-cancel" onclick="fecharModal()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'operation/js/modal.js' %}"></script>

@@ -36,6 +36,8 @@ class Viagem(models.Model):
         self.status = 'aguardando'
         self.momento_iniciado = None
         self.save()
+        
+        self.paradas.update(status='Aguardando', momento_de_conclusao=None)
 
     def concluir(self, motorista):
         self.status = 'concluida'

@@ -28,7 +28,11 @@
                 <h2>{{ linha.nome }}</h2>
                 <span>Transporte público</span>
             </div>
-            <span class="badge badge--active">Ativo</span>
+            {% if viagem.get_status_display %}
+                <span class="badge badge--active">{{viagem.get_status_display}}</span>
+            {% else %}
+                <span class="badge badge--active">Concluido</span>
+            {% endif %}
         </div>
 
         <div class="route-select-card__path">

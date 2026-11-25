@@ -22,26 +22,28 @@
             </button>
 
             <!-- NOVO: menu de três pontinhos com a opção de cancelar -->
-            {% if viagem.status == 'aguardando' or viagem.status == 'em_andamento' %}
-            <details class="route-card__menu">
-                <summary aria-label="Mais opções">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <circle cx="12" cy="5" r="2"/>
-                        <circle cx="12" cy="12" r="2"/>
-                        <circle cx="12" cy="19" r="2"/>
-                    </svg>
-                </summary>
-                <div class="route-card__dropdown">
-                    <a href="{% url 'cancelar_viagem' viagem.pk %}"
-                       onclick="return confirm('Tem certeza que deseja cancelar a rota?');">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
+            {% if viagem.status == 'em_andamento' %}
+                <details class="route-card__menu">
+                    <summary aria-label="Mais opções">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="12" cy="5" r="2"/>
+                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="12" cy="19" r="2"/>
                         </svg>
-                        Cancelar rota
-                    </a>
-                </div>
-            </details>
+                    </summary>
+                    <div class="route-card__dropdown">
+                        <a href="{% url 'cancelar_viagem' viagem.pk %}"
+                        onclick="abrirModal(
+                            this.href,
+                            'Cancelar viagem?',
+                            'Essa ação não pode ser desfeita. Todos os alunos inscritos serão notificados.',
+                            'Sim, cancelar viagem',
+                            'Manter viagem'
+                        ); return false;">
+                            Cancelar rota
+                        </a>
+                    </div>
+                </details>
             {% endif %}
             <!-- /NOVO -->
         </div>
