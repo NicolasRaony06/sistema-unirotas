@@ -5,6 +5,19 @@ from django.utils import timezone
 
 from authentication.models import User
 
+# ESTUDANTES
+# chegada de onibus na instituição --> alert
+# aviso de atraso --> notice
+# inicio da viagem realizado pelo motorista --> notice
+# login realizado em dispositivo novo (sendo bem sincero não vale a pena fazer isso agora) --> alert
+# ADMIN
+# solicitação de troca de senha pedida pelo gestor
+# confirmação do cadastro de conta de um gestor
+# GESTORES
+# solicitação de troca de senha pedida pelo motorista e pelo aluno da cidade
+# aviso criado pelo motorista
+# 
+
 class NotficationsType(models.TextChoices):
     DEFAULT = 'DEFAULT', 'Default'
     NOTICE = 'NOTICE', 'Notice'

@@ -233,8 +233,12 @@ class ConfirmReset(auth_views.PasswordResetConfirmView):
     def post(self, request, *args, **kwargs):
         form = ConfirmPerson(self.request.POST)
         if form.is_valid():
-            cache.delete(f"{form.cleaned_data.get('email')}-verification_code")
-            return super().post(request, *args, **kwargs)
+            email:str = self.request.session.get("forget_password_email")
+            if email:
+                if email.strip().lower() == form.cleaned_data.get("email").strip().lower():
+                    cache.delete(f"{form.cleaned_data.get('email')}-verification_code")
+                    return super().post(request, *args, **kwargs)
+        
         context = self.get_context_data()
         context["form_validation"] = form
         return render(self.request, self.template_name, context)
