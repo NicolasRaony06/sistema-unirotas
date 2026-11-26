@@ -48,12 +48,13 @@ def gestores(request):
 @login_required
 @role_required(allowed_roles=UserRole.ADMIN)
 def municipios(request):
+        municipios = Municipio.objects.select_related('gestor')
+        city_filter = CityFilter(request.GET, queryset=municipios, user=request.user)
         context = {
             'linhas': Linha.objects.filter(is_active=True),
             'total_onibus' : Bus.objects.all().count(),
-            'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
-            'municipios' : Municipio.objects.all(),
-            'tot_municipios' : Municipio.objects.all().count(),
+            'municipios' : city_filter.qs,
+            'filter': city_filter,
             'gestores' : User.objects.filter(role=UserRole.MANAGER),
             'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
             'associate_city_manager_form': AssociateCityManager()
@@ -175,13 +176,12 @@ def localizacoes(request):
             'total_municipios': 0,
         })
     else:
-        tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
-        municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk)
+        municipios = municipio_base.municipios_relacionados.exclude(pk=municipio_base.pk)
+        city_filter = CityFilter(request.GET, queryset=municipios, user=request.user)
         return render(request, 'manager/localizacoes.html', {
-                    
                     'municipio': municipio_base,
-                    'total_municipios': tot_municipios,
-                    'municipios': municipios,
+                    'municipios': city_filter.qs,
+                    'filter': city_filter
                 })
 
 

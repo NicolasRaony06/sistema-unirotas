@@ -17,6 +17,11 @@
             <span class="badge-count">{{municipios.count}} registros</span>
             <a href="{% url "management:adicionar-municipio" %}" class="register-button">+ Novo Municipio</a>
         </div>
+        <form method="get">
+            {{ filter.form.as_p }}
+            <button type="submit">Filtrar</button>
+            <a href="{% url 'management:localizacoes' %}">Limpar filtros</a>
+        </form>
         {% for municipio in municipios %}
             <div class="dashboard-card">
                 <span class="dashboard-card-icon">
@@ -30,6 +35,11 @@
                 <div class="dashboard-card-info">
                     <div>
                         <p>{{municipio.codigo_ibge}}</p>
+                        {% if municipio.ofertado_pelo_sistema %}
+                            <span class="badge-status active">Ofertado</span>
+                        {% else %}
+                            <span class="badge-status inactive">Não ofertado</span>
+                        {% endif %}
                     </div>
                     <h4>{{municipio.nome}}</h4>
                     <p class="subinfo">{{municipio.bus_stops.count}} Paradas · {{municipio.institutions.count}} Instituições</p>
@@ -55,7 +65,11 @@
                 </div>
             </div>
         {% empty %}
-            <p class="dashboard-message">Nenhuma localização encontrada</p>
+            {% if request.GET %}
+                <p class="dashboard-message">Nenhuma localização encontrada para os filtros informados.</p>
+            {% else %}
+                <p class="dashboard-message">Nenhuma localização encontrada</p>
+            {% endif %}
         {% endfor %}
     </section>
 {% endblock main_content %}

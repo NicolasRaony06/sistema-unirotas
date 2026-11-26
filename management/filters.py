@@ -1,5 +1,44 @@
 import django_filters
-from .models import Bus, BusStop, Municipio 
+from .models import Bus, BusStop, Municipio
+from authentication.models import User, UserRole
+
+class CityFilter(django_filters.FilterSet):
+    STATUS_CHOICES = (
+        (True, 'Ofertado'),
+        (False, 'Inofertado')
+    )
+
+    name = django_filters.CharFilter(
+        field_name='nome',
+        lookup_expr='icontains',
+        label='Nome'
+    )
+    ibge_code = django_filters.CharFilter(
+        field_name='codigo_ibge',
+        lookup_expr='icontains',
+        label='Código ibge'
+    )
+    oferted_by_system = django_filters.ChoiceFilter(
+        field_name='ofertado_pelo_sistema',
+        choices = STATUS_CHOICES,
+        label='Ofertado pelo sistema',
+        empty_label = 'Todos'
+    )
+    manager = django_filters.ModelChoiceFilter(
+        field_name='gestor',
+        queryset=User.objects.filter(role=UserRole.MANAGER),
+        label='Gestor',
+        empty_label='Todos'
+    )
+
+    class Meta:
+        model = Municipio
+        fields = []
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not user or user.role != UserRole.ADMIN:
+            self.filters.pop('manager', None)
 
 class BusFilter(django_filters.FilterSet):
     STATUS_CHOICES = (
