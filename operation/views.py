@@ -163,6 +163,17 @@ def cancelar_viagem(request, viagem_id):
     obj_viagem.cancelar()
     return redirect('lista_viagens')
 
+@login_required()
+@role_required(UserRole.DRIVER)
+def pausar_viagem(request, viagem_id):
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
+        print("ou aqui")
+        return HttpResponseForbidden("Acesso negado.")
+    obj_viagem.pausar()
+    return redirect('lista_viagens')
+
 #Alunos
 
 @login_required()

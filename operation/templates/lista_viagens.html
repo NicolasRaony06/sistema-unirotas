@@ -32,13 +32,25 @@
                         </svg>
                     </summary>
                     <div class="route-card__dropdown">
-                        <a href="{% url 'cancelar_viagem' viagem.pk %}"
+                        <a class="is-pause" href="{% url 'pausar_viagem' viagem.pk %}"
+                        onclick="abrirModal(
+                            this.href,
+                            'Pausar viagem?',
+                            'Todos os alunos inscritos serão notificados que a viagem foi pausada.',
+                            'Sim, pausar viagem',
+                            'Manter viagem',
+                            'warning'
+                        ); return false;">
+                            Pausar rota
+                        </a>
+                        <a class="is-cancel" href="{% url 'cancelar_viagem' viagem.pk %}"
                         onclick="abrirModal(
                             this.href,
                             'Cancelar viagem?',
                             'Essa ação não pode ser desfeita. Todos os alunos inscritos serão notificados.',
                             'Sim, cancelar viagem',
-                            'Manter viagem'
+                            'Manter viagem',
+                            'danger'
                         ); return false;">
                             Cancelar rota
                         </a>
@@ -205,13 +217,5 @@
 </section>
         {% endfor %}
     {% endif %}
-
-    <script>
-        document.addEventListener('click', function (e) {
-            document.querySelectorAll('.route-card__menu[open]').forEach(function (menu) {
-                if (!menu.contains(e.target)) menu.removeAttribute('open');
-            });
-        });
-    </script>
 
 {% endblock %}

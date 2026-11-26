@@ -1283,16 +1283,29 @@ input[type='time']::-webkit-calendar-picker-indicator{
     gap: 8px;
     padding: 10px 12px;
     border-radius: 8px;
-    color: #ff7a72;
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
     white-space: nowrap;
 }
 
-.route-card__dropdown a:hover {
+/* Pausar: amarelo */
+.route-card__dropdown a.is-pause {
+    color: #ffc93c;
+}
+.route-card__dropdown a.is-pause:hover {
+    background: rgba(255, 201, 60, 0.12);
+}
+
+/* Cancelar: coral (original) */
+.route-card__dropdown a.is-cancel {
+    color: #ff7a72;
+}
+.route-card__dropdown a.is-cancel:hover {
     background: rgba(255, 122, 114, 0.12);
 }
+
+
 
 /*==================================================
 /*=================Modal============================
@@ -1359,15 +1372,42 @@ input[type='time']::-webkit-calendar-picker-indicator{
     background-color: #f1f5f9;
 }
 
-/* Círculo do ícone */
+/* Cores de cada variação */
+.app-modal--danger {
+    --modal-accent: #ff5a52;
+    --modal-accent-bg: rgba(255, 122, 114, 0.15);
+    --modal-confirm-bg: #dc2626;
+    --modal-confirm-text: #fff;
+}
+
+.app-modal--warning {
+    --modal-accent: #e6a800;
+    --modal-accent-bg: rgba(255, 201, 60, 0.2);
+    --modal-confirm-bg: #ffc93c;
+    --modal-confirm-text: #1a2250;
+}
+
+/* Ícone */
 .app-modal__icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    width: 64px;
+    height: 64px;
     margin: 0 auto 16px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--modal-accent-bg);
+    color: var(--modal-accent);
+}
+
+.app-modal__btn--confirm {
+    background: var(--modal-confirm-bg);
+    color: var(--modal-confirm-text);
+}
+
+.app-modal__icon svg {
+    display: block;
+    transform: translateY(-1px);
 }
 
 /* Textos */
