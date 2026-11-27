@@ -1,0 +1,440 @@
+.layout {
+    width: 100%;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+    gap: 24px;
+    align-items: start;
+    font-family: Arial, sans-serif;
+}
+
+.layout .coluna {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+@media (max-width: 800px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card-perfil {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-perfil h2 {
+    margin: 0 0 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 16px;
+}
+
+.card-perfil .topo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-perfil .foto img{
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #c9a27a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.card-perfil .topo strong {
+    display: block;
+    font-size: 14px;
+}
+
+.card-perfil .topo small {
+    color: #777;
+    font-size: 11px;
+}
+
+.card-perfil .topo a {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #0a3cc8;
+    text-decoration: none;
+}
+
+.card-perfil .linha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.card-perfil .campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-perfil .campo.inteiro {
+    margin-bottom: 12px;
+}
+
+.card-perfil label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.card-perfil input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-height: 44px;
+}
+
+/* Upload da foto de perfil */
+.card-perfil .topo {
+    align-items: center;
+}
+
+.card-perfil .info-usuario {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.card-perfil .campo-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.card-perfil .django-file-wrapper {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+.form-actions {
+    display: flex;
+    justify-content:center;
+    margin-top: 8px;
+}
+
+.erro-geral {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px 2px 3px 10px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+}
+
+.erro-geral p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #be123c;
+}
+.erro-geral li {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #be123c;
+}
+.form-actions button {
+    color: white;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    width: 225px;
+    height: 44px;
+    border: none;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+.card-perfil .botao-upload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 4px 8px;
+    border: 1px solid #0a3cc8;
+    border-radius: 5px;
+    background: #fff;
+    color: #0a3cc8;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.card-perfil .texto-arquivo {
+    max-width: 180px;
+    color: #777;
+    font-size: 9px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card-seguranca {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-seguranca h2 {
+    margin: 0 0 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 16px;
+}
+
+.card-seguranca .linha {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.card-seguranca .campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-seguranca .campo.inteiro {
+    margin-bottom: 12px;
+}
+
+.card-seguranca label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.card-seguranca input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    min-height: 44px;
+}
+
+.card-seguranca .requisitos {
+    background: #f4f3ee;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-size: 11px;
+    color: #555;
+}
+
+.card-seguranca .requisitos strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #0f1b3d;
+}
+
+.card-seguranca .requisitos ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.card-seguranca .requisitos li {
+    margin-bottom: 5px;
+}
+
+.card-seguranca .requisitos li::before {
+    content: "✔ ";
+    color: #0a3cc8;
+}
+
+.card-seguranca .dois-fatores {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f4f3ee;
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.card-seguranca .dois-fatores strong {
+    display: block;
+    font-size: 12px;
+}
+
+.card-seguranca .dois-fatores small {
+    color: #777;
+    font-size: 11px;
+}
+
+.card-seguranca .dois-fatores button {
+    background: #fff;
+    color: #0a3cc8;
+    border: 1px solid #0a3cc8;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card-notificacoes {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-notificacoes h2 {
+    margin: 0 0 5px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 16px;
+}
+
+.card-notificacoes .item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.card-notificacoes .item strong {
+    display: block;
+    font-size: 12px;
+}
+
+.card-notificacoes .item small {
+    color: #777;
+    font-size: 10px;
+}
+
+/* Interruptor (toggle) feito com checkbox */
+.card-notificacoes .toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 34px;
+    height: 20px;
+    background: #dfe2ea;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.card-notificacoes .toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+}
+
+.card-notificacoes .toggle:checked {
+    background: #0a3cc8;
+}
+
+.card-notificacoes .toggle:checked::after {
+    left: 16px;
+}
+
+.card-notificacoes .canais {
+    margin-top: 15px;
+}
+
+.card-notificacoes .canais p {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #555;
+}
+
+.card-notificacoes .canais button {
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #555;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card-notificacoes .canais button.ativo {
+    background: #0a3cc8;
+    border-color: #0a3cc8;
+    color: #fff;
+}
+
+.card-conta {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-conta h2 {
+    margin: 0 0 5px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 16px;
+}
+
+.card-conta .info {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 11px;
+}
+
+.card-conta .info span {
+    color: #777;
+}
+
+.card-conta .info strong {
+    color: #0f1b3d;
+}
+
+.card-conta .excluir {
+    width: 100%;
+    margin-top: 15px;
+    padding: 9px;
+    background: #fff;
+    color: #d62839;
+    border: 1px solid #d62839;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}

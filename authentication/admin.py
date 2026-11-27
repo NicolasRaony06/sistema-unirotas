@@ -70,7 +70,7 @@ class UserAdmin(BaseUserAdmin):
             "fields": ("email", "password")
         }),
         ("Informações pessoais", {
-            "fields": ("full_name", "role", "profile_picture")
+            "fields": ("full_name", "role", "profile_picture","birth_date")
         }),
         ("Permissões", {
             "fields": (

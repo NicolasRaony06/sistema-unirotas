@@ -45,7 +45,9 @@ urlpatterns = [
     #path('criar-trecho/<int:rota_id>',criar_trecho,name='criar-trecho'),
     path('excluir-trecho/<int:id>', excluir_trecho,name='excluir-trecho'),
     path('invite-manager', invite_manager, name="invite_manager"),
-    path('edit-manager/<int:manager_id>', edit_manager, name="edit_manager")
+    path('edit-manager/<int:manager_id>', edit_manager, name="edit_manager"),
     # path('adicionar-municipio',adicionar_municipio,name='adicionar-municipio'),
+    path('detail-manager/<int:manager_id>',detail_manager,name="detail_manager"),
+    path('configuracoes/',configuracoes,name='configuracoes'),
 
 ]

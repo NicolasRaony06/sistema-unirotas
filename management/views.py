@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
@@ -15,6 +16,7 @@ from .handlers import *
 from authentication.data_type import InviteDTO
 from operation.models import Viagem, UsuarioDaViagem
 from django.db import transaction
+from authentication.forms import ChangePassword
 from django.forms import inlineformset_factory
 
 @login_required()
@@ -804,7 +806,43 @@ def edit_manager(request, manager_id):
         form = EditManager(instance=manager)
     return render(request, "admin/edit_manager.html", {"form": form})
 
+@login_required()
+@role_required(UserRole.ADMIN)
+def detail_manager(request,manager_id):
+    manager = get_object_or_404(PersonelProfile, id=manager_id, user__role=UserRole.MANAGER)
+    if request.method == 'POST':
+        form = ManagerForm(request.POST,instance=manager.user)
+        form2 = EditManager(request.POST,instance=manager)
+        if form.is_valid():
+            form.save()
+            return redirect("management:gestores")
+    else:
+        form = ManagerForm(instance=manager.user)
+        form2 = EditManager(instance=manager)
 
+    return render(request,"admin/teste.html",{'form':form,'form2':form2,'manager':manager})
+
+@login_required()
+@role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
+def configuracoes(request):
+    form = ManagerForm(instance=request.user)
+    form2 = ChangePassword(user=request.user)    
+    if request.method == 'POST':
+        action = request.POST.get("action")
+        if action == "senha":
+            form2 = ChangePassword(request.POST,user=request.user)  
+            if form2.is_valid():
+                if request.user.check_password(form2.cleaned_data.get("password")):
+                    request.user.set_password(form2.cleaned_data.get("new_password1"))
+                    request.user.save()
+                    update_session_auth_hash(request, request.user)
+        elif action == "config":
+            form = ManagerForm(request.POST,request.FILES,instance=request.user)
+            if form.is_valid():
+                form.save()
+        
+   
+    return render(request,"configuracoes.html",{'form':form,'form2':form2})
 # @login_required()
 # def adicionar_municipio(request):
 #     if request.method == 'POST':

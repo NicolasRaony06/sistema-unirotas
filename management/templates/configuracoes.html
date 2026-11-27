@@ -1,0 +1,219 @@
+{% extends "base_home.html" %}
+{% load static %}
+
+{% block title %}Configurações | Admin{% endblock title %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static "css/base_home.css" %}">
+<link rel="stylesheet" href="{% static "css/config.css" %}">
+{% endblock extra_css %}
+
+{% block header %}
+<h1>Configurações</h1>
+<p>Gerencie as configurações da sua conta e do sistema</p>
+{% endblock header %}
+{% block main_content %}
+
+
+
+<div class="layout">
+
+    <div class="coluna">
+
+        <section class="card-perfil">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <h2>Perfil do Usuário</h2>
+
+                <div class="topo">
+                    <div class="foto"><img src="{{request.user.avatar_url}}" alt="Foto do Usuário"></div>
+
+                    <div class="info-usuario">
+                        <strong>{{request.user.full_name}}</strong>
+                        <div class="campo-upload">
+                            <label for="{{form.profile_picture.id_for_label }}" class="botao-upload">Alterar
+                                foto</label>
+                            <div class="django-file-wrapper">
+                                {{form.profile_picture}}
+                            </div>
+                            <span id="nome-arquivo" class="texto-arquivo">
+                                {% if form.instance.profile_picture %}
+                                {{ form.instance.profile_picture.name }}
+                                {% else %}
+                                Nenhum arquivo selecionado
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="linha">
+                    <div class="campo">
+                        <label for="nome">Nome</label>
+                        <input type="text" id="nome" name="first_name" value="{{request.user.first_name}}">
+                    </div>
+
+                    <div class="campo">
+                        <label for="sobrenome">Sobrenome</label>
+                        <input type="text" id="sobrenome" name="last_name" value="{{request.user.last_name}}">
+                    </div>
+                </div>
+
+                <div class="campo inteiro">
+                    <label for="email">E-mail</label>
+                    <input type="email" name="email" id="email" value="{{request.user.email}}">
+                </div>
+                        {% if form.email.errors %}
+                        <div class="erro-geral">
+                            {% for erro in form.email.errors %}
+                            <p>{{ erro }}</p>
+                            {% endfor %}
+                        </div>{% endif %}
+
+                <div class="linha">
+                    <div class="campo">
+                        <label for="birth_date">Data de nascimento</label>
+                        <input type="date" id="birth_date" name="birth_date"
+                            value="{{request.user.birth_date|date:'Y-m-d' }}"> 
+                    </div>
+                    <div class="campo">
+                        <label for="cargo">Cargo</label>
+                        <input type="text" id="cargo" value="{{request.user.role}}" disabled>
+                    </div>
+                </div>
+                <div class="form-actions">
+                <button type="submit"name="action" value="config" >
+                    Salvar 
+                </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card-seguranca">
+
+            <form method="POST">
+                {% csrf_token %}
+                <h2>Segurança</h2>
+
+                <div class="campo inteiro">
+                    <label for="senha-atual">Senha atual</label>
+                    <input type="password" id="senha-atual" name="password">
+                </div>
+                        {% if form2.password.errors %}
+                        <div class="erro-geral">
+                            <p>{{ form2.password.errors.0 }}</p>
+                        </div>{% endif %}
+                <div class="linha">
+                    <div class="campo">
+                        <label for="nova-senha">Nova senha</label>
+                        <input type="password" id="nova-senha" name="new_password1">
+                    </div>
+                    
+                    <div class="campo">
+                        <label for="confirmar-senha">Confirmar nova senha</label>
+                        <input type="password" id="confirmar-senha" name="new_password2">
+                    </div>
+                </div>
+                 {% if form2.new_password1.errors %}
+                        <div class="erro-geral">
+                            <p>{{ form2.new_password1.errors.0 }}</p>
+                        </div>{% endif %}
+
+                <div class="requisitos">
+                    <strong>Requisitos de senha</strong>
+                    <ul>
+                        <li>Mínimo de 8 caracteres</li>
+                        <li>Pelo menos uma letra maiúscula</li>
+                        <li>Pelo menos um número</li>
+                        <li>Pelo menos um caractere especial</li>
+                    </ul>
+                </div>
+                <div class="form-actions">
+                    <button  class="btn-submit" type="submit" name="action" value="senha">Redefinir Senha</button>
+                </div>    
+            </form>
+        </section>
+
+    </div>
+
+    
+    <div class="coluna">
+
+        <section class="card-notificacoes">
+
+
+            <h2>Notificações</h2>
+
+            <div class="item">
+                <div>
+                    <strong>Novas rotas cadastradas</strong>
+                    <small>Receba alertas quando uma rota for criada</small>
+                </div>
+                <input type="checkbox" class="toggle" checked>
+            </div>
+
+            <div class="item">
+                <div>
+                    <strong>Alterações em motoristas</strong>
+                    <small>Atribuições e remoções de motoristas</small>
+                </div>
+                <input type="checkbox" class="toggle" checked>
+            </div>
+
+            <div class="item">
+                <div>
+                    <strong>Alertas de frota</strong>
+                    <small>Manutenção e status dos ônibus</small>
+                </div>
+                <input type="checkbox" class="toggle">
+            </div>
+
+            <div class="item">
+                <div>
+                    <strong>Relatórios semanais</strong>
+                    <small>Resumo semanal por e-mail</small>
+                </div>
+                <input type="checkbox" class="toggle" checked>
+            </div>
+
+            <div class="item">
+                <div>
+                    <strong>Paradas inativas</strong>
+                    <small>Paradas sem movimentação recente</small>
+                </div>
+                <input type="checkbox" class="toggle">
+            </div>
+            <div class="item">
+                <div>
+                    <strong>Paradas inativas</strong>
+                    <small>Paradas sem movimentação recente</small>
+                </div>
+                <input type="checkbox" class="toggle">
+            </div>
+            {% comment %} <div class="canais">
+                <p>Canal de notificação</p>
+                <button type="button" class="ativo">E-mail</button>
+                <button type="button">SMS</button>
+                <button type="button" class="ativo">Push</button>
+            </div> {% endcomment %}
+        </section>
+
+        <section class="card-conta">
+
+            <h2>Informações da Conta</h2>
+            {% if request.user.role == 'MANAGER' %}<div class="info"><span>Município</span><strong>{{request.user.personel_profile.city}}</strong></div>{% endif %}
+            
+           
+            <div class="info"><span>Perfil de acesso</span><strong> {% if request.user.role == 'ADMIN' %}Administrador Geral {%else%} Gestor Municipal{% endif %}</strong></div>
+            
+            <div class="info"><span>Conta criada em</span><strong>{{ user.date_joined|date:'m-d-Y' }}</strong></div>
+            <div class="info"><span>Último acesso</span><strong>{{user.last_login}}</strong></div>
+
+        </section>
+
+    </div>
+
+</div>
+
+
+{% endblock main_content %}

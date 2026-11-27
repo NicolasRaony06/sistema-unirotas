@@ -1,7 +1,7 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
 
-from authentication.models import PersonelProfile, UserRole
+from authentication.models import PersonelProfile, UserRole, User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -166,4 +166,27 @@ class EditManager(forms.ModelForm):
                 
     #             self.fields['city'].queryset = Municipio.objects.filter(
     #                 Q(id=city.id) | (Q(id__in=related_cities) & Q(ofertado_pelo_sistema=False))).distinct()
+class ManagerForm(forms.ModelForm):
+    first_name = forms.CharField(label="Primeiro Nome", max_length=150)
+    last_name = forms.CharField(label="Segundo Nome", max_length=150, required=False)
     
+    class Meta:
+        model = User
+        fields = ["email","birth_date","profile_picture","first_name","last_name"]
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['first_name'].initial = self.instance.first_name
+            self.fields['last_name'].initial = self.instance.last_name
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        primeiro = self.cleaned_data.get("first_name", "").strip()
+        segundo = self.cleaned_data.get("last_name", "").strip()
+        
+        user.full_name = f"{primeiro} {segundo}".strip()
+
+        if commit:
+            user.save()
+        return user

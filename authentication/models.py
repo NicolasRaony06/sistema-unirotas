@@ -76,6 +76,19 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.profile_picture.url
         return '/static/images/settings/base_profile.png'
 
+    @property
+    def first_name(self):
+        return self.full_name.strip().split(' ')[0] if self.full_name else ''
+
+    @property
+    def last_name(self):
+        partes = self.full_name.strip().split(maxsplit=1)
+
+        if len(partes) == 2:
+            return partes[1]
+
+        return ''
+    
     def can_invite(self, role):
         if not self.is_active or not role:
             return False
