@@ -33,25 +33,23 @@
                     </summary>
                     <div class="route-card__dropdown">
                         <a class="is-pause" href="{% url 'pausar_viagem' viagem.pk %}"
-                        onclick="abrirModal(
-                            this.href,
+                        onclick="event.preventDefault(); abrirModal(
                             'Pausar viagem?',
                             'Todos os alunos inscritos serão notificados que a viagem foi pausada.',
                             'Sim, pausar viagem',
                             'Manter viagem',
-                            'warning'
-                        ); return false;">
+                            'warning',
+                            this)">
                             Pausar rota
                         </a>
                         <a class="is-cancel" href="{% url 'cancelar_viagem' viagem.pk %}"
-                        onclick="abrirModal(
-                            this.href,
+                        onclick="event.preventDefault(); abrirModal(
                             'Cancelar viagem?',
                             'Essa ação não pode ser desfeita. Todos os alunos inscritos serão notificados.',
                             'Sim, cancelar viagem',
                             'Manter viagem',
-                            'danger'
-                        ); return false;">
+                            'danger',
+                            this)">
                             Cancelar rota
                         </a>
                     </div>
@@ -82,9 +80,27 @@
             <a class="btn btn--ghost" href="{% url 'lista_alunos' viagem.pk %}">Lista de alunos</a>
 
             {% if viagem.status == 'aguardando' %}
-                <a class="btn btn--solid" href="{% url 'comecar_viagem' viagem.pk %}">Iniciar percurso</a>
+                <a class="btn btn--solid" href="{% url 'comecar_viagem' viagem.pk %}"
+                    onclick="event.preventDefault(); abrirModal(
+                    'Iniciar percurso?',
+                    'A viagem será iniciada. Confirme apenas se estiver pronto para sair.',
+                    'Sim, iniciar percurso',
+                    'Cancelar',
+                    'warning',
+                    this)">
+                    Iniciar percurso
+                </a>
             {% elif viagem.status == 'em_andamento' %}
-                <a class="btn btn--solid btn--danger" href="{% url 'concluir_viagem' viagem.pk %}">Finalizar rota</a>
+                <a class="btn btn--solid btn--danger" href="{% url 'concluir_viagem' viagem.pk %}"
+                    onclick="event.preventDefault(); abrirModal(
+                    'Finalizar viagem?', 
+                    'A viagem será encerrada e essa ação não poderá ser desfeita.', 
+                    'Sim, finalizar viagem', 
+                    'Manter viagem', 
+                    'danger', 
+                    this)">
+                    Finalizar rota
+                </a>
             {% endif %}
         </div>
     </section>
