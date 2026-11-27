@@ -1,11 +1,6 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
-
-<<<<<<< HEAD
 from authentication.models import PersonelProfile, UserRole, User
-=======
-from authentication.models import UserRole, User
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -97,11 +92,8 @@ class TrechoViagemForm(forms.ModelForm):
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
 
-<<<<<<< HEAD
-class InviteUserForm(forms.Form):
-=======
+
 class BaseInviteForm(forms.Form):
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
     email = forms.EmailField(widget=forms.EmailInput(attrs={
             'placeholder': 'email@example.com'
     }))
@@ -121,7 +113,6 @@ class BaseInviteForm(forms.Form):
                 )
         return cleaned_data
 
-<<<<<<< HEAD
 class InviteManagerForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         'placeholder': 'gestor@example.com'
@@ -191,7 +182,6 @@ class ManagerForm(forms.ModelForm):
         if commit:
             user.save()
         return user
-=======
 class InviteDriverForm(BaseInviteForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -227,5 +217,3 @@ class AssociateCityManager(forms.Form):
 
         self.fields['manager'].choices = [('', 'Selecionar Gestor')] + list(managers)
         self.fields['city'].choices = [('', 'Selecionar Município')] + list(cities)
-
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0

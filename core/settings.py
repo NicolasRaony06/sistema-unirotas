@@ -25,22 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECURITY WARNING: keep the secret key used in production secret!
-<<<<<<< HEAD
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     SECRET_KEY = "secret_super_forte1234"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 DEBUG = True
-=======
-# SECRET_KEY = os.environ.get("SECRET_KEY")
-SECRET_KEY = 'django-insecure-yy$id%^x76jwg&15gxlpuy)%evy7a3wc0y0omo!5v@ht=+ky!+'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.environ.get("DEBUG", "False") == "True"
-DEBUG = True
-
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 ALLOWED_HOSTS = [
     '.onrender.com', 'localhost', '127.0.0.1'
 ]
@@ -58,10 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'management',
-<<<<<<< HEAD
     'notifications',
-=======
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
     'operation',
     'metrics',
 ]
@@ -100,7 +88,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-<<<<<<< HEAD
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
     DATABASES = {
@@ -117,22 +104,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-=======
-# DATABASE_URL = os.getenv("DATABASE_URL")
-# DATABASES = {
-#     "default": dj_database_url.config(
-#         default=DATABASE_URL,
-#         conn_max_age=600,
-#         ssl_require=True,
-#     ),
-# }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
+
 
 
 # Password validation

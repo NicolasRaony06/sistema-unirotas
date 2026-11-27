@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 from .models import Municipio
 from authentication.models import PersonelProfile
-=======
 import qrcode
 import io
 import base64
@@ -9,7 +7,6 @@ from django.contrib import messages
 
 # from .models import Municipio
 # from authentication.models import User
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 
 
 # def atualizar_gestor(codigo_ibge,email_gestor=None):
@@ -17,24 +14,7 @@ from django.contrib import messages
 #     if not municipio:
 #         return None
     
-<<<<<<< HEAD
-    if email_gestor :
-        #se houver gestor antes o personel_profile dele perde também a referencia a cidade
-        if municipio.gestor:
-            municipio.gestor.city = None
-            municipio.gestor.save()
 
-        gestor = PersonelProfile.objects.filter(user__email=email_gestor).first()
-        municipio.gestor = gestor
-        gestor.city = municipio
-        gestor.save()
-    else:
-        gestor = municipio.gestor
-        municipio.gestor = None
-        gestor.city = None
-        gestor.save()       
-    municipio.save()
-=======
 #     if email_gestor :
 #         #se houver gestor antes o personel_profile dele perde também a referencia a cidade
 #         if municipio.gestor:
@@ -51,7 +31,6 @@ from django.contrib import messages
 #         gestor.personel_profile.city = None
 #         gestor.personel_profile.save()       
 #     municipio.save()
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 
 #     return municipio
 

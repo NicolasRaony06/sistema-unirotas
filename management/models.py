@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 from django.core.validators import MinValueValidator, RegexValidator
-from authentication.models import PersonelProfile , UserRole
+from authentication.models import PersonelProfile , UserRole, User
 import re
 from django.db.models import Q, F
 import datetime
@@ -18,9 +18,7 @@ class Municipio(models.Model):
     codigo_ibge = models.CharField(max_length=7, unique=True)
     ofertado_pelo_sistema = models.BooleanField(default=False)
     municipios_relacionados = models.ManyToManyField('self', symmetrical=False, blank=True)
-<<<<<<< HEAD
-    gestor = models.ForeignKey(PersonelProfile, null=True,on_delete=models.SET_NULL,related_name='municipio',blank=True,limit_choices_to={'user__role': 'MANAGER'})
-=======
+
     gestor = models.OneToOneField(
         User,
         null=True,
@@ -29,7 +27,6 @@ class Municipio(models.Model):
         blank=True,
         limit_choices_to={'role': 'MANAGER'}
     )
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 
     def __str__(self):
         return f"{self.nome} ({self.estado.upper()})"
@@ -135,11 +132,7 @@ class Linha(models.Model):
     nome = models.CharField(max_length=100,unique=True)
     instituicoes_ofertadas = models.ManyToManyField(Institution)
     city = models.ForeignKey(Municipio,on_delete=models.PROTECT,related_name='linhas')
-<<<<<<< HEAD
-    motorista = models.ForeignKey(PersonelProfile,on_delete=models.PROTECT,limit_choices_to={'user__role': 'DRIVER'} )
-=======
     motorista = models.ForeignKey(User,on_delete=models.SET_NULL,limit_choices_to={'role': 'DRIVER'}, null=True)
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
     horario_inicio = models.TimeField()
     horario_fim = models.TimeField()    
 

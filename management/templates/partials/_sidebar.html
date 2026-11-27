@@ -94,99 +94,6 @@
 
             </li>
             {% elif request.user.role == 'MANAGER' %}
-<<<<<<< HEAD
-            <li>
-                <a href="{% url "management:localizacoes" %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'localizacoes' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                            <path d="M6 12H4a2 2 0 0 0-2 2v8h20v-8a2 2 0 0 0-2-2h-2" />
-                            <path d="M10 6h4" />
-                            <path d="M10 10h4" />
-                            <path d="M10 14h4" />
-                        </svg>
-                    </span>
-                    <span>Localizações</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url "management:view_buses" %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'view_buses' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                            <path d="M0 0h24v24H0z" fill="none" />
-                            <path fill="currentColor"
-                                d="M21.5 8H21V6c0-2.21-1.79-4-4-4H7C4.79 2 3 3.79 3 6v2h-.5c-.28 0-.5.22-.5.5v3c0 .28.22.5.5.5H3v6c0 .74.41 1.38 1 1.72v1.78c0 .28.22.5.5.5h2c.28 0 .5-.22.5-.5V20h10v1.5c0 .28.22.5.5.5h2c.28 0 .5-.22.5-.5v-1.78A2 2 0 0 0 21 18v-6h.5c.28 0 .5-.22.5-.5v-3c0-.28-.22-.5-.5-.5M19 18H5v-5h14zM5 11V8h6v3zm8 0V8h6v3zM7 4h10c1.1 0 2 .9 2 2H5c0-1.1.9-2 2-2" />
-                            <path fill="currentColor"
-                                d="M7.5 14a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3m9 0a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3" />
-                        </svg>
-                    </span>
-                    <span>Frota Escolar</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url "management:view_drivers" %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'view_drivers' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                    </span>
-                    <span>Motoristas</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url "management:view_bus_stops" %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'view_bus_stops' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 3h18v3H3z" />
-                            <path d="M4 6v14" />
-                            <path d="M20 6v14" />
-                            <path d="M8 12h8" />
-                            <path d="M8 12v5" />
-                            <path d="M16 12v5" />
-                        </svg>
-                    </span>
-                    <span>Paradas</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url "management:linhas" %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'linhas' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="6" cy="19" r="3" />
-                            <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-                            <circle cx="18" cy="5" r="3" />
-                        </svg>
-                    </span>
-                    <span>Linhas</span>
-                </a>
-            </li>
-                        <li>
-                <a href="{% url "management:configuracoes" %}" class="nav-link {% if request.resolver_match.url_name == 'configuracoes' %}selected{% endif %}">
-                    <span class="sidebar-nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="3" />
-                            <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                        </svg>
-                    </span>
-                    <span>Configurações</span>
-                </a>
-
-            </li>
-=======
                  <li>
                     <a href="{% url "management:localizacoes" %}" class="nav-link {% if request.resolver_match.url_name == 'localizacoes' %}selected{% endif %}">
                         <span class="sidebar-nav-icon">
@@ -283,7 +190,6 @@
                         <span>Linhas</span>
                     </a>
                 </li>                       
->>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
             {% endif %}
         </ul>
     </nav>
