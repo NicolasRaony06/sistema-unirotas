@@ -127,7 +127,7 @@ def adicionar_municipio(request):
                 municipio.ofertado_pelo_sistema = False
                 municipio.save()
 
-                municipio_gestor = Municipio.objects.filter(gestor=request.user.personel_profile).first()
+                municipio_gestor = Municipio.objects.filter(gestor=request.user).first()
                 municipio_gestor.municipios_relacionados.add(municipio)
                 messages.success(request, "Município cadastrado com sucesso.")    
                 return redirect('management:localizacoes')
@@ -204,14 +204,14 @@ def desabilitar_mun(request,id):
 @role_required(allowed_roles=UserRole.MANAGER)
 def localizacoes(request):
    
-    municipio_base = Municipio.objects.filter(gestor__user = request.user).first()
-    
-    if not municipio_base: 
+    municipio_base = Municipio.objects.filter(gestor=request.user).first()
+
+    if not municipio_base:
         return render(request, 'manager/localizacoes.html', {
             'total_municipios': 0,
         })
     else:
-        tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count() 
+        tot_municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk).count()
         municipios = municipio_base.municipios_relacionados.exclude(municipios_relacionados=municipio_base.pk)
         return render(request, 'manager/localizacoes.html', {
                     
@@ -706,11 +706,11 @@ def edit_institution(request, id):
     return render(request, 'manager/edit_institution.html', {'form': form})
 
 @login_required()
-@role_required(allowed_roles=[UserRole.MANAGER, UserRole.ADMIN])
+@role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def retirar_municipio(request, id):
     if request.method == 'POST':
         if request.user.role == UserRole.MANAGER:
-            municipio_pai = Municipio.objects.filter(gestor= request.user.personel_profile).first()
+            municipio_pai = Municipio.objects.filter(gestor=request.user).first()
             municipio_listado = Municipio.objects.filter(id=id).first()
             municipio_pai.municipios_relacionados.remove(municipio_listado)
         else:
@@ -891,7 +891,8 @@ def invite_manager(request):
 @role_required(UserRole.ADMIN)
 def edit_manager(request, manager_id):
     manager = get_object_or_404(PersonelProfile, pk=manager_id, user__role=UserRole.MANAGER)
-    old_city = Municipio.objects.filter(gestor=manager).first()
+    old_city = Municipio.objects.filter(gestor=manager.user).first()
+
     if request.method == "POST":
         form = EditManager(request.POST, instance=manager)
         if form.is_valid():
@@ -901,13 +902,14 @@ def edit_manager(request, manager_id):
                     old_city.gestor = None
                     old_city.save()
                 if new_city:
-                    new_city.gestor = manager
+                    new_city.gestor = manager.user
                     new_city.save()
                 form.save()
             return redirect("management:gestores")
-        return render(request, "admin/edit_manager", {"form": form})
-    else:
-        form = EditManager(instance=manager)
+
+        return render(request, "admin/edit_manager.html", {"form": form})
+
+    form = EditManager(instance=manager)
     return render(request, "admin/edit_manager.html", {"form": form})
 
 @login_required()
