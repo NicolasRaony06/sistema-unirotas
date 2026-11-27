@@ -10,6 +10,12 @@ from django.db.models import Q
 from .models import *
 from authentication.models import StudentProfile, User, UserRole, PersonelProfile
 from authentication.service import generate_elevated_signup_link, recreate_elevated_signup_link
+from django.http import HttpResponse, JsonResponse
+from django.db.models import Q, ProtectedError, RestrictedError
+from django.db import transaction
+from .models import *
+from authentication.models import UserRole, PersonelProfile, StudentProfile
+from authentication.service import recreate_elevated_signup_link
 from authentication.decorators import role_required
 from .forms import *
 from .handlers import *
@@ -75,15 +81,15 @@ def gestores(request):
 @login_required()
 @role_required(allowed_roles=UserRole.ADMIN)
 def municipios(request):
-        
         context = {
-        'linhas': Linha.objects.filter(is_active=True),
-        'total_onibus' : Bus.objects.all().count(),
-        'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
-        'municipios' : Municipio.objects.all(),
-        'tot_municipios' : Municipio.objects.all().count(),
-        'gestores' : PersonelProfile.objects.filter(user__role=UserRole.MANAGER),
-        'gestores_ativos' : PersonelProfile.objects.filter(user__role=UserRole.MANAGER, user__is_active=True),
+            'linhas': Linha.objects.filter(is_active=True),
+            'total_onibus' : Bus.objects.all().count(),
+            'municipios_ofertados' : Municipio.objects.filter(ofertado_pelo_sistema = True),
+            'municipios' : Municipio.objects.all(),
+            'tot_municipios' : Municipio.objects.all().count(),
+            'gestores' : User.objects.filter(role=UserRole.MANAGER),
+            'gestores_ativos' : User.objects.filter(role=UserRole.MANAGER, is_active=True),
+            'associate_city_manager_form': AssociateCityManager()
         }
 
         return render(request,'admin/municipios.html',context)
@@ -97,13 +103,13 @@ def criar_municipio(request):
 
         if form.is_valid():
             municipio = form.save(commit=False)
-            
-            if request.user.role == UserRole.ADMIN:
+
+            if municipio.gestor:
                 municipio.ofertado_pelo_sistema = True
-                municipio.save()
-                return redirect('management:municipios')
-        else:
-            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos'})
+            municipio.save()
+
+            messages.success(request, "Município cadastrado com sucesso.")
+            return redirect('management:municipios')
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
@@ -123,9 +129,11 @@ def adicionar_municipio(request):
 
                 municipio_gestor = Municipio.objects.filter(gestor=request.user.personel_profile).first()
                 municipio_gestor.municipios_relacionados.add(municipio)
+                messages.success(request, "Município cadastrado com sucesso.")    
                 return redirect('management:localizacoes')
         else:
             return render(request, 'cadastro_municipio.html', {'form': form, 'erro': 'Dados inválidos'})
+
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
@@ -134,18 +142,31 @@ def adicionar_municipio(request):
 @role_required(allowed_roles=UserRole.ADMIN)
 def associar_gestor(request):
     if request.method == 'POST':
-        codigo_ibge = request.POST.get('codigo_ibge')
-        email_gestor = request.POST.get('email_gestor')
-        
-        municipio_buscado = Municipio.objects.filter(codigo_ibge=codigo_ibge).first()
-        email_buscado = User.objects.filter(role=UserRole.MANAGER,email=email_gestor).first()
+        form = AssociateCityManager(request.POST)
+        if form.is_valid():
+            city = get_object_or_404(
+                Municipio,
+                id=form.cleaned_data['city']
+            )
+            manager = get_object_or_404(
+                User,
+                id=form.cleaned_data['manager']
+            )
+            city.gestor = manager
+            city.ofertado_pelo_sistema = True
+            manager.personel_profile.city = city
 
-        if municipio_buscado is None or email_buscado is None:
-            return HttpResponse("Dados não encontrados")
-        
-        atualizar_gestor(codigo_ibge=codigo_ibge,email_gestor=email_gestor)
-        return redirect('management:municipios') #Poderia ser uma mensagem de sucesso
-    
+            try:
+                with transaction.atomic():
+                    city.save()
+                    manager.personel_profile.save()
+                messages.success(request, "Gestor associado a município com sucesso.")
+                return redirect('management:municipios')
+            except Exception as error:
+                messages.error(request, f"Erro ao associar gestor: {str(error)}")
+                return redirect('management:municipios')
+
+        messages.error(request, "Não foi possível associar gestor a município.")    
     return redirect('management:municipios')
 
 
@@ -221,41 +242,33 @@ def activate_manager(request,id):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
-def invite_user(request):
+def invite_driver(request):
     user = request.user
-    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
-        'institutions', 
-        flat=True
-    )
 
     if request.method == 'POST':
-        form = InviteUserForm(request.POST, institutions_id=institutions_id)
+        form = InviteDriverForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get('email')
-            role=form.cleaned_data.get('role')
-
            
-            link = generate_elevated_signup_link(
+            link = recreate_elevated_signup_link(
                 InviteDTO(
                     higher_role_email=user.email,
-                    role=form.cleaned_data.get('role'),
+                    role=UserRole.DRIVER,
                     email=email,
                     city_id = request.user.personel_profile.city,
-                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
                 ),
                 request=request
             )
 
-            print(link)
-
             if link:
+                request.session['qrcode_link'] = link
                 messages.success(request, f'Convite enviado com sucesso para {email}.')
-                return redirect("management:home")
+                return redirect("management:view_drivers")
             else:
                 messages.error(request, f"Não foi possível enviar o convite para {email}.")
     else:
-        form = InviteUserForm(institutions_id=institutions_id)
-    return render(request, "manager/invite_user.html", {'form': form})
+        form = InviteDriverForm()
+    return render(request, "manager/invite_driver.html", {'form': form})
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -265,7 +278,16 @@ def view_drivers(request):
         city=request.user.personel_profile.city
     )
 
-    return render(request, 'manager/view_drivers.html', {'drivers': drivers})
+    qrcode_link = request.session.pop("qrcode_link", None)
+    qrcode_img = generate_qrcode(qrcode_link) if qrcode_link else None
+
+    context = {
+        'drivers': drivers,
+        'qrcode_img': qrcode_img,
+        'qrcode_link': qrcode_link
+    }
+
+    return render(request, 'manager/view_drivers.html', context)
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
@@ -316,10 +338,26 @@ def activate_driver(request, id):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
+def delete_driver(request, id):
+    if request.method == 'POST':
+        driver = get_object_or_404(
+            User,
+            id=id
+        )
+        try:
+            driver.delete()
+            messages.success(request, "Motorista deletado com sucesso.")
+        except (ProtectedError, RestrictedError):
+            messages.error(request, "Não foi possível excluir: existem registros vinculados a este motorista.")
+
+    return redirect('management:view_drivers')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
 def register_bus(request):
     if not request.user.personel_profile.city.ofertado_pelo_sistema:
         messages.error(request, "Não é possível cadastrar ônibus para um Município não ativo.")
-        return redirect('management:home')
+        return redirect('management:view_buses')
 
     if request.method == 'POST':
         form = BusForm(request.POST, request.FILES)
@@ -397,6 +435,23 @@ def activate_bus(request, id):
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
+def delete_bus(request, id):
+    if request.method == 'POST':
+        bus = get_object_or_404(
+            Bus,
+            id=id,
+            city=request.user.personel_profile.city
+        )
+        try:
+            bus.delete()
+            messages.success(request, "Ônibus deletado com sucesso.")
+        except (ProtectedError, RestrictedError):
+            messages.error(request, "Não foi possível excluir: existem registros vinculados a este ônibus.")
+
+    return redirect('management:view_buses')
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
 def register_bus_stop(request):
     if request.method == 'POST':
         form = BusStopForm(request.POST,city=request.user.personel_profile.city)
@@ -473,7 +528,6 @@ def deactivate_bus_stop(request, id):
     return redirect('management:view_bus_stops')
 
 
-@login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
 def activate_bus_stop(request, id):
     if request.method == 'POST':
@@ -496,6 +550,56 @@ def activate_bus_stop(request, id):
 
     #return redirect(f"{base_url}?ocult_related_cities={request.GET.get('ocult_related_cities', 'False')}")
 
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def invite_student(request):
+    user = request.user
+    institutions_id = user.personel_profile.city.municipios_relacionados.values_list(
+        'institutions', 
+        flat=True
+    )
+
+    if request.method == 'POST':
+        form = InviteStudentForm(request.POST, institutions_id=institutions_id)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+           
+            link = recreate_elevated_signup_link(
+                InviteDTO(
+                    higher_role_email=user.email,
+                    role=UserRole.STUDENT,
+                    email=email,
+                    city_id = request.user.personel_profile.city,
+                    institution_id = Institution.objects.filter(pk=form.cleaned_data.get('institution')).first()
+                ),
+                request=request
+            )
+
+            if link:
+                request.session['qrcode_link'] = link
+                messages.success(request, f'Convite enviado com sucesso para {email}.')
+                return redirect("management:view_students")
+            else:
+                messages.error(request, f"Não foi possível enviar o convite para {email}.")
+    else:
+        form = InviteStudentForm(institutions_id=institutions_id)
+    return render(request, "manager/invite_student.html", {'form': form})
+
+@login_required
+@role_required(allowed_roles=UserRole.MANAGER)
+def view_students(request):
+    students = StudentProfile.objects.filter(city=request.user.personel_profile.city)
+
+    qrcode_link = request.session.pop("qrcode_link", None)
+    qrcode_img = generate_qrcode(qrcode_link) if qrcode_link else None
+
+    context = {
+            'students': students,
+            'qrcode_img': qrcode_img,
+            'qrcode_link': qrcode_link
+        }
+
+    return render(request, 'manager/view_students.html', context)
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)

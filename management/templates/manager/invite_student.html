@@ -1,11 +1,11 @@
 {% extends "base_form.html" %}
 {% load static %}
 
-{% block title %}Convidar usuário{% endblock title %}
+{% block title %}Convidar estudante{% endblock title %}
 
 {% block header %}
-    <h1>Convidar usuário</h1>
-    <p>Insira o email do usuário e instituição se for Aluno</p>
+    <h1>Convidar estudante</h1>
+    <p>Insira o email e instituição do estudante</p>
 {% endblock header %}
 
 {% block form_content %}
@@ -50,27 +50,6 @@
         {% endfor %}
     </div>
     <div class="form-group">
-        <label for="{{form.role.id_for_label}}">Tipo de Usuário 
-            {% if form.role.field.required %}
-                <span class="required">*</span>
-            {% endif %}
-        </label>
-        <div class="form-input-wrapper">
-            <span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
-                    <path d="M19 8v6" />
-                    <path d="M16 11h6" />
-                </svg>
-            </span>
-            {{form.role}}
-        </div>
-        {% for error in form.role.errors %}
-            <span class="form-messages">{{error}}</span>
-        {% endfor %}
-    </div>
-    <div class="form-group" style="display: none">
         <label for="{{form.institution.id_for_label}}">Instituição 
             {% if form.institution.field.required %}
                 <span class="required">*</span>
@@ -92,11 +71,7 @@
         {% endfor %}
     </div>
     <div class="form-actions">
-        <a href="{% url "management:home" %}">Cancelar</a>
+        <a href="{% url "management:view_students" %}">Cancelar</a>
         <button type="submit">Enviar convite</button>
     </div>
 {% endblock form_content %}
-
-{% block extra_js %}
-    <script src="{% static "js/script_invite_user.js" %}"></script>
-{% endblock extra_js %}

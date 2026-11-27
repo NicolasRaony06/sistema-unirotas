@@ -33,9 +33,9 @@ def generate_elevated_signup_link(invite: InviteDTO, request=None):
     relative_url = reverse('authentication:elevated_signup', kwargs={'token': token})
     absolute_url = request.build_absolute_uri(relative_url) if request else relative_url
     
-    sent = enviar_email_convite(email, absolute_url)
-    if not sent:
-        return None
+    # # sent = enviar_email_convite(email, absolute_url) substituído provisoriamente por QRCode
+    # if not sent:
+    #     return None
 
     cache.set(cache_key, {'email': email, 'role': role, "higher_role_email": higher_role_email, "city_id": city_id, "institution_id": institution_id}, timeout=ttl_horas)
     cache.set(pointer_key, {"cache_key": cache_key}, timeout=ttl_horas)
@@ -61,42 +61,42 @@ def recreate_elevated_signup_link(invite: InviteDTO, request=None):
     abort_elevated_signup_link(higher_role_email, email)
     return generate_elevated_signup_link(invite, request)
 
-def enviar_email_convite(email_destino, link_convite):
-    email_destino = email_destino.lower().strip()
-    assunto = "Convite para cadastro na plataforma"
-    mensagem = f"Olá,\n\nVocê foi convidado para se cadastrar. Acesse o link abaixo para concluir seu registro:\n\n{link_convite}\n\nSe não foi você que solicitou, ignore este e-mail."
-    remetente = "noreply@seusite.com"
+# def enviar_email_convite(email_destino, link_convite): substituído provisoriamente por QRCode
+#     email_destino = email_destino.lower().strip()
+#     assunto = "Convite para cadastro na plataforma"
+#     mensagem = f"Olá,\n\nVocê foi convidado para se cadastrar. Acesse o link abaixo para concluir seu registro:\n\n{link_convite}\n\nSe não foi você que solicitou, ignore este e-mail."
+#     remetente = "noreply@seusite.com"
     
-    sent_account = send_mail(
-        subject=assunto,
-        message=mensagem,
-        from_email=None,
-        recipient_list=[email_destino],
-    )
+#     sent_account = send_mail(
+#         subject=assunto,
+#         message=mensagem,
+#         from_email=None,
+#         recipient_list=[email_destino],
+#     )
 
-    ttl_horas = getattr(settings, "INVITE_TTL_SECONDS", 86400) // 3600
+#     ttl_horas = getattr(settings, "INVITE_TTL_SECONDS", 86400) // 3600
 
 
-    assunto = "Convite para cadastro na plataforma"
-    mensagem = (
-        f"Olá,\n\n"
-        f"Você foi convidado para se cadastrar no sistema UniRota. "
-        f"Acesse o link abaixo para concluir seu registro:\n\n"
-        f"{link_convite}\n\n"
-        f"Atenção: este convite é válido por {ttl_horas} horas.\n\n"
-        f"Se não foi você quem solicitou, ignore este e-mail."
-    )
-    remetente = settings.DEFAULT_FROM_EMAIL
-    try:
-        sent = send_mail(
-            subject=assunto,
-            message=mensagem,
-            from_email=remetente,
-            recipient_list=[email_destino],
-            fail_silently=False,
-        )
-        return sent != 0
-    except SMTPException:
-        return False
-    except Exception:
-        return False
+#     assunto = "Convite para cadastro na plataforma"
+#     mensagem = (
+#         f"Olá,\n\n"
+#         f"Você foi convidado para se cadastrar no sistema UniRota. "
+#         f"Acesse o link abaixo para concluir seu registro:\n\n"
+#         f"{link_convite}\n\n"
+#         f"Atenção: este convite é válido por {ttl_horas} horas.\n\n"
+#         f"Se não foi você quem solicitou, ignore este e-mail."
+#     )
+#     remetente = settings.DEFAULT_FROM_EMAIL
+#     try:
+#         sent = send_mail(
+#             subject=assunto,
+#             message=mensagem,
+#             from_email=remetente,
+#             recipient_list=[email_destino],
+#             fail_silently=False,
+#         )
+#         return sent != 0
+#     except SMTPException:
+#         return False
+#     except Exception:
+#         return False

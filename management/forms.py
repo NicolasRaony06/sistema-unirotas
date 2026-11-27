@@ -1,7 +1,11 @@
 from django import forms
 from .models import Bus, Municipio, BusStop, Institution, Linha, Rota, TrechoViagem
 
+<<<<<<< HEAD
 from authentication.models import PersonelProfile, UserRole, User
+=======
+from authentication.models import UserRole, User
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -27,6 +31,13 @@ class MunicipioForm(forms.ModelForm):
     class Meta:
         model = Municipio
         fields = ['nome', 'codigo_ibge','gestor']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        managers = self.fields['gestor'].queryset
+
+        self.fields['gestor'].queryset = managers.filter(municipio=None)
 
 class BusStopForm(forms.ModelForm):
     class Meta:
@@ -86,27 +97,17 @@ class TrechoViagemForm(forms.ModelForm):
         model = TrechoViagem
         fields = ['parada_inicio','parada_fim','ordem','distancia_km']
 
+<<<<<<< HEAD
 class InviteUserForm(forms.Form):
+=======
+class BaseInviteForm(forms.Form):
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
     email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'placeholder': 'motorista@example.com'
+            'placeholder': 'email@example.com'
     }))
     confirm_email = forms.EmailField(widget=forms.EmailInput(attrs={
-        'placeholder': 'motorista@example.com'
+        'placeholder': 'email@example.com'
     }))
-    role = forms.ChoiceField(choices=((UserRole.DRIVER, 'Motorista'), (UserRole.STUDENT, 'Estudante')), widget=forms.Select())
-    institution = forms.ChoiceField(choices=(), widget=forms.Select())
-
-    def __init__(self, *args, **kwargs):
-        institutions_id = kwargs.pop('institutions_id', None)
-        super().__init__(*args, **kwargs)
-
-        if institutions_id:
-            institutions = Institution.objects.filter(
-                id__in=institutions_id, 
-                is_active=True
-            ).values_list('id', 'name', 'city__nome')
-
-            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
 
     def clean(self):
         cleaned_data = super().clean()
@@ -118,9 +119,9 @@ class InviteUserForm(forms.Form):
                 self.add_error(
                     'confirm_email', 'A confirmação de email não corresponde ao email digitado.'
                 )
-
         return cleaned_data
 
+<<<<<<< HEAD
 class InviteManagerForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         'placeholder': 'gestor@example.com'
@@ -190,3 +191,41 @@ class ManagerForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+=======
+class InviteDriverForm(BaseInviteForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['placeholder'] = 'motorista@example.com'
+        self.fields['confirm_email'].widget.attrs['placeholder'] = 'motorista@example.com'
+    
+class InviteStudentForm(BaseInviteForm):
+    institution = forms.ChoiceField(choices=(), widget=forms.Select())
+
+    def __init__(self, *args, **kwargs):
+        institutions_id = kwargs.pop('institutions_id', None)
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['placeholder'] = 'estudante@example.com'
+        self.fields['confirm_email'].widget.attrs['placeholder'] = 'estudante@example.com'
+
+        if institutions_id:
+            institutions = Institution.objects.filter(
+                id__in=institutions_id, 
+                is_active=True
+            ).values_list('id', 'name', 'city__nome')
+
+            self.fields['institution'].choices = [(id, f"{name} ({city})") for id, name, city in institutions] 
+
+class AssociateCityManager(forms.Form):
+    manager = forms.ChoiceField(choices=(), widget=forms.Select())
+    city = forms.ChoiceField(choices=(), widget=forms.Select())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        managers = User.objects.filter(municipio=None, role=UserRole.MANAGER).values_list('id', 'email')
+        cities = Municipio.objects.filter(ofertado_pelo_sistema=False, gestor=None).values_list('id', 'nome')
+
+        self.fields['manager'].choices = [('', 'Selecionar Gestor')] + list(managers)
+        self.fields['city'].choices = [('', 'Selecionar Município')] + list(cities)
+
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0

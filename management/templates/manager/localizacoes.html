@@ -9,11 +9,12 @@
 {% endblock header %}
 
 {% block main_content %}
+    {% include "partials/_metrics.html" %}
+  
     <section class="dashboard">
         <div class="dashboard-header">
             <h3>Lista de Municípios</h3>
             <span class="badge-count">{{municipios.count}} registros</span>
-            <a href="{% url "management:register_institution" %}" class="register-button">+ Nova Instituição</a>
             <a href="{% url "management:adicionar-municipio" %}" class="register-button">+ Novo Municipio</a>
         </div>
         {% for municipio in municipios %}
@@ -30,8 +31,13 @@
                     <div>
                         <p>{{municipio.codigo_ibge}}</p>
                     </div>
+<<<<<<< HEAD
                     <h4>{{municipio}}</h4>
                     <p class="subinfo">4 Paradas · 2 Instituições</p>
+=======
+                    <h4>{{municipio.nome}}</h4>
+                    <p class="subinfo">{{municipio.bus_stops.count}} Paradas · {{municipio.institutions.count}} Instituições</p>
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                 </div>
                 <div class="dashboard-card-actions">
                     <a href="#">

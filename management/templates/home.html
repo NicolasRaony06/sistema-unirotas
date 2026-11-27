@@ -18,6 +18,7 @@
         <p>{% now "D, d M Y H:i" %}</p>
         <h2>Olá, {{request.user.full_name}}!</h2>
         <p>4 rotas · 2 ônibus · 2 motoristas</p>
+<<<<<<< HEAD
     </section>
     <section class="metrics">
         {% if request.user.role == 'ADMIN' %}
@@ -89,6 +90,12 @@
             </div>
         {% endif %}
     </section>
+=======
+    </section>  
+    
+    {% include "partials/_metrics.html" %}
+
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
     <div class="dashboards">
         <section class="dashboard dashboard-linhas-recentes">
             {% if request.user.role == 'ADMIN' %}
@@ -122,23 +129,35 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+<<<<<<< HEAD
+=======
+                              
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                             {% endfor %}
                         </tbody>
                     </table>
                     {% if not linhas %}
+<<<<<<< HEAD
                          <p class="dashboard-message">Nenhuma linha encontrada</p>
+=======
+                      <p class="dashboard-message">Nenhuma linha encontrada</p>
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                     {% endif %}
                 </div>
             {% elif request.user.role == 'MANAGER' %}
                 <div class="dashboard-header">
+<<<<<<< HEAD
                     <h3>Linhas de {{request.user.personel_profile.municipio.first.nome}}</h3>
+=======
+                    <h3>Linhas de {{request.user.municipio.nome}}</h3>
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                     <a href="#rotas" class="see-more">Ver todas →</a>
                 </div>
                 <div class="dashboard-table-secondary">
                     <table>
                         <thead>
                             <tr>
-                                <th>Código</th>
+                                <th>Nome</th>
                                 <th>Rota</th>
                                 <th>Turno</th>
                                 <th>Motorista</th>
@@ -162,13 +181,23 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+<<<<<<< HEAD
                         
+=======
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                             {% endfor %}
+                            
                         </tbody>
                     </table>
+<<<<<<< HEAD
                     {% if not request.user.personel_profile.municipio.first.linhas.all %}
                       <p class="dashboard-message">Nenhuma linha encontrada</p>
                     {% endif %}
+=======
+                    {% if not request.user.municipio.first.linhas.all %}
+                     <p class="dashboard-message">Nenhuma rota encontrada</p>
+                     {% endif %}
+>>>>>>> 9840d49107438175e7a2701bfe1c39c90150a7e0
                 </div>
             {% endif %}
         </section>
