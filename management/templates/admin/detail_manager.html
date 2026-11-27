@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static "css/detail_manager.css" %}">
+    <title>{{ manager.user.full_name }}</title>
+
+   
+</head>
+<body>
+
+    <section class="card-gestor">
+
+        <div class="topo">
+            <div class="foto">
+                <img src="{{ manager.user.avatar_url }}" alt="Foto do Gestor">
+            </div>
+            <div>
+                <strong>{{ manager.user.full_name }}</strong>
+            </div>
+        </div>
+
+        <h2>Dados pessoais</h2>
+        <div class="info"><span>Nome</span><strong>{{ manager.user.first_name }}</strong></div>
+        <div class="info"><span>Sobrenome</span><strong>{{ manager.user.last_name }}</strong></div>
+        <div class="info"><span>E-mail</span><strong>{{ manager.user.email }}</strong></div>
+        <div class="info"><span>Data de nascimento</span><strong>{{ manager.user.birth_date|date:'d/m/Y' }}</strong></div>
+
+        <h2>Informações da conta</h2>
+        <div class="info"><span>Município</span><strong>{{ manager.city }}</strong></div>
+        <div class="info"><span>Perfil de acesso</span><strong>Gestor Municipal</strong></div>
+        <div class="info"><span>Conta criada em</span><strong>{{ manager.user.date_joined|date:'d/m/Y' }}</strong></div>
+        <div class="info"><span>Último acesso</span><strong>{{ manager.user.last_login|date:'d/m/Y H:i'|default:'Nunca acessou' }}</strong></div>
+
+        <div class="acoes">
+            <a class="btn-voltar" href="{% url 'management:gestores' %}">Voltar para gestores</a>
+        </div>
+
+    </section>
+
+</body>
+</html>

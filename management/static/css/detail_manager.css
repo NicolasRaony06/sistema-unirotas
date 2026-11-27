@@ -1,0 +1,96 @@
+body {
+     margin: 0;
+     padding: 20px;
+     box-sizing: border-box;
+     min-height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background: #e5e5e5;
+     font-family: Arial, sans-serif;
+     color: #0f1b3d;
+ }
+
+ .card-gestor {
+     width: 100%;
+     max-width: 560px;
+     background: #fff;
+     border-radius: 10px;
+     padding: 25px;
+     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+ }
+
+ /* Foto + nome no topo */
+ .topo {
+     display: flex;
+     align-items: center;
+     gap: 15px;
+     padding-bottom: 20px;
+     margin-bottom: 20px;
+     border-bottom: 1px solid #e5e5e5;
+ }
+
+ .foto img {
+     width: 70px;
+     height: 70px;
+     border-radius: 50%;
+     object-fit: cover;
+     display: block;
+ }
+
+ .topo strong {
+     display: block;
+     font-size: 18px;
+ }
+
+ .topo small {
+     color: #777;
+     font-size: 12px;
+ }
+
+ /* Títulos das seções */
+ .card-gestor h2 {
+     margin: 20px 0 5px;
+     font-size: 13px;
+     color: #555;
+ }
+
+ .card-gestor h2:first-of-type {
+     margin-top: 0;
+ }
+
+ /* Linhas: rótulo à esquerda, valor à direita */
+ .info {
+     display: flex;
+     justify-content: space-between;
+     padding: 11px 0;
+     border-bottom: 1px solid #eee;
+     font-size: 13px;
+ }
+
+ .info span {
+     color: #777;
+ }
+
+ .info strong {
+     color: #0f1b3d;
+     text-align: right;
+ }
+
+ /* Botão voltar */
+ .acoes {
+     margin-top: 25px;
+     text-align: center;
+ }
+
+ .btn-voltar {
+     display: inline-block;
+     background: #0a3cc8;
+     color: #fff;
+     text-decoration: none;
+     border-radius: 6px;
+     padding: 10px 24px;
+     font-size: 13px;
+     font-weight: bold;
+ }
+

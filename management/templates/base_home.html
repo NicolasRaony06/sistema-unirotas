@@ -6,6 +6,8 @@
 {% endblock extra_css %}
 
 {% block content %}
+
+
     {% include "partials/_sidebar.html" %}
     
     <div class="page-content">
@@ -21,4 +23,6 @@
             {% block main_content %}{% endblock main_content %}
         </main>
     </div>
+    {% include "components/modal_confirmacao.html" %}
+<script src="{% static 'operation/js/modal.js' %}"></script>
 {% endblock content %}

@@ -43,13 +43,13 @@
                         <option value="{{ instituicao.id }}">{{ instituicao }}</option>
                         {% endfor %}
                     </select>
-                        {% if linha_form.instituicoes_ofertadas.errors %}
-                        <div class="erro-geral">
-                            {% for erro in linha_form.instituicoes_ofertadas.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                    {% if linha_form.instituicoes_ofertadas.errors %}
+                    <div class="erro-geral">
+                        {% for erro in linha_form.instituicoes_ofertadas.errors %}
+                        <p>{{ erro }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
@@ -62,13 +62,13 @@
 
                         {% endfor %}
                     </select>
-                        {% if linha_form.motorista.errors %}
-                        <div class="erro-geral">
-                            {% for erro in linha_form.motorista.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                    {% if linha_form.motorista.errors %}
+                    <div class="erro-geral">
+                        {% for erro in linha_form.motorista.errors %}
+                        <p>{{ erro }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="grid-2">
@@ -80,20 +80,20 @@
                         <label>Horário de fim</label>
                         <input type="time" name="linha-horario_fim">
                     </div>
-                        {% if linha_form.horario_inicio.errors %}
-                        <div class="erro-geral">
-                            {% for erro in linha_form.horario_inicio.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        {% if linha_form.horario_fim.errors %}
-                        <div class="erro-geral">
-                            {% for erro in linha_form.horario_fim.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                    {% if linha_form.horario_inicio.errors %}
+                    <div class="erro-geral">
+                        {% for erro in linha_form.horario_inicio.errors %}
+                        <p>{{ erro }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if linha_form.horario_fim.errors %}
+                    <div class="erro-geral">
+                        {% for erro in linha_form.horario_fim.errors %}
+                        <p>{{ erro }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group no-margin">
@@ -128,18 +128,17 @@
                             <span class="day-circle">Dom</span>
                         </label>
                     </div>
-                        {% if linha_form.dias_ofertados.errors %}
-                        <div class="erro-geral">
-                            {% for erro in linha_form.dias_ofertados.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                    {% if linha_form.dias_ofertados.errors %}
+                    <div class="erro-geral">
+                        {% for erro in linha_form.dias_ofertados.errors %}
+                        <p>{{ erro }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
             <hr>
-            <!-- ===================== 2) ROTAS DA LINHA ===================== -->
 
             <div class="section-header section-header-flex">
                 <div>
@@ -177,13 +176,13 @@
                     </div>
                 </div>
             </div>
-                                    {% if rota_form.nome.errors %}
-                        <div class="erro-geral">
-                            {% for erro in rota_form.nome.errors %}
-                            <p>{{ erro }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+            {% if rota_form.nome.errors %}
+            <div class="erro-geral">
+                {% for erro in rota_form.nome.errors %}
+                <p>{{ erro }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             <div class="route-direction-block">
                 <h4 class="route-box-title">Rota de volta</h4>
@@ -242,7 +241,7 @@
                     </table>
                 </div>
 
-                <!-- Esses campos NÃO têm "name": servem só para montar a linha da tabela -->
+
                 <div class="form-row-5">
                     <div class="form-group no-margin">
                         <label>Ordem</label>
@@ -315,12 +314,7 @@
             <td data-distancia></td>
             <td style="padding-right: 24px;">
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                    <button type="button" class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                        </svg>
-                    </button>
+
                     <button type="button" class="btn-icon" data-remover>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
@@ -373,6 +367,16 @@
                 tr_msg.remove();
             }
         })
+        tbody.addEventListener('click', e => {
+            const botao = e.target.closest('[data-remover]');
+            if (!botao) return;
+
+            botao.closest('tr').remove();
+            if (tr_msg && tbody.children.length === 0) {
+                tbody.append(tr_msg);
+            }
+        });
+
     </script>
 
 </body>

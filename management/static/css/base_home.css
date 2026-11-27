@@ -166,7 +166,188 @@ body{
     height: 100vh;
     margin-left: 256px;
 }
+.app-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
 
+.app-modal-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Caixa branca do modal */
+.app-modal {
+    position: relative;
+    background: #ffffff;
+    width: 100%;
+    max-width: 360px;
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+.app-modal-backdrop.is-open .app-modal {
+    transform: scale(1);
+}
+
+/* Botão X no canto superior direito */
+.app-modal__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.app-modal__close:hover {
+    color: #475569;
+    background-color: #f1f5f9;
+}
+
+/* Cores de cada variação */
+.app-modal--danger {
+    --modal-accent: #ff5a52;
+    --modal-accent-bg: rgba(255, 122, 114, 0.15);
+    --modal-confirm-bg: #dc2626;
+    --modal-confirm-text: #fff;
+}
+
+.app-modal--warning {
+    --modal-accent: #e6a800;
+    --modal-accent-bg: rgba(255, 201, 60, 0.2);
+    --modal-confirm-bg: #ffc93c;
+    --modal-confirm-text: #1a2250;
+}
+
+/* Ícone */
+.app-modal__icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--modal-accent-bg);
+    color: var(--modal-accent);
+}
+
+.app-modal__btn--confirm {
+    background: var(--modal-confirm-bg);
+    color: var(--modal-confirm-text);
+}
+
+.app-modal__icon svg {
+    display: block;
+    transform: translateY(-1px);
+}
+
+/* Textos */
+.app-modal__title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.app-modal__message {
+    margin: 0 0 24px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+/* Botões empilhados */
+.app-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-modal__btn {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.app-modal__btn:active {
+    transform: scale(0.98);
+}
+
+.app-modal__btn--cancel {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+
+.app-modal__btn--cancel:hover {
+    background-color: #e2e8f0;
+}
+
+/* --- VARIAÇÕES DOS 3 TIPOS DE POP-UP --- */
+
+/* 1. Perigo / Cancelamento (Vermelho - igual à imagem) */
+.app-modal--danger .app-modal__icon {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.app-modal--danger .app-modal__btn--confirm {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+.app-modal--danger .app-modal__btn--confirm:hover {
+    background-color: #b91c1c;
+}
+
+/* 2. Aviso (Amarelo/Laranja - para usar depois) */
+.app-modal--warning .app-modal__icon {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.app-modal--warning .app-modal__btn--confirm {
+    background-color: #d97706;
+    color: #ffffff;
+}
+
+/* 3. Informação / Confirmação padrão (Azul - para usar depois) */
+.app-modal--info .app-modal__icon {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.app-modal--info .app-modal__btn--confirm {
+    background-color: #1d4ed8;
+    color: #ffffff;
+}
 .topbar{
     width: 100%;
     min-height: 80px;

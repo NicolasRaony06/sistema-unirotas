@@ -820,29 +820,54 @@ def detail_manager(request,manager_id):
         form = ManagerForm(instance=manager.user)
         form2 = EditManager(instance=manager)
 
-    return render(request,"admin/teste.html",{'form':form,'form2':form2,'manager':manager})
+    return render(request,"admin/detail_manager.html",{'form':form,'form2':form2,'manager':manager})
 
 @login_required()
 @role_required(allowed_roles=[UserRole.ADMIN, UserRole.MANAGER])
 def configuracoes(request):
     form = ManagerForm(instance=request.user)
-    form2 = ChangePassword(user=request.user)    
-    if request.method == 'POST':
+    form2 = ChangePassword(user=request.user)
+
+    if request.method == "POST":
         action = request.POST.get("action")
+
         if action == "senha":
-            form2 = ChangePassword(request.POST,user=request.user)  
+            form2 = ChangePassword(request.POST, user=request.user)
+
             if form2.is_valid():
-                if request.user.check_password(form2.cleaned_data.get("password")):
-                    request.user.set_password(form2.cleaned_data.get("new_password1"))
+                senha_atual = form2.cleaned_data["password"]
+
+                if request.user.check_password(senha_atual):
+                    nova_senha = form2.cleaned_data["new_password1"]
+                    request.user.set_password(nova_senha)
                     request.user.save()
+
                     update_session_auth_hash(request, request.user)
+                    messages.success(request, "Senha alterada com sucesso.")
+                    return redirect("management:configuracoes")
+
+                form2.add_error("password", "A senha atual está incorreta.")
+
         elif action == "config":
-            form = ManagerForm(request.POST,request.FILES,instance=request.user)
+            form = ManagerForm(
+                request.POST,
+                request.FILES,
+                instance=request.user
+            )
+
             if form.is_valid():
                 form.save()
-        
-   
-    return render(request,"configuracoes.html",{'form':form,'form2':form2})
+                messages.success(request, "Dados atualizados com sucesso.")
+                return redirect("management:configuracoes")
+
+    return render(
+        request,
+        "configuracoes.html",
+        {
+            "form": form,
+            "form2": form2,
+        }
+    )
 # @login_required()
 # def adicionar_municipio(request):
 #     if request.method == 'POST':
