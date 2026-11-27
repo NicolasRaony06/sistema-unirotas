@@ -6,11 +6,18 @@
         <button type="button" class="app-modal__close" onclick="fecharModal()">✕</button>
 
         <div class="app-modal__icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            <!-- Alerta -->
+            <svg class="app-modal__icon-alert" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
                 <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/>
+            </svg>
+
+            <!-- Sucesso -->
+            <svg class="app-modal__icon-check" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
             </svg>
         </div>
 
@@ -18,9 +25,9 @@
         <p class="app-modal__message" id="app-modal-message">Mensagem</p>
 
         <div class="app-modal__actions">
-            <a href="#" class="app-modal__btn app-modal__btn--confirm" id="app-modal-confirm" style="text-decoration: none; box-sizing: border-box;">
+            <button type="button" class="app-modal__btn app-modal__btn--confirm" id="app-modal-confirm" onclick="fecharModal()">
                 Confirmar
-            </a>
+            </button>
 
             <button type="button" class="app-modal__btn app-modal__btn--cancel" id="app-modal-cancel" onclick="fecharModal()">
                 Cancelar

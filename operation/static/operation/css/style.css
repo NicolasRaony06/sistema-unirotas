@@ -1490,3 +1490,28 @@ input[type='time']::-webkit-calendar-picker-indicator{
     background-color: #1d4ed8;
     color: #ffffff;
 }
+
+/* 4. Sucesso (Verde) */
+.app-modal--success .app-modal__icon {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+.app-modal--success .app-modal__btn--confirm {
+    background-color: #16a34a;
+    color: #ffffff;
+}
+.app-modal--success .app-modal__btn--confirm:hover {
+    background-color: #15803d;
+}
+/* Sucesso tem apenas um botão */
+.app-modal--success .app-modal__btn--cancel {
+    display: none;
+}
+/* Troca o ícone de alerta pelo check */
+.app-modal .app-modal__icon-check,
+.app-modal--success .app-modal__icon-alert {
+    display: none;
+}
+.app-modal--success .app-modal__icon-check {
+    display: block;
+}
