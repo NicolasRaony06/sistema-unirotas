@@ -148,9 +148,30 @@ def comecar_viagem(request, viagem_id):
     obj_viagem = get_object_or_404(Viagem, pk=viagem_id, data__date=date)
     
     if request.user.personel_profile != obj_viagem.rota.linha.motorista:
-        print("ou aqui")
         return HttpResponseForbidden("Acesso negado.")
     obj_viagem.comecar()
+    return redirect('lista_viagens')
+
+@login_required()
+@role_required(UserRole.DRIVER)
+def cancelar_viagem(request, viagem_id):
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
+        print("ou aqui")
+        return HttpResponseForbidden("Acesso negado.")
+    obj_viagem.cancelar()
+    return redirect('lista_viagens')
+
+@login_required()
+@role_required(UserRole.DRIVER)
+def pausar_viagem(request, viagem_id):
+    obj_viagem = get_object_or_404(Viagem, pk=viagem_id)
+    
+    if request.user.personel_profile != obj_viagem.rota.linha.motorista:
+        print("ou aqui")
+        return HttpResponseForbidden("Acesso negado.")
+    obj_viagem.pausar()
     return redirect('lista_viagens')
 
 #Alunos
@@ -400,6 +421,7 @@ def index_aluno(request):
 
 from datetime import datetime, time, timedelta
 
+
 def validate_line_available(linha, direcao, horario_saida):
     now = timezone.localtime()
     date = now.date()
@@ -614,5 +636,5 @@ def iniciar_percurso_motorista(request, route_id):
     if not viagem:
         hour = route.linha.horario_inicio if route.direcao == "IDA" else route.linha.horario_fim
         viagem = Viagem.objects.create(rota=route, status="em_andamento", data=now.replace(hour=hour.hour, minute=hour.minute, second=0))
-
+        viagem.criar_paradas()
     return redirect("lista_viagens")

@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -28,5 +29,10 @@
 
         {%include "_nav_bar.html"%}
     </div>
+    <!-- 1. Inclui o HTML do seu modal (ajuste o nome/caminho se salvou diferente) -->
+    {% include "components/modal_confirmacao.html" %}
+
+    <!-- 2. Importa o JS do modal -->
+    <script src="{% static 'operation/js/modal.js' %}"></script>
 </body>
 </html>

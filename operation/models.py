@@ -31,6 +31,18 @@ class Viagem(models.Model):
         self.status = 'em_andamento'
         self.momento_iniciado = timezone.now()
         self.save()
+    
+    def pausar(self):
+        self.status = 'aguardando'
+        self.momento_iniciado = None
+        self.save()
+        
+    def cancelar(self):
+        self.status = 'aguardando'
+        self.momento_iniciado = None
+        self.save()
+        
+        self.paradas.update(status='Aguardando', momento_de_conclusao=None)
 
     def concluir(self, motorista):
         self.status = 'concluida'
