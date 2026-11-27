@@ -106,10 +106,12 @@ def criar_municipio(request):
 
             if municipio.gestor:
                 municipio.ofertado_pelo_sistema = True
-            municipio.save()
 
+            municipio.save()
             messages.success(request, "Município cadastrado com sucesso.")
             return redirect('management:municipios')
+        else:
+            return render(request, 'cadastro_municipio.html', {'erro': 'Dados inválidos', 'form': form})
     else:
         form = MunicipioForm()
     return render(request, 'cadastro_municipio.html', {'form': form})
@@ -473,14 +475,14 @@ def view_bus_stops(request):
     # filter_ocult_related_cities = request.GET.get('ocult_related_cities')
     # if not filter_ocult_related_cities: 
     #     
+    if city is not None:
+        related_cities = city.municipios_relacionados.all()
 
-    related_cities = city.municipios_relacionados.all()
-
-    bus_stops = BusStop.objects.filter(
-        Q(city__in=related_cities)
-    ).select_related('city').distinct()
-
-    return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
+        bus_stops = BusStop.objects.filter(
+            Q(city__in=related_cities)
+        ).select_related('city').distinct()
+        return render(request, 'manager/view_bus_stops.html', {'bus_stops': bus_stops})
+    return render(request, 'manager/view_bus_stops.html')
 
 @login_required()
 @role_required(allowed_roles=UserRole.MANAGER)
